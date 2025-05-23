@@ -10,10 +10,14 @@
 			"run_at": "document_end"
 		}
 	],
-	"permissions": ["webRequest", "webRequestBlocking"],
+	"host_permissions": ["https://monster-siren.hypergryph.com/*"],
 	"icons": {
 		"16": "vite.svg",
 		"48": "vite.svg",
 		"128": "vite.svg"
-	}
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"permissions": ["tabs", "webRequest"]
 }
