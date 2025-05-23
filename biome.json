@@ -41,6 +41,7 @@
 		"formatter": {
 			"quoteStyle": "single",
 			"semicolons": "asNeeded"
-		}
+		},
+		"globals": ["chrome", "browser"]
 	}
 }
