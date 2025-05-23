@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "MSR Mod",
+  "version": "0.0.1",
+  "description": "A Vue-based browser extension.",
+  "content_scripts": [
+    {
+      "matches": ["https://monster-siren.hypergryph.com/"],
+      "js": ["assets/index.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "vite.svg",
+    "48": "vite.svg",
+    "128": "vite.svg"
+  },
+  "permissions": []
+}
