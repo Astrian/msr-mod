@@ -12,7 +12,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 			details.type === 'other' &&
 			details.frameId === 0
 		) {
-			console.log('onBeforeRequest - REDIRECTING MAIN_FRAME')
 			chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
 			chrome.tabs.remove(details.tabId)
 		}
