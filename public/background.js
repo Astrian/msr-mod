@@ -1,5 +1,3 @@
-console.log('background.js loaded 55555')
-
 chrome.webRequest.onBeforeRequest.addListener(
 	(details) => {
 		console.log(
