@@ -4,29 +4,23 @@ import App from './App.vue'
 
 // Replace the body content with the Vue app
 // Remove existing body content
-document.body.innerHTML = ''
-// Create a new container for the Vue app
-const container = document.createElement('div')
-container.id = 'app'
-document.body.appendChild(container)
+document.getElementsByTagName('html')[0].innerHTML = `
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Popup</title>
+	</head>
+	<body>
+		<div id="app"></div>
+	</body>
+`
 
-// remove all script and link tags
-const scripts = document.getElementsByTagName('script')
-console.log(scripts)
-const links = document.getElementsByTagName('link')
-for (let i in scripts) {
-	console.log(scripts[i])
-	console.log(typeof scripts[i])
-	if (typeof scripts[i] === 'object') {
-		scripts[i].remove()
-	}
-}
-for (let i  in links) {
-	console.log(links[i])
-	console.log(typeof links[i])
-	if (typeof links[i] === 'object') {
-		links[i].remove()
-	}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (let registration of registrations) {
+      registration.unregister()
+    }
+  })
 }
 
 // mount Vue app
