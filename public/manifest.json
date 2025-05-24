@@ -21,7 +21,7 @@
 	},
 	"permissions": ["tabs", "webRequest"],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173;",
+    "extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com;",
     "sandbox": "sandbox"
   }
 }

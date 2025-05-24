@@ -1,0 +1,69 @@
+import axios from 'axios'
+
+const msrInstance = axios.create({
+	baseURL: 'https://monster-siren.hypergryph.com/api/',
+})
+
+type SongList = {
+	list: Song[]
+}
+
+type Song = {
+  cid: string
+  name: string
+  albumCid: string
+  sourceUrl?: string
+  lyricUrl?: string | null
+  mvUrl?: string | null
+  mvCoverUrl?: string | null
+  artists: string[]
+}
+
+type Album = {
+  cid: string
+  name: string
+  intro?: string
+  belong?: string
+  coverUrl: string
+  coverDeUrl?: string
+  artistes: string[]
+}
+
+type AlbumList = Album[]
+
+interface ApiResponse {
+	code: number
+	msg: string
+	data: unknown
+}
+
+export default {
+	async getSongs() {
+		const songs: {
+			data: ApiResponse
+		} = await msrInstance.get('songs')
+		if (songs.data.code !== 0) { throw new Error(`Cannot get songs: ${songs.data.msg}`) }
+		return { songs: songs.data.data as { list: SongList } }
+	},
+	async getSong(cid: string) {
+		const song: {
+			data: ApiResponse
+		} = await msrInstance.get(`song/${cid}`)
+		if (song.data.code!== 0) { return new Error(`Cannot get song: ${song.data.msg}`) }
+		return { song: song.data.data as Song }
+	},
+	async getAlbums() {
+		const albums: {
+			data: ApiResponse
+		} = await msrInstance.get('albums')
+		if (albums.data.code!== 0) { throw new Error(`Cannot get albums: ${albums.data.msg}`) }
+		return albums.data.data as AlbumList
+	},
+	async getAlbum(cid: string) {
+		const album: {
+			data: ApiResponse
+		} = await msrInstance.get(`album/${cid}/data`)
+		if (album.data.code!== 0) { throw new Error(`Cannot get album: ${album.data.msg}`) }
+		return album.data.data as Album
+	}
+}
