@@ -13,8 +13,12 @@ const playQueue = usePlayQueueStore()
 
 onMounted(async () => {
 	try {
-		const res = await apis.getAlbum(albumId as string)
+		let res = await apis.getAlbum(albumId as string)
+		for (const track in res.songs) {
+			res.songs[parseInt(track)] = await apis.getSong(res.songs[parseInt(track)].cid)
+		}
 		album.value = res
+		console.log(res)
 	} catch (error) {
 		console.log(error)
 	}
@@ -35,6 +39,7 @@ function playTheAlbum() {
 
 	let newPlayQueue = []
 	for (const track of album.value?.songs ?? []) {
+		console.log(track)
 		newPlayQueue.push({
 			song: track,
 			album: album.value
@@ -67,8 +72,7 @@ function playTheAlbum() {
 				<div class="flex gap-2">
 					<button
 						class="bg-sky-500/20 hover:bg-sky-500/30 active:bg-sky-600/30 active:shadow-inner border border-[#ffffff39] rounded-full w-56 h-10 text-base text-white flex justify-center items-center gap-2"
-						@click="playTheAlbum"
-					>
+						@click="playTheAlbum">
 						<div class="w-4 h-4">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								<path
@@ -115,8 +119,8 @@ function playTheAlbum() {
 					<div class="flex flex-col justify-center">
 						<div class="text-white text-base">{{ track.name }}</div>
 						<div class="text-white/50 text-sm"
-							v-if="artistsOrganize(track.artistes) !== artistsOrganize(album?.artistes ?? [])">
-							{{ artistsOrganize(track.artistes) }}
+							v-if="artistsOrganize(track.artists ?? []) !== artistsOrganize(album?.artistes ?? [])">
+							{{ artistsOrganize(track.artists ?? []) }}
 						</div>
 					</div>
 				</button>

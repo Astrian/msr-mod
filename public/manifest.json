@@ -5,12 +5,20 @@
 	"description": "A Vue-based browser extension.",
 	"content_scripts": [
 		{
-			"matches": ["https://monster-siren.hypergryph.com/"],
-			"js": ["content.js"],
+			"matches": [
+				"https://monster-siren.hypergryph.com/"
+			],
+			"js": [
+				"content.js"
+			],
 			"run_at": "document_end"
 		}
 	],
-	"host_permissions": ["https://monster-siren.hypergryph.com/*", "http://localhost:5173/*"],
+	"host_permissions": [
+		"https://monster-siren.hypergryph.com/*",
+		"http://localhost:5173/*",
+		"https://res01.hycdn.cn/*"
+	],
 	"icons": {
 		"16": "vite.svg",
 		"48": "vite.svg",
@@ -19,9 +27,12 @@
 	"background": {
 		"service_worker": "background.js"
 	},
-	"permissions": ["tabs", "webRequest"],
-  "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com; img-src 'self' https://web.hycdn.cn;",
-    "sandbox": "sandbox"
-  }
+	"permissions": [
+		"tabs",
+		"webRequest"
+	],
+	"content_security_policy": {
+		"extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com; img-src 'self' https://web.hycdn.cn; media-src 'self' https://res01.hycdn.cn;",
+		"sandbox": "sandbox"
+	}
 }

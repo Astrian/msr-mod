@@ -12,7 +12,8 @@ type Song = {
   lyricUrl?: string | null
   mvUrl?: string | null
   mvCoverUrl?: string | null
-  artistes: string[]
+  artistes?: string[]
+  artists?: string[]
 }
 
 type Album = {
