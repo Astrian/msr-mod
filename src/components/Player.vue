@@ -7,17 +7,69 @@ const playQueueStore = usePlayQueueStore()
 const player = useTemplateRef('playerRef')
 
 watch(() => playQueueStore.isPlaying, (newValue) => {
-	if (newValue) { player.value?.play() }
+	if (newValue) { 
+		player.value?.play() 
+		setMetadata()
+	}
 	else { player.value?.pause() }
 })
+
+watch(() => playQueueStore.currentIndex, () => {
+	setMetadata()
+})
+
+function artistsOrganize(list: string[]) {
+	if (list.length === 0) { return '未知音乐人' }
+	return list.map((artist) => {
+		return artist
+	}).join(' / ')
+}
+
+function setMetadata() {
+	if ('mediaSession' in navigator) {
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title: playQueueStore.list[playQueueStore.currentIndex].song.name,
+			artist: artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []),
+			album: playQueueStore.list[playQueueStore.currentIndex].album?.name,
+			artwork: [
+				{ src: playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl ?? '', sizes: '500x500', type: 'image/png' },
+			]
+		})
+
+		navigator.mediaSession.setActionHandler('previoustrack', playPrevious)
+		navigator.mediaSession.setActionHandler('nexttrack', playNext)
+	}
+}
+
+function playNext() {
+	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
+		playQueueStore.currentIndex = 0
+		player.value?.pause()
+	} else {
+		playQueueStore.currentIndex++
+		player.value?.play()
+	}
+}
+
+function playPrevious() {
+	if (player.value && (player.value.currentTime ?? 0) < 5 && playQueueStore.currentIndex > 0) {
+		playQueueStore.currentIndex-- 
+		player.value?.play()
+	} else { 
+		if (player.value) { player.value.currentTime = 0 }
+	}
+}
 </script>
 
 <template>
 	<div>
-		<audio :src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''" ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0"></audio>
+		<audio
+			:src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''"
+			ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0" @ended="playNext" @pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true">
+		</audio>
 
 		<div
-			class="text-white w-48 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden"
+			class="text-white w-48 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden select-none"
 			v-if="playQueueStore.list.length !== 0">
 			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl ?? ''" class="rounded-full" />
 			<div class="flex-1 flex items-center">
