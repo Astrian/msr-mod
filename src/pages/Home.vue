@@ -14,7 +14,7 @@ onMounted(async () => {
 	<div class="text-white flex flex-col gap-8">
 		<div class="grid xl:grid-cols-6 grid-cols-3 lg:grid-cols-4">
 			<div v-for="album in albums" :key="album.cid">
-				<RouterLink :to="`/album/${album.cid}`">
+				<RouterLink :to="`/albums/${album.cid}`">
 					<img :src="album.coverUrl" />
 				</RouterLink>
 			</div>

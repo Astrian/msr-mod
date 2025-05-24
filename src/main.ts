@@ -3,10 +3,11 @@ import { createWebHashHistory, createRouter } from 'vue-router'
 import './style.css'
 import App from './App.vue'
 import HomePage from './pages/Home.vue'
-import 'remixicon/fonts/remixicon.css'
+import AlbumDetailView from './pages/AlbumDetail.vue'
 
 const routes = [
-  { path: '/', component: HomePage }
+  { path: '/', component: HomePage },
+  { path: '/albums/:id', component: AlbumDetailView },
 ]
 
 const router = createRouter({
