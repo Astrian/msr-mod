@@ -27,13 +27,13 @@ function artistsOrganize(list: string[]) {
 </script>
 
 <template>
-	<div class="px-4 md:px-8 flex gap-8">
-		<div class="mx-auto w-48 md:mx-0 md:w-72">
-			<div class="sticky top-[6.625rem] flex flex-col gap-8">
-				<div class="border border-[#5b5b5b] rounded-md overflow-hidden shadow-2xl bg-neutral-800 sticky">
+	<div class="px-4 md:px-8 flex gap-8 flex-col md:flex-row select-none">
+		<div class="mx-auto md:mx-0 md:w-72">
+			<div class="md:sticky md:top-[6.625rem] flex flex-col gap-8">
+				<div class="border border-[#5b5b5b] rounded-md overflow-hidden shadow-2xl bg-neutral-800 sticky w-48 mx-auto md:w-72">
 					<img :src="album?.coverUrl" class="md:w-72 md:h-72 w-48 h-48 object-contain" />
 				</div>
-				<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-2 text-center md:text-left">
 					<div class="text-white text-2xl font-semibold">{{ album?.name }}</div>
 					<div class="text-sky-200 text-xl">{{ artistsOrganize(album?.artistes ?? []) }}</div>
 					<div class="text-white/50 text-sm">{{ album?.intro }}</div>
