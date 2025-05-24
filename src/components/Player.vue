@@ -7,8 +7,8 @@ const playQueueStore = usePlayQueueStore()
 const player = useTemplateRef('playerRef')
 
 watch(() => playQueueStore.isPlaying, (newValue) => {
-	if (newValue) { 
-		player.value?.play() 
+	if (newValue) {
+		player.value?.play()
 		setMetadata()
 	}
 	else { player.value?.pause() }
@@ -16,6 +16,7 @@ watch(() => playQueueStore.isPlaying, (newValue) => {
 
 watch(() => playQueueStore.currentIndex, () => {
 	setMetadata()
+	playQueueStore.isBuffering = true
 })
 
 function artistsOrganize(list: string[]) {
@@ -53,9 +54,9 @@ function playNext() {
 
 function playPrevious() {
 	if (player.value && (player.value.currentTime ?? 0) < 5 && playQueueStore.currentIndex > 0) {
-		playQueueStore.currentIndex-- 
+		playQueueStore.currentIndex--
 		player.value?.play()
-	} else { 
+	} else {
 		if (player.value) { player.value.currentTime = 0 }
 	}
 }
@@ -65,7 +66,9 @@ function playPrevious() {
 	<div>
 		<audio
 			:src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''"
-			ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0" @ended="playNext" @pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true">
+			ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0" @ended="playNext"
+			@pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true"
+			@canplaythrough="playQueueStore.isBuffering = false" @waiting="playQueueStore.isBuffering = true">
 		</audio>
 
 		<div
@@ -79,7 +82,17 @@ function playPrevious() {
 				playQueueStore.isPlaying = !playQueueStore.isPlaying
 			}">
 				<div class="w-4 h-4" v-if="playQueueStore.isPlaying">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" v-if="playQueueStore.isBuffering === true">
+						<circle fill="none" stroke-opacity="1" stroke="#FFFFFF" stroke-width=".5" cx="100" cy="100" r="0">
+							<animate attributeName="r" calcMode="spline" dur="2" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1"
+								repeatCount="indefinite"></animate>
+							<animate attributeName="stroke-width" calcMode="spline" dur="2" values="0;25" keyTimes="0;1"
+								keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
+							<animate attributeName="stroke-opacity" calcMode="spline" dur="2" values="1;0" keyTimes="0;1"
+								keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
+						</circle>
+					</svg>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" v-else>
 						<path d="M6 5H8V19H6V5ZM16 5H18V19H16V5Z"></path>
 					</svg>
 				</div>
