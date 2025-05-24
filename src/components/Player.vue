@@ -69,11 +69,11 @@ function playPrevious() {
 		</audio>
 
 		<div
-			class="text-white w-48 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden select-none"
+			class="text-white h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden select-none"
 			v-if="playQueueStore.list.length !== 0">
 			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl ?? ''" class="rounded-full" />
-			<div class="flex-1 flex items-center">
-				<span class="">{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}</span>
+			<div class="flex items-center w-32">
+				<span class="truncate">{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}</span>
 			</div>
 			<button class="h-9 w-9 flex justify-center items-center" @click="() => {
 				playQueueStore.isPlaying = !playQueueStore.isPlaying
