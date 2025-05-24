@@ -48,6 +48,7 @@ function playTheAlbum() {
 	playQueue.list = newPlayQueue
 	playQueue.currentIndex = 0
 	playQueue.isPlaying = true
+	playQueue.isBuffering = true
 }
 </script>
 

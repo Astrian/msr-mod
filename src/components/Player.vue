@@ -44,8 +44,10 @@ function setMetadata() {
 
 function playNext() {
 	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
+		console.log("at the bottom, pause")
 		playQueueStore.currentIndex = 0
 		player.value?.pause()
+		playQueueStore.isPlaying = false
 	} else {
 		playQueueStore.currentIndex++
 		player.value?.play()
@@ -66,9 +68,11 @@ function playPrevious() {
 	<div>
 		<audio
 			:src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''"
-			ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0" @ended="playNext"
-			@pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true"
-			@playing="playQueueStore.isBuffering = false" @waiting="playQueueStore.isBuffering = true">
+			ref="playerRef" :autoplay="playQueueStore.isPlaying" v-if="playQueueStore.list.length !== 0" @ended="playNext"
+			@pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true" @playing="() => {
+				playQueueStore.isBuffering = false
+				setMetadata()
+			}" @waiting="playQueueStore.isBuffering = true">
 		</audio>
 
 		<div
