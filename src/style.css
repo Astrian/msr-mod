@@ -7,6 +7,13 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'Alte DIN';
+	src: url('/assets/din1451alt.ttf') format('truetype-variations');
+	font-weight: 1 999;
+	font-display: swap;
+}
+
 * {
 	@apply font-[MiSans];
 }
@@ -17,4 +24,8 @@ button {
 
 input {
 	@apply focus:outline-none;
+}
+
+.track_num {
+	font-family: 'DIN Alternate', 'Alte DIN' !important;
 }

@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import apis from '../apis'
 import { useRoute } from 'vue-router'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
+import { artistsOrganize } from '../utils'
+import TrackItem from '../components/TrackItem.vue'
 
 const album = ref<Album>()
 
@@ -23,13 +25,6 @@ onMounted(async () => {
 		console.log(error)
 	}
 })
-
-function artistsOrganize(list: string[]) {
-	if (list.length === 0) { return '未知音乐人' }
-	return list.map((artist) => {
-		return artist
-	}).join(' / ')
-}
 
 function playTheAlbum() {
 	if (playQueue.queueReplaceLock) {
@@ -112,19 +107,7 @@ function playTheAlbum() {
 				</div>
 			</div>
 			<div class="flex flex-col gap-2">
-				<button v-for="(track, index) in album?.songs" :key="track.cid"
-					class="flex align-center gap-4 text-left odd:bg-neutral-800/20 px-2 h-[2.75rem] rounded-md hover:bg-neutral-800 align-center">
-					<div class="w-8 flex justify-center items-center">
-						<span class="text-2xl text-white">{{ index + 1 }}</span>
-					</div>
-					<div class="flex flex-col justify-center">
-						<div class="text-white text-base">{{ track.name }}</div>
-						<div class="text-white/50 text-sm"
-							v-if="artistsOrganize(track.artists ?? []) !== artistsOrganize(album?.artistes ?? [])">
-							{{ artistsOrganize(track.artists ?? []) }}
-						</div>
-					</div>
-				</button>
+				<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track" :index="index" />
 			</div>
 		</div>
 	</div>
