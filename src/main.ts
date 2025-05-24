@@ -7,7 +7,7 @@ import AlbumDetailView from './pages/AlbumDetail.vue'
 
 const routes = [
   { path: '/', component: HomePage },
-  { path: '/albums/:id', component: AlbumDetailView },
+  { path: '/albums/:albumId', component: AlbumDetailView },
 ]
 
 const router = createRouter({

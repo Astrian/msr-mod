@@ -29,8 +29,14 @@ export default {
 	async getAlbum(cid: string) {
 		const album: {
 			data: ApiResponse
-		} = await msrInstance.get(`album/${cid}/data`)
+		} = await msrInstance.get(`album/${cid}/detail`)
 		if (album.data.code!== 0) { throw new Error(`Cannot get album: ${album.data.msg}`) }
-		return album.data.data as Album
+		const albumMeta: {
+			data: ApiResponse
+		} = await msrInstance.get(`album/${cid}/data`)
+		let data = album.data.data as Album
+		data.artistes = (albumMeta.data.data as Album).artistes
+		console.log(albumMeta)
+		return data
 	}
 }

@@ -7,12 +7,12 @@ type SongList = {
 type Song = {
   cid: string
   name: string
-  albumCid: string
+  albumCid?: string
   sourceUrl?: string
   lyricUrl?: string | null
   mvUrl?: string | null
   mvCoverUrl?: string | null
-  artists: string[]
+  artistes: string[]
 }
 
 type Album = {
@@ -23,6 +23,7 @@ type Album = {
   coverUrl: string
   coverDeUrl?: string
   artistes: string[]
+  songs?: Song[]
 }
 
 type AlbumList = Album[]
