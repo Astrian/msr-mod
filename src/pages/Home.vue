@@ -11,11 +11,12 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="text-white flex flex-col gap-8 mb-16">
-		<h1 class="text-4xl font-semibold pt-8 px-4 sticky top-0 bg-gradient-to-b from-[#00000080] to-transparent">浏览</h1>
-		<div class="grid grid-cols-5">
+	<div class="text-white flex flex-col gap-8">
+		<div class="grid xl:grid-cols-6 grid-cols-3 lg:grid-cols-4">
 			<div v-for="album in albums" :key="album.cid">
-				<img :src="album.coverUrl" />
+				<RouterLink :to="`/album/${album.cid}`">
+					<img :src="album.coverUrl" />
+				</RouterLink>
 			</div>
 		</div>
 	</div>
