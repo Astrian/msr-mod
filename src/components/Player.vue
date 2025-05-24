@@ -68,7 +68,7 @@ function playPrevious() {
 			:src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''"
 			ref="playerRef" autoplay v-if="playQueueStore.list.length !== 0" @ended="playNext"
 			@pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true"
-			@canplaythrough="playQueueStore.isBuffering = false" @waiting="playQueueStore.isBuffering = true">
+			@playing="playQueueStore.isBuffering = false" @waiting="playQueueStore.isBuffering = true">
 		</audio>
 
 		<div
