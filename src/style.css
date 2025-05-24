@@ -14,3 +14,7 @@
 button {
 	@apply cursor-pointer;
 }
+
+input {
+	@apply focus:outline-none;
+}

@@ -6,7 +6,9 @@ import Playing from './components/Playing.vue'
 <template>
 	<div class="w-screen h-screen overflow-hidden">
 		<div class="flex flex-1 w-full h-full">
-			<Sidebar />
+			<div class="">
+				<Sidebar />
+			</div>
 			<div class="flex-1 bg-[#070909] w-full overflow-y-auto">
 				<RouterView />
 			</div>
