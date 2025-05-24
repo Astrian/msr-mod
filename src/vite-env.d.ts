@@ -33,3 +33,8 @@ interface ApiResponse {
 	msg: string
 	data: unknown
 }
+
+interface QueueItem {
+  song: Song
+  album?: Album
+}

@@ -2,17 +2,19 @@
 import { ref, onMounted } from 'vue'
 import apis from '../apis'
 import { useRoute } from 'vue-router'
+import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 
 const album = ref<Album>()
 
 const route = useRoute()
 const albumId = route.params.albumId
 
+const playQueue = usePlayQueueStore()
+
 onMounted(async () => {
 	try {
 		const res = await apis.getAlbum(albumId as string)
 		album.value = res
-		console.log(res)
 	} catch (error) {
 		console.log(error)
 	}
@@ -23,6 +25,24 @@ function artistsOrganize(list: string[]) {
 	return list.map((artist) => {
 		return artist
 	}).join(' / ')
+}
+
+function playTheAlbum() {
+	if (playQueue.queueReplaceLock) {
+		if (!confirm("当前操作会将你的待播列表清空、放入这张专辑所有曲目，并从新待播清单的开头播放。继续吗？")) { return }
+		playQueue.queueReplaceLock = false
+	}
+
+	let newPlayQueue = []
+	for (const track of album.value?.songs ?? []) {
+		newPlayQueue.push({
+			song: track,
+			album: album.value
+		})
+	}
+	playQueue.list = newPlayQueue
+	playQueue.currentIndex = 0
+	playQueue.isPlaying = true
 }
 </script>
 
@@ -46,7 +66,9 @@ function artistsOrganize(list: string[]) {
 			<div class="flex justify-between items-center">
 				<div class="flex gap-2">
 					<button
-						class="bg-sky-500/20 hover:bg-sky-500/30 active:bg-sky-600/30 active:shadow-inner border border-[#ffffff39] rounded-full w-56 h-10 text-base text-white flex justify-center items-center gap-2">
+						class="bg-sky-500/20 hover:bg-sky-500/30 active:bg-sky-600/30 active:shadow-inner border border-[#ffffff39] rounded-full w-56 h-10 text-base text-white flex justify-center items-center gap-2"
+						@click="playTheAlbum"
+					>
 						<div class="w-4 h-4">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								<path
