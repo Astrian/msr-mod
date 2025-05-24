@@ -50,14 +50,14 @@ function playNext() {
 		playQueueStore.isPlaying = false
 	} else {
 		playQueueStore.currentIndex++
-		player.value?.play()
+		playQueueStore.isPlaying = true
 	}
 }
 
 function playPrevious() {
 	if (player.value && (player.value.currentTime ?? 0) < 5 && playQueueStore.currentIndex > 0) {
 		playQueueStore.currentIndex--
-		player.value?.play()
+		playQueueStore.isPlaying = true
 	} else {
 		if (player.value) { player.value.currentTime = 0 }
 	}
