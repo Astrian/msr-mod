@@ -12,6 +12,10 @@ import ForwardIcon from '../assets/icons/forward.vue'
 import PlayIcon from '../assets/icons/play.vue'
 import PauseIcon from '../assets/icons/pause.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
+import ChatBubbleQuoteIcon from '../assets/icons/chatbubblequote.vue'
+import StarEmptyIcon from '../assets/icons/starempty.vue'
+import MusicListIcon from '../assets/icons/musiclist.vue'
+import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
 
 const playQueueStore = usePlayQueueStore()
 gsap.registerPlugin(Draggable)
@@ -126,18 +130,20 @@ function playPrevious() {
 				</div>
 
 				<div class="w-full flex justify-between items-center">
-					<div class="flex-1 text-left"></div>
+					<div class="flex-1 text-left flex gap-1">
+						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+							<StarEmptyIcon :size="4" />
+						</button>
+						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+							<MusicListIcon :size="4" />
+						</button>
+					</div>
+
 					<div class="flex-2 text-center align-center justify-center gap-2 flex">
 
 						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
 							@click="playPrevious">
-							<div class="w-6 h-6">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-									<path
-										d="M11.0002 17.035C11.0002 17.1383 10.9682 17.239 10.9087 17.3234C10.7494 17.549 10.4375 17.6028 10.2119 17.4435L3.07889 12.4085C3.03228 12.3756 2.99164 12.335 2.95874 12.2883C2.7995 12.0627 2.85329 11.7508 3.07889 11.5915L10.2119 6.55648C10.2962 6.49693 10.3969 6.46497 10.5002 6.46497C10.7763 6.46497 11.0002 6.68882 11.0002 6.96497V17.035ZM12.0789 12.4085C12.0323 12.3756 11.9916 12.335 11.9587 12.2883C11.7995 12.0627 11.8533 11.7508 12.0789 11.5915L19.2119 6.55648C19.2962 6.49693 19.3969 6.46497 19.5002 6.46497C19.7763 6.46497 20.0002 6.68882 20.0002 6.96497V17.035C20.0002 17.1383 19.9682 17.239 19.9087 17.3234C19.7494 17.549 19.4375 17.6028 19.2119 17.4435L12.0789 12.4085Z">
-									</path>
-								</svg>
-							</div>
+							<RewindIcon :size="6" />
 						</button>
 
 						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
@@ -151,16 +157,19 @@ function playPrevious() {
 
 						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
 							@click="playNext">
-							<div class="w-6 h-6">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-									<path
-										d="M4.78834 17.4434C4.70398 17.503 4.60326 17.535 4.5 17.535C4.22386 17.535 4 17.3111 4 17.035V6.96488C4 6.86163 4.03197 6.7609 4.09152 6.67654C4.25076 6.45094 4.56274 6.39715 4.78834 6.5564L11.9213 11.5914C11.9679 11.6243 12.0086 11.665 12.0415 11.7116C12.2007 11.9372 12.1469 12.2492 11.9213 12.4084L4.78834 17.4434ZM13 6.96488C13 6.86163 13.032 6.7609 13.0915 6.67654C13.2508 6.45094 13.5627 6.39715 13.7883 6.5564L20.9213 11.5914C20.9679 11.6243 21.0086 11.665 21.0415 11.7116C21.2007 11.9372 21.1469 12.2492 20.9213 12.4084L13.7883 17.4434C13.704 17.503 13.6033 17.535 13.5 17.535C13.2239 17.535 13 17.3111 13 17.035V6.96488Z">
-									</path>
-								</svg>
-							</div>
+							<ForwardIcon :size="6" />
 						</button>
 					</div>
-					<div class="flex-1 text-right"></div>
+
+					<div class="flex-1 text-right flex">
+						<div class="flex-1" />
+						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+							<ChatBubbleQuoteIcon :size="4" />
+						</button>
+						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+							<EllipsisHorizontalIcon :size="4" />
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
