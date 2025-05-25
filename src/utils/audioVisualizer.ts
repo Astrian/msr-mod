@@ -15,7 +15,7 @@ interface AudioVisualizerOptions {
 
 export function audioVisualizer(options: AudioVisualizerOptions = {}) {
   const {
-    sensitivity = 1,
+    sensitivity = 0.5,
     smoothing = 0.7,
     barCount = 4,
     debug = false,
