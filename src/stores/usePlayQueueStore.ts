@@ -7,6 +7,8 @@ export const usePlayQueueStore = defineStore('queue', () =>{
 	const isPlaying = ref<boolean>(false)
 	const queueReplaceLock = ref<boolean>(false)
 	const isBuffering = ref<boolean>(false)
+	const currentTime = ref<number>(0)
+	const duration = ref<number>(0)
 
-  return { list, currentIndex, isPlaying, queueReplaceLock, isBuffering }
+  return { list, currentIndex, isPlaying, queueReplaceLock, isBuffering, currentTime, duration }
 })
