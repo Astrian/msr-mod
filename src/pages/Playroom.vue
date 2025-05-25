@@ -224,7 +224,7 @@ function makePlayQueueListDismiss() {
 	<dialog :open="presentQueueListDialog" class="z-20 w-screen h-screen" @click="makePlayQueueListDismiss" ref="playQueueDialogContainer" style="background-color: #17171780;">
 		<div class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl pt-8 flex flex-col" @click.stop ref="playQueueDialog">
 			<div class="flex justify-between mx-8 mb-4">
-				<div class="text-white font-medium text-2xl">待播清单</div>
+				<div class="text-white font-medium text-2xl">播放队列</div>
 				<button class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center" @click="makePlayQueueListDismiss">
 					<XIcon :size="4" />
 				</button>
@@ -241,8 +241,25 @@ function makePlayQueueListDismiss() {
 
 			<hr class="border-[#ffffff39]" />
 
-			<div class="flex-auto h-0 overflow-y-auto px-8">
-				
+			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2">
+				<button v-for="(track, index) in playQueueStore.list" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2" :key="track.song.cid">
+					<div class="flex gap-2">
+						<div class="relative w-12 h-12 rounded-md shadow-xl overflow-hidden">
+							<img :src="track.album?.coverUrl" />
+							<div class="w-full h-full absolute top-0 left-0 bg-neutral-900/75 flex justify-center items-center" v-if="index === playQueueStore.currentIndex">
+								<div style="height: 1rem;" class="flex justify-center items-center gap-[.125rem]">
+									<div class="bg-white w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer" :key="index" :style="{
+										height: `${Math.max(10, bar)}%`
+									}" />
+								</div>
+							</div>
+						</div>
+						<div class="flex flex-col text-left">
+							<div class="text-white text-base font-medium">{{ track.song.name }}</div>
+							<div class="text-white/75 text-sm">{{ artistsOrganize(track.song.artists?? []) }} — {{ track.album?.name?? '未知专辑' }}</div>
+						</div>
+					</div>
+				</button>
 			</div>
 		</div>
 	</dialog>
