@@ -46,7 +46,7 @@ function setMetadata() {
 	}
 
 	watch(() => playQueueStore.updatedCurrentTime, (newValue) => {
-		if (!newValue) { return }
+		if (newValue === null) { return }
 		if (player.value) player.value.currentTime = newValue
 		playQueueStore.updatedCurrentTime = null
 	})

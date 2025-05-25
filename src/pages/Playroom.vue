@@ -31,9 +31,10 @@ onMounted(() => {
 
 function timeFormatter(time: number) {
 	const timeInSeconds = Math.floor(time)
-	if (timeInSeconds < 0) { return '0:00' }
+	if (timeInSeconds < 0) { return '-:--' }
 	const minutes = Math.floor(timeInSeconds / 60)
 	const seconds = Math.floor(timeInSeconds % 60)
+	if (isNaN(minutes) || isNaN(seconds)) { return '-:--' }
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
