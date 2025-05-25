@@ -30,7 +30,7 @@ onMounted(async () => {
 	}
 })
 
-function playTheAlbum() {
+function playTheAlbum(from: number = 0) {
 	if (playQueue.queueReplaceLock) {
 		if (!confirm("当前操作会将你的待播列表清空、放入这张专辑所有曲目，并从新待播清单的开头播放。继续吗？")) { return }
 		playQueue.queueReplaceLock = false
@@ -45,7 +45,7 @@ function playTheAlbum() {
 		})
 	}
 	playQueue.list = newPlayQueue
-	playQueue.currentIndex = 0
+	playQueue.currentIndex = from
 	playQueue.isPlaying = true
 	playQueue.isBuffering = true
 }
@@ -72,7 +72,7 @@ function playTheAlbum() {
 				<div class="flex gap-2">
 					<button
 						class="bg-sky-500/20 hover:bg-sky-500/30 active:bg-sky-600/30 active:shadow-inner border border-[#ffffff39] rounded-full w-56 h-10 text-base text-white flex justify-center items-center gap-2"
-						@click="playTheAlbum">
+						@click="playTheAlbum()">
 						<PlayIcon :size="4" />
 						<div>播放专辑</div>
 					</button>
@@ -93,7 +93,7 @@ function playTheAlbum() {
 				</div>
 			</div>
 			<div class="flex flex-col gap-2">
-				<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track" :index="index" />
+				<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track" :index="index" :playfrom="playTheAlbum" />
 			</div>
 		</div>
 	</div>
