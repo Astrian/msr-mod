@@ -89,9 +89,13 @@ function updateCurrentTime() {
 
 console.log('[Player] 初始化 audioVisualizer')
 const { barHeights, connectAudio, isAnalyzing, error } = audioVisualizer({
-	sensitivity: 1.5,
-	barCount: 6,
-	debug: true
+  sensitivity: 1.5,
+  barCount: 6,
+  maxDecibels: -10,
+  bassBoost: 0.8,
+  midBoost: 1.2,
+  trebleBoost: 1.4,
+  threshold: 0
 })
 
 console.log('[Player] audioVisualizer 返回值:', { barHeights: barHeights.value, isAnalyzing: isAnalyzing.value })

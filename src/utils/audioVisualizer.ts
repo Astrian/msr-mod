@@ -11,18 +11,19 @@ interface AudioVisualizerOptions {
   trebleBoost?: number   // 高音增强倍数 (默认 1.5)
   threshold?: number     // 响度门槛 (0-255，默认 15)
   minHeight?: number     // 最小高度百分比 (默认 0)
+  maxDecibels?: number   // 最大分贝门槛 (默认 -10，越大越难顶满)
 }
 
 export function audioVisualizer(options: AudioVisualizerOptions = {}) {
   const {
-    sensitivity = 0.5,
+    sensitivity = 1,
     smoothing = 0.7,
     barCount = 4,
     debug = false,
     bassBoost = 0.7,      // 降低低音权重
     midBoost = 1.2,       // 提升中音
     trebleBoost = 1.5,    // 提升高音
-    threshold = 0,       // 响度门槛，低于此值不产生波动
+    threshold = 15,       // 响度门槛，低于此值不产生波动
     minHeight = 0         // 最小高度百分比
   } = options
 
@@ -90,13 +91,14 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
       analyser.fftSize = 2048        // 增加分辨率
       analyser.smoothingTimeConstant = smoothing
       analyser.minDecibels = -100    // 更低的最小分贝
-      analyser.maxDecibels = -10     // 调整最大分贝范围
+      analyser.maxDecibels = options.maxDecibels || -10  // 使用配置的最大分贝门槛
       
       log('分析器配置:', {
         fftSize: analyser.fftSize,
         frequencyBinCount: analyser.frequencyBinCount,
         sampleRate: audioContext.sampleRate,
-        frequencyResolution: audioContext.sampleRate / analyser.fftSize
+        frequencyResolution: audioContext.sampleRate / analyser.fftSize,
+        maxDecibels: analyser.maxDecibels
       })
       
       // 连接音频节点
@@ -168,12 +170,10 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
     
     // 定义人耳感知的频率范围 (Hz)
     const frequencyRanges = [
-      { min: 20, max: 150, name: '超低音' },     // 超低音
-      { min: 150, max: 400, name: '低音' },      // 低音
-      { min: 400, max: 1500, name: '中低音' },   // 中低音
-      { min: 1500, max: 4000, name: '中音' },    // 中音
-      { min: 4000, max: 8000, name: '中高音' },  // 中高音
-      { min: 8000, max: 20000, name: '高音' }    // 高音
+      { min: 20, max: 250, name: '低音' },      // 低音
+      { min: 250, max: 2000, name: '中低音' },   // 中低音  
+      { min: 2000, max: 8000, name: '中高音' },  // 中高音
+      { min: 8000, max: 20000, name: '高音' }   // 高音
     ]
     
     for (let i = 0; i < bands; i++) {
@@ -210,7 +210,8 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
 
   // 应用频段特定的增强和门槛
   function applyFrequencyEnhancement(bands: number[]): number[] {
-    const boosts = [bassBoost, midBoost, trebleBoost, trebleBoost]
+    // 六个频段的增强倍数
+    const boosts = [bassBoost, bassBoost, midBoost, midBoost, trebleBoost, trebleBoost]
     
     return bands.map((value, index) => {
       // 应用响度门槛
@@ -292,19 +293,21 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
 
   // 手动测试数据
   function testWithFakeData() {
-    log('🧪 开始平衡频谱模拟测试')
+    log('🧪 开始六频段模拟测试')
     isAnalyzing.value = true
     
     let testCount = 0
     const maxTests = 50
     
     const fakeInterval = setInterval(() => {
-      // 模拟更平衡的频谱数据
+      // 模拟六个频段的数据
       barHeights.value = [
+        Math.random() * 50 + 10,  // 超低音：10-60
         Math.random() * 60 + 20,  // 低音：20-80
-        Math.random() * 80 + 10,  // 中低音：10-90
-        Math.random() * 90 + 5,   // 中高音：5-95
-        Math.random() * 70 + 15   // 高音：15-85
+        Math.random() * 70 + 15,  // 中低音：15-85
+        Math.random() * 80 + 10,  // 中音：10-90
+        Math.random() * 75 + 10,  // 中高音：10-85
+        Math.random() * 65 + 15   // 高音：15-80
       ]
       testCount++
       
@@ -318,20 +321,37 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
   }
 
   // 动态调整增强参数和门槛
-  function updateEnhancement(bass: number, mid: number, treble: number, newThreshold?: number) {
+  function updateEnhancement(bass: number, mid: number, treble: number, newThreshold?: number, newMaxDecibels?: number) {
     options.bassBoost = bass
     options.midBoost = mid
     options.trebleBoost = treble
     if (newThreshold !== undefined) {
       options.threshold = newThreshold
     }
-    log('更新频段增强:', { bass, mid, treble, threshold: options.threshold })
+    if (newMaxDecibels !== undefined) {
+      options.maxDecibels = newMaxDecibels
+      // 如果分析器已经初始化，更新其配置
+      if (analyser) {
+        analyser.maxDecibels = newMaxDecibels
+        log('实时更新 maxDecibels:', newMaxDecibels)
+      }
+    }
+    log('更新频段增强:', { bass, mid, treble, threshold: options.threshold, maxDecibels: options.maxDecibels })
   }
 
   // 设置响度门槛
   function setThreshold(newThreshold: number) {
     options.threshold = Math.max(0, Math.min(255, newThreshold))
     log('更新响度门槛:', options.threshold)
+  }
+
+  // 设置最大分贝门槛
+  function setMaxDecibels(newMaxDecibels: number) {
+    options.maxDecibels = Math.max(-100, Math.min(0, newMaxDecibels))
+    if (analyser) {
+      analyser.maxDecibels = options.maxDecibels
+    }
+    log('更新最大分贝门槛:', options.maxDecibels)
   }
 
   // 组件卸载时清理
@@ -350,6 +370,7 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
     stopAnalysis,
     testWithFakeData,
     updateEnhancement,
-    setThreshold
+    setThreshold,
+    setMaxDecibels
   }
 }
