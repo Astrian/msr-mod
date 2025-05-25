@@ -5,7 +5,7 @@ import gsap from 'gsap'
 import { Draggable } from "gsap/Draggable"
 import { onMounted } from 'vue'
 import { useTemplateRef } from 'vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const playQueueStore = usePlayQueueStore()
 gsap.registerPlugin(Draggable)
@@ -18,7 +18,13 @@ const displayTimeLeft = ref(false)
 onMounted(() => {
 	Draggable.create(progressBarThumb.value, {
 		type: 'x',
-		bounds: progressBarContainer.value
+		bounds: progressBarContainer.value,
+		onDrag: function() {
+			const thumbPosition = this.x
+			const containerWidth = progressBarContainer.value?.clientWidth || 0
+			const newTime = (thumbPosition / containerWidth) * playQueueStore.duration
+			playQueueStore.updatedCurrentTime = newTime
+		}
 	})
 
 })
@@ -31,7 +37,14 @@ function timeFormatter(time: number) {
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
-
+// 监听播放进度，更新进度条
+watch(() => playQueueStore.currentTime, () => {
+	const progress = playQueueStore.currentTime / playQueueStore.duration
+	const containerWidth = progressBarContainer.value?.clientWidth || 0
+	const thumbWidth = progressBarThumb.value?.clientWidth || 0
+	const newPosition = (containerWidth - thumbWidth) * progress
+	gsap.to(progressBarThumb.value, { x: newPosition, duration: 0.1 })
+})
 </script>
 
 <template>

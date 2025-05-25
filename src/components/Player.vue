@@ -44,6 +44,12 @@ function setMetadata() {
 		playQueueStore.duration = player.value?.duration?? 0
 		playQueueStore.currentTime = player.value?.currentTime?? 0
 	}
+
+	watch(() => playQueueStore.updatedCurrentTime, (newValue) => {
+		if (!newValue) { return }
+		if (player.value) player.value.currentTime = newValue
+		playQueueStore.updatedCurrentTime = null
+	})
 }
 
 function playNext() {
