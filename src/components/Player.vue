@@ -5,7 +5,6 @@ import { useTemplateRef, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 
 import PlayIcon from '../assets/icons/play.vue'
-import PauseIcon from '../assets/icons/pause.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import { audioVisualizer } from '../utils'
 
@@ -183,12 +182,16 @@ watch(() => error.value, (newError) => {
 				</div>
 			</RouterLink>
 
-			<button class="h-9 w-9 flex justify-center items-center" @click.stop="() => {
+			<button class="h-9 w-12 flex justify-center items-center" @click.stop="() => {
 				playQueueStore.isPlaying = !playQueueStore.isPlaying
 			}">
 				<div v-if="playQueueStore.isPlaying">
 					<LoadingIndicator v-if="playQueueStore.isBuffering === true" :size="4" />
-					<PauseIcon v-else :size="4" />
+					<div v-else class="h-4 flex justify-center items-center gap-[.125rem]">
+						<div class="bg-white/75 w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer" :key="index" :style="{
+							height: `${Math.max(10, bar)}%`
+						}" />
+					</div>
 				</div>
 				<PlayIcon v-else :size="4" />
 			</button>
