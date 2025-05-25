@@ -26,7 +26,7 @@ onMounted(() => {
 			playQueueStore.updatedCurrentTime = newTime
 		}
 	})
-
+	thumbUpdate()
 })
 
 function timeFormatter(time: number) {
@@ -40,12 +40,16 @@ function timeFormatter(time: number) {
 
 // 监听播放进度，更新进度条
 watch(() => playQueueStore.currentTime, () => {
+	thumbUpdate()
+})
+
+function thumbUpdate() {
 	const progress = playQueueStore.currentTime / playQueueStore.duration
 	const containerWidth = progressBarContainer.value?.clientWidth || 0
 	const thumbWidth = progressBarThumb.value?.clientWidth || 0
 	const newPosition = (containerWidth - thumbWidth) * progress
 	gsap.to(progressBarThumb.value, { x: newPosition, duration: 0.1 })
-})
+}
 
 function formatDetector() {
 	const format = playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl?.split('.').pop()
