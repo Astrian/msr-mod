@@ -242,7 +242,7 @@ function makePlayQueueListDismiss() {
 			<hr class="border-[#ffffff39]" />
 
 			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2">
-				<button v-for="(track, index) in playQueueStore.list" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2" :key="track.song.cid">
+				<button v-for="(track, index) in playQueueStore.list" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2" :key="track.song.cid" @click="playQueueStore.currentIndex = index; playQueueStore.isPlaying = true">
 					<div class="flex gap-2">
 						<div class="relative w-12 h-12 rounded-md shadow-xl overflow-hidden">
 							<img :src="track.album?.coverUrl" />
