@@ -170,11 +170,13 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
     
     // 定义人耳感知的频率范围 (Hz)
     const frequencyRanges = [
-      { min: 20, max: 250, name: '低音' },      // 低音
-      { min: 250, max: 2000, name: '中低音' },   // 中低音  
-      { min: 2000, max: 8000, name: '中高音' },  // 中高音
-      { min: 8000, max: 20000, name: '高音' }   // 高音
-    ]
+			{ min: 20, max: 80, name: '超低音' },      // 索引 0
+			{ min: 80, max: 250, name: '低音' },       // 索引 1  
+			{ min: 250, max: 800, name: '中低音' },    // 索引 2
+			{ min: 800, max: 2500, name: '中音' },     // 索引 3
+			{ min: 2500, max: 6000, name: '中高音' },  // 索引 4
+			{ min: 6000, max: 20000, name: '高音' }    // 索引 5
+		]
     
     for (let i = 0; i < bands; i++) {
       const range = frequencyRanges[i] || frequencyRanges[frequencyRanges.length - 1]

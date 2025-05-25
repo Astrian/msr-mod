@@ -148,9 +148,9 @@ function makePlayQueueListDismiss() {
 			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl"
 				class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
 			<div>
-				<div class="text-white text-lg font-medium">{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+				<div class="text-white text-lg font-medium truncate">{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
 				</div>
-				<div class="text-white/75 text-base">
+				<div class="text-white/75 text-base truncate">
 					{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
 					{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
 				</div>
