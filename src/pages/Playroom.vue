@@ -16,6 +16,9 @@ import ChatBubbleQuoteIcon from '../assets/icons/chatbubblequote.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
 import MusicListIcon from '../assets/icons/musiclist.vue'
 import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
+import XIcon from '../assets/icons/x.vue'
+import ShuffleIcon from '../assets/icons/shuffle.vue'
+import ListArrowIcon from '../assets/icons/listarrow.vue'
 
 const playQueueStore = usePlayQueueStore()
 gsap.registerPlugin(Draggable)
@@ -26,7 +29,7 @@ const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
 
 const displayTimeLeft = ref(false)
-const presentQueueListDialog = ref(false)
+const presentQueueListDialog = ref(true)
 
 onMounted(() => {
 	Draggable.create(progressBarThumb.value, {
@@ -219,12 +222,27 @@ function makePlayQueueListDismiss() {
 
 	<!-- Queue list -->
 	<dialog :open="presentQueueListDialog" class="z-20 w-screen h-screen" @click="makePlayQueueListDismiss" ref="playQueueDialogContainer" style="background-color: #17171780;">
-		<div class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl p-8 flex flex-col" @click.stop ref="playQueueDialog">
-			<div class="flex justify-between">
+		<div class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl pt-8 flex flex-col" @click.stop ref="playQueueDialog">
+			<div class="flex justify-between mx-8 mb-4">
 				<div class="text-white font-medium text-2xl">待播清单</div>
-				<button class="text-white" @click="makePlayQueueListDismiss">
-
+				<button class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center" @click="makePlayQueueListDismiss">
+					<XIcon :size="4" />
 				</button>
+			</div>
+
+			<div class="flex gap-2 mx-8 mb-4">
+				<button class="text-white flex-1 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center" @click="makePlayQueueListDismiss">
+					<ShuffleIcon :size="4" />
+				</button>
+				<button class="text-white flex-1 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center" @click="makePlayQueueListDismiss">
+					<ListArrowIcon :size="4" />
+				</button>
+			</div>
+
+			<hr class="border-[#ffffff39]" />
+
+			<div class="flex-auto h-0 overflow-y-auto px-8">
+				
 			</div>
 		</div>
 	</dialog>
