@@ -29,7 +29,7 @@ const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
 
 const displayTimeLeft = ref(false)
-const presentQueueListDialog = ref(true)
+const presentQueueListDialog = ref(false)
 
 onMounted(() => {
 	Draggable.create(progressBarThumb.value, {
@@ -254,9 +254,9 @@ function makePlayQueueListDismiss() {
 								</div>
 							</div>
 						</div>
-						<div class="flex flex-col text-left">
-							<div class="text-white text-base font-medium">{{ track.song.name }}</div>
-							<div class="text-white/75 text-sm">{{ artistsOrganize(track.song.artists?? []) }} — {{ track.album?.name?? '未知专辑' }}</div>
+						<div class="flex flex-col text-left flex-auto w-0">
+							<div class="text-white text-base font-medium truncate">{{ track.song.name }}</div>
+							<div class="text-white/75 text-sm truncate">{{ artistsOrganize(track.song.artists?? []) }} — {{ track.album?.name?? '未知专辑' }}</div>
 						</div>
 					</div>
 				</button>
