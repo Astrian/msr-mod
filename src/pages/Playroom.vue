@@ -7,6 +7,12 @@ import { onMounted } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 
+import RewindIcon from '../assets/icons/rewind.vue'
+import ForwardIcon from '../assets/icons/forward.vue'
+import PlayIcon from '../assets/icons/play.vue'
+import PauseIcon from '../assets/icons/pause.vue'
+import LoadingIndicator from '../assets/icons/loadingindicator.vue'
+
 const playQueueStore = usePlayQueueStore()
 gsap.registerPlugin(Draggable)
 
@@ -83,7 +89,8 @@ function playPrevious() {
 </script>
 
 <template>
-	<div class="z-0 absolute top-0 left-0 w-screen h-screen" v-if="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl">
+	<div class="z-0 absolute top-0 left-0 w-screen h-screen"
+		v-if="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl">
 		<img class="w-full h-full blur-2xl object-cover"
 			:src="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl" />
 		<div class="bg-gray-600/50 w-full h-full absolute top-0 left-0" />
@@ -122,7 +129,8 @@ function playPrevious() {
 					<div class="flex-1 text-left"></div>
 					<div class="flex-2 text-center align-center justify-center gap-2 flex">
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25" @click="playPrevious">
+						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
+							@click="playPrevious">
 							<div class="w-6 h-6">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 									<path
@@ -134,31 +142,15 @@ function playPrevious() {
 
 						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
 							@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
-							<div class="w-6 h-6">
-								<div v-if="playQueueStore.isPlaying">
-									<svg v-if="playQueueStore.isBuffering" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-										<circle fill="none" stroke-opacity="1" stroke="#FFFFFF" stroke-width=".5" cx="100" cy="100" r="0">
-											<animate attributeName="r" calcMode="spline" dur="2" values="1;80" keyTimes="0;1"
-												keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
-											<animate attributeName="stroke-width" calcMode="spline" dur="2" values="0;25" keyTimes="0;1"
-												keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
-											<animate attributeName="stroke-opacity" calcMode="spline" dur="2" values="1;0" keyTimes="0;1"
-												keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
-										</circle>
-									</svg>
-									<svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-										<path d="M6 5H8V19H6V5ZM16 5H18V19H16V5Z"></path>
-									</svg>
-								</div>
-								<svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-									<path
-										d="M19.376 12.4161L8.77735 19.4818C8.54759 19.635 8.23715 19.5729 8.08397 19.3432C8.02922 19.261 8 19.1645 8 19.0658V4.93433C8 4.65818 8.22386 4.43433 8.5 4.43433C8.59871 4.43433 8.69522 4.46355 8.77735 4.5183L19.376 11.584C19.6057 11.7372 19.6678 12.0477 19.5146 12.2774C19.478 12.3323 19.4309 12.3795 19.376 12.4161Z">
-									</path>
-								</svg>
+							<div v-if="playQueueStore.isPlaying">
+								<LoadingIndicator v-if="playQueueStore.isBuffering" :size="6" />
+								<PauseIcon v-else :size="6" />
 							</div>
+							<PlayIcon v-else :size="6" />
 						</button>
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25" @click="playNext">
+						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
+							@click="playNext">
 							<div class="w-6 h-6">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 									<path
