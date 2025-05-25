@@ -55,6 +55,26 @@ function formatDetector() {
 	if (format === 'wav') { return 'WAV' }
 	return '未知格式'
 }
+
+function playNext() {
+	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
+		console.log("at the bottom, pause")
+		playQueueStore.currentIndex = 0
+		playQueueStore.isPlaying = false
+	} else {
+		playQueueStore.currentIndex++
+		playQueueStore.isPlaying = true
+	}
+}
+
+function playPrevious() {
+	if (playQueueStore.currentTime < 5 && playQueueStore.currentIndex > 0) {
+		playQueueStore.currentIndex--
+		playQueueStore.isPlaying = true
+	} else {
+		playQueueStore.updatedCurrentTime = 0
+	}
+}
 </script>
 
 <template>
@@ -97,7 +117,7 @@ function formatDetector() {
 					<div class="flex-1 text-left"></div>
 					<div class="flex-2 text-center align-center justify-center gap-2 flex">
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25">
+						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25" @click="playPrevious">
 							<div class="w-6 h-6">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 									<path
@@ -133,7 +153,7 @@ function formatDetector() {
 							</div>
 						</button>
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25">
+						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25" @click="playNext">
 							<div class="w-6 h-6">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 									<path
