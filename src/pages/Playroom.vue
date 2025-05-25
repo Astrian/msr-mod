@@ -45,12 +45,24 @@ watch(() => playQueueStore.currentTime, () => {
 	const newPosition = (containerWidth - thumbWidth) * progress
 	gsap.to(progressBarThumb.value, { x: newPosition, duration: 0.1 })
 })
+
+function formatDetector() {
+	const format = playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl?.split('.').pop()
+	if (format === 'mp3') { return 'MP3' }
+	if (format === 'flac') { return 'FLAC' }
+	if (format === 'm4a') { return 'M4A' }
+	if (format === 'ape') { return 'APE' }
+	if (format === 'wav') { return 'WAV' }
+	return '未知格式'
+}
 </script>
 
 <template>
-	<img class="z-0 absolute top-0 left-0 w-screen h-screen blur-2xl object-cover"
-		:src="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl"
-		v-if="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl" />
+	<div class="z-0 absolute top-0 left-0 w-screen h-screen" v-if="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl">
+		<img class="w-full h-full blur-2xl object-cover"
+			:src="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl" />
+		<div class="bg-gray-600/50 w-full h-full absolute top-0 left-0" />
+	</div>
 
 	<div class="w-full flex justify-center items-center my-auto gap-12 z-10 select-none">
 		<div class="flex flex-col text-center w-96 gap-4">
@@ -76,7 +88,7 @@ watch(() => playQueueStore.currentTime, () => {
 					<div class="text-white/75 font-light flex-1 text-left">
 						{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}
 					</div>
-					<div class="text-white text-xs text-center">MP3</div>
+					<div class="text-white text-xs text-center">{{ formatDetector() }}</div>
 					<button class="text-white/75 font-light flex-1 text-right"
 						@click="displayTimeLeft = !displayTimeLeft">{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</button>
 				</div>
