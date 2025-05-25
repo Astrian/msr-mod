@@ -22,8 +22,11 @@ gsap.registerPlugin(Draggable)
 
 const progressBarThumb = useTemplateRef('progressBarThumb')
 const progressBarContainer = useTemplateRef('progressBarContainer')
+const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
+const playQueueDialog = useTemplateRef('playQueueDialog')
 
 const displayTimeLeft = ref(false)
+const presentQueueListDialog = ref(false)
 
 onMounted(() => {
 	Draggable.create(progressBarThumb.value, {
@@ -90,6 +93,43 @@ function playPrevious() {
 		playQueueStore.updatedCurrentTime = 0
 	}
 }
+
+function makePlayQueueListPresent() {
+	presentQueueListDialog.value = true
+	const tl = gsap.timeline()
+	tl.from(playQueueDialog.value, {
+		marginLeft: '-24rem',
+		duration: 0.2,
+		ease: 'power2.out'
+	}).from(playQueueDialogContainer.value, {
+		backgroundColor: 'transparent',
+		duration: 0.2,
+		ease: 'power2.out'
+	}, '<')
+}
+
+function makePlayQueueListDismiss() {
+	const tl = gsap.timeline({
+		onComplete: () => {
+			presentQueueListDialog.value = false
+		}
+	})
+	tl.to(playQueueDialog.value, {
+		marginLeft: '-24rem',
+		duration: 0.2,
+		ease: 'power2.out'
+	}).to(playQueueDialogContainer.value, {
+		backgroundColor: 'transparent',
+		duration: 0.2,
+		ease: 'power2.out'
+	}).set(playQueueDialogContainer.value, {
+		backgroundColor: '#17171780',
+		ease: 'power2.out'
+	}).set(playQueueDialog.value, {
+		marginLeft: '0rem',
+		ease: 'power2.out'
+	})
+}
 </script>
 
 <template>
@@ -137,7 +177,7 @@ function playPrevious() {
 					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
 						<StarEmptyIcon :size="4" />
 					</button>
-					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25" @click="makePlayQueueListPresent">
 						<MusicListIcon :size="4" />
 					</button>
 				</div>
@@ -176,4 +216,16 @@ function playPrevious() {
 			</div>
 		</div>
 	</div>
+
+	<!-- Queue list -->
+	<dialog :open="presentQueueListDialog" class="z-20 w-screen h-screen" @click="makePlayQueueListDismiss" ref="playQueueDialogContainer" style="background-color: #17171780;">
+		<div class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl p-8 flex flex-col" @click.stop ref="playQueueDialog">
+			<div class="flex justify-between">
+				<div class="text-white font-medium text-2xl">待播清单</div>
+				<button class="text-white" @click="makePlayQueueListDismiss">
+
+				</button>
+			</div>
+		</div>
+	</dialog>
 </template>
