@@ -100,7 +100,7 @@ function playPrevious() {
 		<div class="bg-gray-600/50 w-full h-full absolute top-0 left-0" />
 	</div>
 
-	<div class="w-full flex justify-center items-center my-auto gap-12 z-10 select-none">
+	<div class="w-full flex justify-center items-center my-auto gap-16 z-10 select-none">
 		<div class="flex flex-col text-center w-96 gap-4">
 			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl"
 				class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
@@ -129,47 +129,49 @@ function playPrevious() {
 						@click="displayTimeLeft = !displayTimeLeft">{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</button>
 				</div>
 
-				<div class="w-full flex justify-between items-center">
-					<div class="flex-1 text-left flex gap-1">
-						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
-							<StarEmptyIcon :size="4" />
-						</button>
-						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
-							<MusicListIcon :size="4" />
-						</button>
-					</div>
+				
+			</div>
 
-					<div class="flex-2 text-center align-center justify-center gap-2 flex">
+			<div class="w-full flex justify-between items-center">
+				<div class="flex-1 text-left flex gap-1">
+					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+						<StarEmptyIcon :size="4" />
+					</button>
+					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+						<MusicListIcon :size="4" />
+					</button>
+				</div>
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playPrevious">
-							<RewindIcon :size="6" />
-						</button>
+				<div class="flex-2 text-center align-center justify-center gap-2 flex">
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
-							<div v-if="playQueueStore.isPlaying">
-								<LoadingIndicator v-if="playQueueStore.isBuffering" :size="6" />
-								<PauseIcon v-else :size="6" />
-							</div>
-							<PlayIcon v-else :size="6" />
-						</button>
+					<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
+						@click="playPrevious">
+						<RewindIcon :size="6" />
+					</button>
 
-						<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playNext">
-							<ForwardIcon :size="6" />
-						</button>
-					</div>
+					<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
+						@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
+						<div v-if="playQueueStore.isPlaying">
+							<LoadingIndicator v-if="playQueueStore.isBuffering" :size="6" />
+							<PauseIcon v-else :size="6" />
+						</div>
+						<PlayIcon v-else :size="6" />
+					</button>
 
-					<div class="flex-1 text-right flex">
-						<div class="flex-1" />
-						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
-							<ChatBubbleQuoteIcon :size="4" />
-						</button>
-						<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
-							<EllipsisHorizontalIcon :size="4" />
-						</button>
-					</div>
+					<button class="text-white flex-1 h-8 flex justify-center items-center rounded-lg hover:bg-white/25"
+						@click="playNext">
+						<ForwardIcon :size="6" />
+					</button>
+				</div>
+
+				<div class="flex-1 text-right flex">
+					<div class="flex-1" />
+					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+						<ChatBubbleQuoteIcon :size="4" />
+					</button>
+					<button class="text-white h-6 w-6 flex justify-center items-center rounded-full hover:bg-white/25">
+						<EllipsisHorizontalIcon :size="4" />
+					</button>
 				</div>
 			</div>
 		</div>
