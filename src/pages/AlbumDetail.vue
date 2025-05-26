@@ -52,7 +52,7 @@ function playTheAlbum(from: number = 0) {
 </script>
 
 <template>
-	<div class="px-4 md:px-8 flex gap-8 flex-col md:flex-row select-none">
+	<div class="px-4 md:px-8 flex gap-8 flex-col md:flex-row select-none mt-[6.625rem]">
 		<div class="mx-auto md:mx-0 md:w-72">
 			<div class="md:sticky md:top-[6.625rem] flex flex-col gap-8">
 				<div

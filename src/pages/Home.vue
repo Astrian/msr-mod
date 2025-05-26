@@ -11,7 +11,7 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="text-white flex flex-col gap-8">
+	<div class="text-white flex flex-col gap-8 mt-[6.625rem]">
 		<div class="grid xl:grid-cols-6 grid-cols-3 lg:grid-cols-4">
 			<div v-for="album in albums" :key="album.cid">
 				<RouterLink :to="`/albums/${album.cid}`">

@@ -31,6 +31,7 @@ const progressBarThumb = useTemplateRef('progressBarThumb')
 const progressBarContainer = useTemplateRef('progressBarContainer')
 const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
+const controllerRef = useTemplateRef('controllerRef')
 
 const presentQueueListDialog = ref(false)
 
@@ -144,6 +145,10 @@ function getCurrentTrack() {
 		return playQueueStore.list[playQueueStore.currentIndex]
 	}
 }
+
+function calculateStickyTop() {
+	return (window.innerHeight - (controllerRef.value?.clientHeight ?? 0)) / 2
+}
 </script>
 
 <template>
@@ -152,8 +157,10 @@ function getCurrentTrack() {
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
-	<div class="w-full flex justify-center items-center my-auto gap-16 z-10 select-none">
-		<div class="flex flex-col w-96 gap-4">
+	<div class="absolute top-0 left-0 flex justify-center items-center h-screen w-screen overflow-y-auto gap-16 z-10 select-none">
+		<div class="flex flex-col w-96 gap-4 sticky" :style="{
+			top: `${calculateStickyTop()}px`
+		}" ref="controllerRef">
 			<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
 			<div class="flex justify-between items-center gap-2">
 				<div class="relative flex-auto w-0">
@@ -325,6 +332,7 @@ function getCurrentTrack() {
 				</div>
 			</div>
 		</div>
+		
 	</div>
 
 	<!-- Queue list -->

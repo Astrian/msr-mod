@@ -12,7 +12,7 @@ const route = useRoute()
 <template>
 	<div class="w-screen h-screen overflow-hidden bg-[#191919]">
 		<div class="flex flex-col w-full h-full overflow-y-auto pb-24">
-			<div class="py-8 px-4 md:px-8 sticky top-0 bg-gradient-to-b from-[#00000080] to-transparent z-10">
+			<div class="py-8 px-4 md:px-8 w-screen bg-gradient-to-b from-[#00000080] to-transparent z-20 absolute top-0">
 				<div class="flex justify-between align-center h-[2.625rem] items-center">
 					<ul class="flex gap-4"  v-if="(() => {
 						if (route.path === '/lucky' || route.path === '/library' || route.path === '/') { return true }
