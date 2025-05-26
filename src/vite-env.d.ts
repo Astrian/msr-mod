@@ -39,3 +39,17 @@ interface QueueItem {
   song: Song
   album?: Album
 }
+
+interface LyricsLine {
+  type: 'lyric'
+  time: number
+  text: string
+  originalTime: string
+}
+
+interface GapLine {
+  type: 'gap'
+  time: number
+  originalTime: string
+  duration?: number // 添加间隔持续时间
+}

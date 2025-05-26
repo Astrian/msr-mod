@@ -8,6 +8,8 @@ import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 import { usePreferences } from '../stores/usePreferences'
 
+import ScrollingLyrics from '../components/ScrollingLyrics.vue'
+
 import RewindIcon from '../assets/icons/rewind.vue'
 import ForwardIcon from '../assets/icons/forward.vue'
 import PlayIcon from '../assets/icons/play.vue'
@@ -157,182 +159,187 @@ function calculateStickyTop() {
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
-	<div class="absolute top-0 left-0 flex justify-center items-center h-screen w-screen overflow-y-auto gap-16 z-10 select-none">
-		<div class="flex flex-col w-96 gap-4 sticky" :style="{
-			top: `${calculateStickyTop()}px`
-		}" ref="controllerRef">
-			<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
-			<div class="flex justify-between items-center gap-2">
-				<div class="relative flex-auto w-0">
-					<div class="">
-						<div class="text-black/90 blur-lg text-lg font-medium truncate w-80">
-							{{ getCurrentTrack().song.name }}
+	<div class="absolute top-0 left-0 flex justify-center  h-screen w-screen overflow-y-auto z-10 select-none">
+		<div class="sticky w-96" :style="{
+			top: `${calculateStickyTop()}px`,
+			height: `${controllerRef?.clientHeight?? 0}px`
+		}">
+			<div class="flex flex-col w-96 gap-4" ref="controllerRef">
+				<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
+				<div class="flex justify-between items-center gap-2">
+					<div class="relative flex-auto w-0">
+						<div class="">
+							<div class="text-black/90 blur-lg text-lg font-medium truncate w-80">
+								{{ getCurrentTrack().song.name }}
+							</div>
+							<div class="text-black/90 blur-lg text-base truncate w-80">
+								{{ getCurrentTrack().song.artists ?? [] }} —
+								{{ getCurrentTrack().album?.name ?? '未知专辑' }}
+							</div>
 						</div>
-						<div class="text-black/90 blur-lg text-base truncate w-80">
-							{{ getCurrentTrack().song.artists ?? [] }} —
-							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
+
+						<div class="absolute top-0">
+							<div class="text-white text-lg font-medium truncate w-80">
+								{{ getCurrentTrack().song.name }}
+							</div>
+							<div class="text-white/75 text-base truncate w-80">
+								{{ artistsOrganize(getCurrentTrack().song.artists ?? []) }} —
+								{{ getCurrentTrack().album?.name ?? '未知专辑' }}
+							</div>
 						</div>
+
 					</div>
 
-					<div class="absolute top-0">
-						<div class="text-white text-lg font-medium truncate w-80">
-							{{ getCurrentTrack().song.name }}
-						</div>
-						<div class="text-white/75 text-base truncate w-80">
-							{{ artistsOrganize(getCurrentTrack().song.artists ?? []) }} —
-							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
-						</div>
-					</div>
-
+					<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
+						<span class="text-white">
+							<StarEmptyIcon :size="6" />
+						</span>
+					</button>
 				</div>
 
-				<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
-					<span class="text-white">
-						<StarEmptyIcon :size="6" />
-					</span>
-				</button>
-			</div>
+				<div class="flex flex-col gap-1">
+					<div class="w-full p-[0.125rem] bg-white/20 shadow-[0_.125rem_1rem_0_#00000010] rounded-full backdrop-blur-3xl">
+						<div class="w-full" ref="progressBarContainer">
+							<div class="w-2 h-2 bg-white rounded-full shadow-md" ref="progressBarThumb" />
+						</div>
+					</div>
 
-			<div class="flex flex-col gap-1">
-				<div class="w-full p-[0.125rem] bg-white/20 shadow-[0_.125rem_1rem_0_#00000010] rounded-full backdrop-blur-3xl">
-					<div class="w-full" ref="progressBarContainer">
-						<div class="w-2 h-2 bg-white rounded-full shadow-md" ref="progressBarThumb" />
-					</div>
-				</div>
-
-				<div class="w-full flex justify-between">
-					<div class="font-medium flex-1 text-left relative">
-						<span
-							class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
-						<span class="text-white/90">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
-					</div>
-					<div class="text-xs text-center relative">
-						<span class="text-black blur-lg absolute top-0">{{ formatDetector() }}</span>
-						<span class="text-white">{{ formatDetector() }}</span>
-					</div>
-					<div class="flex flex-1">
-						<div class="flex-1" />
-						<button class="text-white/90 font-medium text-right relative" @click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
+					<div class="w-full flex justify-between">
+						<div class="font-medium flex-1 text-left relative">
 							<span
-								class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
-							<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+								class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+							<span class="text-white/90">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+						</div>
+						<div class="text-xs text-center relative">
+							<span class="text-black blur-lg absolute top-0">{{ formatDetector() }}</span>
+							<span class="text-white">{{ formatDetector() }}</span>
+						</div>
+						<div class="flex flex-1">
+							<div class="flex-1" />
+							<button class="text-white/90 font-medium text-right relative" @click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
+								<span
+									class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+								<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+							</button>
+						</div>
+					</div>
+
+
+				</div>
+
+				<div class="w-full flex justify-between items-center">
+					<div class="flex-1 text-left flex gap-1">
+						<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+							<div class="w-6 h-6 relative">
+								<span class="text-black blur-md absolute top-0 left-0">
+									<SpeakerIcon :size="6" />
+								</span>
+								<span class="text-white">
+									<SpeakerIcon :size="6" />
+								</span>
+							</div>
+						</button>
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25"
+							@click="makePlayQueueListPresent">
+							<div class="w-6 h-6 relative">
+								<span class="text-black blur-md absolute top-0 left-0">
+									<MusicListIcon :size="6" />
+								</span>
+								<span class="text-white">
+									<MusicListIcon :size="6" />
+								</span>
+							</div>
+						</button>
+					</div>
+
+					<div class="flex-2 text-center align-center justify-center gap-2 flex">
+
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
+							@click="playPrevious">
+							<div class="w-8 h-8 relative">
+								<span class="text-black/80 blur-lg absolute top-0 left-0">
+									<RewindIcon :size="8" />
+								</span>
+								<span class="text-white">
+									<RewindIcon :size="8" />
+								</span>
+							</div>
+						</button>
+
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
+							@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
+							<div v-if="playQueueStore.isPlaying">
+								<div v-if="playQueueStore.isBuffering" class="w-6 h-6 relative">
+									<span class="text-black/80 blur-lg absolute top-0 left-0">
+										<LoadingIndicator :size="6" />
+									</span>
+									<span class="text-white">
+										<LoadingIndicator :size="6" />
+									</span>
+								</div>
+								<div v-else class="w-8 h-8 relative">
+									<span class="text-black blur-md absolute top-0 left-0">
+										<PauseIcon :size="8" />
+									</span>
+									<span class="text-white">
+										<PauseIcon :size="8" />
+									</span>
+								</div>
+							</div>
+							<div v-else>
+								<div class="w-8 h-8 relative">
+									<span class="text-black/80 blur-lg absolute top-0 left-0">
+										<PlayIcon :size="8" />
+									</span>
+									<span class="text-white">
+										<PlayIcon :size="8" />
+									</span>
+								</div>
+							</div>
+						</button>
+
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
+							@click="playNext">
+							<div class="w-8 h-8 relative">
+								<span class="text-black/80 blur-lg absolute top-0 left-0">
+									<ForwardIcon :size="8" />
+								</span>
+								<span class="text-white">
+									<ForwardIcon :size="8" />
+								</span>
+							</div>
+						</button>
+					</div>
+
+					<div class="flex-1 text-right flex gap-1">
+						<div class="flex-1" />
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+							<div class="w-6 h-6 relative">
+								<span class="text-black blur-md absolute top-0 left-0">
+									<ChatBubbleQuoteIcon :size="6" />
+								</span>
+								<span class="text-white">
+									<ChatBubbleQuoteIcon :size="6" />
+								</span>
+							</div>
+						</button>
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+							<div class="w-6 h-6 relative">
+								<span class="text-black blur-sm absolute top-0 left-0">
+									<EllipsisHorizontalIcon :size="6" />
+								</span>
+								<span class="text-white">
+									<EllipsisHorizontalIcon :size="6" />
+								</span>
+							</div>
 						</button>
 					</div>
 				</div>
-
-
-			</div>
-
-			<div class="w-full flex justify-between items-center">
-				<div class="flex-1 text-left flex gap-1">
-					<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
-						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0">
-								<SpeakerIcon :size="6" />
-							</span>
-							<span class="text-white">
-								<SpeakerIcon :size="6" />
-							</span>
-						</div>
-					</button>
-					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25"
-						@click="makePlayQueueListPresent">
-						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0">
-								<MusicListIcon :size="6" />
-							</span>
-							<span class="text-white">
-								<MusicListIcon :size="6" />
-							</span>
-						</div>
-					</button>
-				</div>
-
-				<div class="flex-2 text-center align-center justify-center gap-2 flex">
-
-					<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-						@click="playPrevious">
-						<div class="w-8 h-8 relative">
-							<span class="text-black/80 blur-lg absolute top-0 left-0">
-								<RewindIcon :size="8" />
-							</span>
-							<span class="text-white">
-								<RewindIcon :size="8" />
-							</span>
-						</div>
-					</button>
-
-					<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-						@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
-						<div v-if="playQueueStore.isPlaying">
-							<div v-if="playQueueStore.isBuffering" class="w-6 h-6 relative">
-								<span class="text-black/80 blur-lg absolute top-0 left-0">
-									<LoadingIndicator :size="6" />
-								</span>
-								<span class="text-white">
-									<LoadingIndicator :size="6" />
-								</span>
-							</div>
-							<div v-else class="w-8 h-8 relative">
-								<span class="text-black blur-md absolute top-0 left-0">
-									<PauseIcon :size="8" />
-								</span>
-								<span class="text-white">
-									<PauseIcon :size="8" />
-								</span>
-							</div>
-						</div>
-						<div v-else>
-							<div class="w-8 h-8 relative">
-								<span class="text-black/80 blur-lg absolute top-0 left-0">
-									<PlayIcon :size="8" />
-								</span>
-								<span class="text-white">
-									<PlayIcon :size="8" />
-								</span>
-							</div>
-						</div>
-					</button>
-
-					<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-						@click="playNext">
-						<div class="w-8 h-8 relative">
-							<span class="text-black/80 blur-lg absolute top-0 left-0">
-								<ForwardIcon :size="8" />
-							</span>
-							<span class="text-white">
-								<ForwardIcon :size="8" />
-							</span>
-						</div>
-					</button>
-				</div>
-
-				<div class="flex-1 text-right flex gap-1">
-					<div class="flex-1" />
-					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
-						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0">
-								<ChatBubbleQuoteIcon :size="6" />
-							</span>
-							<span class="text-white">
-								<ChatBubbleQuoteIcon :size="6" />
-							</span>
-						</div>
-					</button>
-					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
-						<div class="w-6 h-6 relative">
-							<span class="text-black blur-sm absolute top-0 left-0">
-								<EllipsisHorizontalIcon :size="6" />
-							</span>
-							<span class="text-white">
-								<EllipsisHorizontalIcon :size="6" />
-							</span>
-						</div>
-					</button>
-				</div>
 			</div>
 		</div>
-		
+		<div>
+			<ScrollingLyrics :lrcSrc="getCurrentTrack().song.lyricUrl ?? undefined" />
+		</div>
 	</div>
 
 	<!-- Queue list -->
