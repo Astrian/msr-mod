@@ -6,6 +6,7 @@ import { Draggable } from "gsap/Draggable"
 import { onMounted } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
+import { usePreferences } from '../stores/usePreferences'
 
 import RewindIcon from '../assets/icons/rewind.vue'
 import ForwardIcon from '../assets/icons/forward.vue'
@@ -23,6 +24,7 @@ import CycleTwoArrowsWithNumOneIcon from '../assets/icons/cycletwoarrowswithnumo
 import SpeakerIcon from '../assets/icons/speaker.vue'
 
 const playQueueStore = usePlayQueueStore()
+const preferences = usePreferences()
 gsap.registerPlugin(Draggable)
 
 const progressBarThumb = useTemplateRef('progressBarThumb')
@@ -30,10 +32,9 @@ const progressBarContainer = useTemplateRef('progressBarContainer')
 const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
 
-const displayTimeLeft = ref(false)
 const presentQueueListDialog = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {
 		type: 'x',
 		bounds: progressBarContainer.value,
@@ -204,10 +205,10 @@ function getCurrentTrack() {
 					</div>
 					<div class="flex flex-1">
 						<div class="flex-1" />
-						<button class="text-white/90 font-medium text-right relative" @click="displayTimeLeft = !displayTimeLeft">
+						<button class="text-white/90 font-medium text-right relative" @click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
 							<span
-								class="text-black blur-lg absolute top-0">{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
-							<span>{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+								class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+							<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
 						</button>
 					</div>
 				</div>
