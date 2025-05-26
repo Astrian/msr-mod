@@ -158,20 +158,20 @@ function getCurrentTrack() {
 			<div class="flex justify-between items-center gap-2">
 				<div class="relative flex-auto w-0">
 					<div class="">
-						<div class="text-black/90 blur-lg text-lg font-medium truncate">
+						<div class="text-black/90 blur-lg text-lg font-medium truncate w-80">
 							{{ getCurrentTrack().song.name }}
 						</div>
-						<div class="text-black/90 blur-lg text-base truncate">
+						<div class="text-black/90 blur-lg text-base truncate w-80">
 							{{ getCurrentTrack().song.artists ?? [] }} —
 							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
 						</div>
 					</div>
 
 					<div class="absolute top-0">
-						<div class="text-white text-lg font-medium truncate">
+						<div class="text-white text-lg font-medium truncate w-80">
 							{{ getCurrentTrack().song.name }}
 						</div>
-						<div class="text-white/75 text-base truncate">
+						<div class="text-white/75 text-base truncate w-80">
 							{{ artistsOrganize(getCurrentTrack().song.artists ?? []) }} —
 							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
 						</div>
