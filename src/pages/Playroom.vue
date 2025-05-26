@@ -325,7 +325,7 @@ watch(() => playQueueStore.currentIndex, () => {
 <template>
 	<!-- Background remains unchanged -->
 	<div class="z-0 absolute top-0 left-0 w-screen h-screen" v-if="getCurrentTrack().album?.coverDeUrl">
-		<img class="w-full h-full blur-2xl object-cover" :src="getCurrentTrack().album?.coverDeUrl" />
+		<img class="w-full h-full blur-2xl object-cover scale-110" :src="getCurrentTrack().album?.coverDeUrl" />
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
