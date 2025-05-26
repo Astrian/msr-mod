@@ -138,7 +138,7 @@ function makePlayQueueListDismiss() {
 
 function getCurrentTrack() {
 	if (playQueueStore.playMode.shuffle) {
-		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]] 
+		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]]
 	} else {
 		return playQueueStore.list[playQueueStore.currentIndex]
 	}
@@ -146,18 +146,15 @@ function getCurrentTrack() {
 </script>
 
 <template>
-	<div class="z-0 absolute top-0 left-0 w-screen h-screen"
-		v-if="getCurrentTrack().album?.coverDeUrl">
-		<img class="w-full h-full blur-2xl object-cover"
-			:src="getCurrentTrack().album?.coverDeUrl" />
+	<div class="z-0 absolute top-0 left-0 w-screen h-screen" v-if="getCurrentTrack().album?.coverDeUrl">
+		<img class="w-full h-full blur-2xl object-cover" :src="getCurrentTrack().album?.coverDeUrl" />
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
 	<div class="w-full flex justify-center items-center my-auto gap-16 z-10 select-none">
 		<div class="flex flex-col w-96 gap-4">
-			<img :src="getCurrentTrack().album?.coverUrl"
-				class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
-			<div class="flex justify-between items-center">
+			<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
+			<div class="flex justify-between items-center gap-2">
 				<div class="relative flex-auto w-0">
 					<div class="">
 						<div class="text-black/90 blur-lg text-lg font-medium truncate">
@@ -181,11 +178,11 @@ function getCurrentTrack() {
 
 				</div>
 
-				<div class="relative">
-					<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
-						<span class="text-white"><StarEmptyIcon :size="6" /></span>
-					</button>
-				</div>
+				<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
+					<span class="text-white">
+						<StarEmptyIcon :size="6" />
+					</span>
+				</button>
 			</div>
 
 			<div class="flex flex-col gap-1">
@@ -378,8 +375,8 @@ function getCurrentTrack() {
 			<hr class="border-[#ffffff39]" />
 
 			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.playMode.shuffle">
-				<button v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2"
-					:key="oriIndex" @click="() => {
+				<button v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList"
+					class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2" :key="oriIndex" @click="() => {
 						if (playQueueStore.currentIndex === shuffledIndex) { return }
 						playQueueStore.currentIndex = shuffledIndex
 						playQueueStore.isPlaying = true
@@ -399,7 +396,8 @@ function getCurrentTrack() {
 						</div>
 						<div class="flex flex-col text-left flex-auto w-0">
 							<div class="text-white text-base font-medium truncate">{{ playQueueStore.list[oriIndex].song.name }}</div>
-							<div class="text-white/75 text-sm truncate">{{ artistsOrganize(playQueueStore.list[oriIndex].song.artists ?? []) }} —
+							<div class="text-white/75 text-sm truncate">
+								{{ artistsOrganize(playQueueStore.list[oriIndex].song.artists ?? []) }} —
 								{{ playQueueStore.list[oriIndex].album?.name ?? '未知专辑' }}
 							</div>
 						</div>
