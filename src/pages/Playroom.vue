@@ -3,7 +3,7 @@ import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { artistsOrganize } from '../utils'
 import gsap from 'gsap'
 import { Draggable } from "gsap/Draggable"
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 import { usePreferences } from '../stores/usePreferences'
@@ -34,8 +34,27 @@ const progressBarContainer = useTemplateRef('progressBarContainer')
 const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
 const controllerRef = useTemplateRef('controllerRef')
+const mainContainer = useTemplateRef('mainContainer')
+const lyricsSection = useTemplateRef('lyricsSection')
+const scrollingLyrics = useTemplateRef('scrollingLyrics')
+const albumCover = useTemplateRef('albumCover')
+const songInfo = useTemplateRef('songInfo')
+const progressSection = useTemplateRef('progressSection')
+const controlButtons = useTemplateRef('controlButtons')
+
+const favoriteButton = useTemplateRef('favoriteButton')
+const volumeButton = useTemplateRef('volumeButton')
+const queueButton = useTemplateRef('queueButton')
+const prevButton = useTemplateRef('prevButton')
+const playButton = useTemplateRef('playButton')
+const nextButton = useTemplateRef('nextButton')
+const lyricsButton = useTemplateRef('lyricsButton')
+const moreButton = useTemplateRef('moreButton')
 
 const presentQueueListDialog = ref(false)
+const controllerHeight = ref(500)
+let resizeObserver: ResizeObserver | null = null
+let heightSyncTween: gsap.core.Tween | null = null
 
 onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {
@@ -49,6 +68,9 @@ onMounted(async () => {
 		}
 	})
 	thumbUpdate()
+
+	setupHeightSync()
+	setupEntranceAnimations()
 })
 
 function timeFormatter(time: number) {
@@ -103,41 +125,110 @@ function playPrevious() {
 	}
 }
 
+function setupHeightSync() {
+	if (controllerRef.value && lyricsSection.value) {
+		updateLyricsHeight()
+		
+		resizeObserver = new ResizeObserver(() => {
+			updateLyricsHeight()
+		})
+		resizeObserver.observe(controllerRef.value)
+	}
+}
+
+function updateLyricsHeight() {
+	if (!controllerRef.value || !lyricsSection.value) return
+	
+	const newHeight = controllerRef.value.offsetHeight
+	
+	if (Math.abs(newHeight - controllerHeight.value) > 5) {
+		controllerHeight.value = newHeight
+		
+		if (heightSyncTween) {
+			heightSyncTween.kill()
+		}
+		
+		heightSyncTween = gsap.to(lyricsSection.value, {
+			height: newHeight,
+			duration: 0.3,
+			ease: "power2.out"
+		})
+	}
+}
+
+function setupEntranceAnimations() {
+	if (controllerRef.value) {
+		gsap.fromTo(controllerRef.value.children,
+			{ opacity: 0, y: 30, scale: 0.95 },
+			{ 
+				opacity: 1, y: 0, scale: 1,
+				duration: 0.6, ease: "power2.out", stagger: 0.1
+			}
+		)
+	}
+	
+	if (lyricsSection.value) {
+		gsap.fromTo(lyricsSection.value,
+			{ opacity: 0, x: 50 },
+			{ opacity: 1, x: 0, duration: 0.8, ease: "power2.out", delay: 0.3 }
+		)
+	}
+}
+
+function handlePlayPause() {
+	if (playButton.value) {
+		gsap.to(playButton.value, {
+			scale: 0.9, duration: 0.1, yoyo: true, repeat: 1,
+			ease: "power2.inOut",
+			onComplete: () => {
+				playQueueStore.isPlaying = !playQueueStore.isPlaying
+			}
+		})
+	}
+}
+
+function toggleShuffle() {
+	playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
+	playQueueStore.shuffleCurrent = false
+}
+
+function toggleRepeat() {
+	switch (playQueueStore.playMode.repeat) {
+		case 'off': playQueueStore.playMode.repeat = 'all'; break
+		case 'all': playQueueStore.playMode.repeat = 'single'; break
+		case 'single': playQueueStore.playMode.repeat = 'off'; break
+	}
+}
+
 function makePlayQueueListPresent() {
 	presentQueueListDialog.value = true
+	
 	const tl = gsap.timeline()
-	tl.from(playQueueDialog.value, {
-		marginLeft: '-24rem',
-		duration: 0.2,
-		ease: 'power2.out'
-	}).from(playQueueDialogContainer.value, {
-		backgroundColor: 'transparent',
-		duration: 0.2,
-		ease: 'power2.out'
-	}, '<')
+	tl.to(playQueueDialogContainer.value, {
+		backgroundColor: '#17171780', duration: 0.3, ease: 'power2.out'
+	}).to(playQueueDialog.value, {
+		x: 0, duration: 0.4, ease: 'power3.out'
+	}, '<0.1').fromTo(playQueueDialog.value.children,
+		{ opacity: 0, x: -20 },
+		{ opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05 }, '<0.2')
 }
 
 function makePlayQueueListDismiss() {
 	const tl = gsap.timeline({
 		onComplete: () => {
 			presentQueueListDialog.value = false
+			gsap.set(playQueueDialog.value, { x: -384 })
+			gsap.set(playQueueDialogContainer.value, { backgroundColor: 'transparent' })
 		}
 	})
-	tl.to(playQueueDialog.value, {
-		marginLeft: '-24rem',
-		duration: 0.2,
-		ease: 'power2.out'
-	}).to(playQueueDialogContainer.value, {
-		backgroundColor: 'transparent',
-		duration: 0.2,
-		ease: 'power2.out'
-	}).set(playQueueDialogContainer.value, {
-		backgroundColor: '#17171780',
-		ease: 'power2.out'
-	}).set(playQueueDialog.value, {
-		marginLeft: '0rem',
-		ease: 'power2.out'
-	})
+	
+	tl.to(playQueueDialog.value.children, {
+		opacity: 0, x: -20, duration: 0.2, ease: 'power2.in', stagger: 0.03
+	}).to(playQueueDialog.value, {
+		x: -384, duration: 0.3, ease: 'power2.in'
+	}, '<0.1').to(playQueueDialogContainer.value, {
+		backgroundColor: 'transparent', duration: 0.2, ease: 'power2.in'
+	}, '<')
 }
 
 function getCurrentTrack() {
@@ -151,23 +242,53 @@ function getCurrentTrack() {
 function calculateStickyTop() {
 	return (window.innerHeight - (controllerRef.value?.clientHeight ?? 0)) / 2
 }
+
+onUnmounted(() => {
+	if (resizeObserver) resizeObserver.disconnect()
+	if (heightSyncTween) heightSyncTween.kill()
+})
+
+// New: Watch for track changes and animate
+watch(() => playQueueStore.currentIndex, () => {
+	if (albumCover.value) {
+		gsap.to(albumCover.value, {
+			scale: 0.95, opacity: 0.7, duration: 0.2,
+			ease: "power2.inOut", yoyo: true, repeat: 1
+		})
+	}
+	
+	if (songInfo.value) {
+		gsap.fromTo(songInfo.value,
+			{ opacity: 0, y: 10 },
+			{ opacity: 1, y: 0, duration: 0.4, ease: "power2.out", delay: 0.3 }
+		)
+	}
+})
 </script>
 
 <template>
+	<!-- Background remains unchanged -->
 	<div class="z-0 absolute top-0 left-0 w-screen h-screen" v-if="getCurrentTrack().album?.coverDeUrl">
 		<img class="w-full h-full blur-2xl object-cover" :src="getCurrentTrack().album?.coverDeUrl" />
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
-	<div class="absolute top-0 left-0 flex justify-center  h-screen w-screen overflow-y-auto z-10 select-none">
-		<div class="sticky w-96" :style="{
-			top: `${calculateStickyTop()}px`,
-			height: `${controllerRef?.clientHeight?? 0}px`
-		}">
+	<!-- Main content area - new flex layout -->
+	<div class="absolute top-0 left-0 flex justify-center h-screen w-screen overflow-y-auto z-10 select-none">
+		<div class="flex items-center justify-center gap-16 h-fit my-auto" ref="mainContainer">
+			
+			<!-- Controller area -->
 			<div class="flex flex-col w-96 gap-4" ref="controllerRef">
-				<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
-				<div class="flex justify-between items-center gap-2">
+				<!-- Album cover with hover effect -->
+				<div ref="albumCover" class="relative">
+					<img :src="getCurrentTrack().album?.coverUrl" 
+						class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96 transition-transform duration-300 hover:scale-105" />
+				</div>
+				
+				<!-- Song info with enhanced styling -->
+				<div class="flex justify-between items-center gap-2" ref="songInfo">
 					<div class="relative flex-auto w-0">
+						<!-- ...existing song info code... -->
 						<div class="">
 							<div class="text-black/90 blur-lg text-lg font-medium truncate w-80">
 								{{ getCurrentTrack().song.name }}
@@ -187,17 +308,19 @@ function calculateStickyTop() {
 								{{ getCurrentTrack().album?.name ?? '未知专辑' }}
 							</div>
 						</div>
-
 					</div>
 
-					<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
+					<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl transition-all duration-200 hover:bg-black/20 hover:scale-110" 
+						ref="favoriteButton">
 						<span class="text-white">
 							<StarEmptyIcon :size="6" />
 						</span>
 					</button>
 				</div>
 
-				<div class="flex flex-col gap-1">
+				<!-- Progress section with enhanced interactions -->
+				<div class="flex flex-col gap-1" ref="progressSection">
+					<!-- ...existing progress bar code... -->
 					<div class="w-full p-[0.125rem] bg-white/20 shadow-[0_.125rem_1rem_0_#00000010] rounded-full backdrop-blur-3xl">
 						<div class="w-full" ref="progressBarContainer">
 							<div class="w-2 h-2 bg-white rounded-full shadow-md" ref="progressBarThumb" />
@@ -205,9 +328,9 @@ function calculateStickyTop() {
 					</div>
 
 					<div class="w-full flex justify-between">
+						<!-- ...existing time display code... -->
 						<div class="font-medium flex-1 text-left relative">
-							<span
-								class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+							<span class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 							<span class="text-white/90">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 						</div>
 						<div class="text-xs text-center relative">
@@ -216,20 +339,20 @@ function calculateStickyTop() {
 						</div>
 						<div class="flex flex-1">
 							<div class="flex-1" />
-							<button class="text-white/90 font-medium text-right relative" @click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
-								<span
-									class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+							<button class="text-white/90 font-medium text-right relative transition-colors duration-200 hover:text-white" 
+								@click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
+								<span class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
 								<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
 							</button>
 						</div>
 					</div>
-
-
 				</div>
 
-				<div class="w-full flex justify-between items-center">
+				<!-- Control buttons with enhanced animations -->
+				<div class="w-full flex justify-between items-center" ref="controlButtons">
 					<div class="flex-1 text-left flex gap-1">
-						<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+						<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110" 
+							ref="volumeButton">
 							<div class="w-6 h-6 relative">
 								<span class="text-black blur-md absolute top-0 left-0">
 									<SpeakerIcon :size="6" />
@@ -239,8 +362,8 @@ function calculateStickyTop() {
 								</span>
 							</div>
 						</button>
-						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25"
-							@click="makePlayQueueListPresent">
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
+							@click="makePlayQueueListPresent" ref="queueButton">
 							<div class="w-6 h-6 relative">
 								<span class="text-black blur-md absolute top-0 left-0">
 									<MusicListIcon :size="6" />
@@ -253,9 +376,8 @@ function calculateStickyTop() {
 					</div>
 
 					<div class="flex-2 text-center align-center justify-center gap-2 flex">
-
-						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playPrevious">
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25 transition-all duration-200 hover:scale-105"
+							@click="playPrevious" ref="prevButton">
 							<div class="w-8 h-8 relative">
 								<span class="text-black/80 blur-lg absolute top-0 left-0">
 									<RewindIcon :size="8" />
@@ -266,8 +388,9 @@ function calculateStickyTop() {
 							</div>
 						</button>
 
-						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25 transition-all duration-200"
+							@click="handlePlayPause" ref="playButton">
+							<!-- ...existing play/pause icon code... -->
 							<div v-if="playQueueStore.isPlaying">
 								<div v-if="playQueueStore.isBuffering" class="w-6 h-6 relative">
 									<span class="text-black/80 blur-lg absolute top-0 left-0">
@@ -298,8 +421,8 @@ function calculateStickyTop() {
 							</div>
 						</button>
 
-						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
-							@click="playNext">
+						<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25 transition-all duration-200 hover:scale-105"
+							@click="playNext" ref="nextButton">
 							<div class="w-8 h-8 relative">
 								<span class="text-black/80 blur-lg absolute top-0 left-0">
 									<ForwardIcon :size="8" />
@@ -313,7 +436,8 @@ function calculateStickyTop() {
 
 					<div class="flex-1 text-right flex gap-1">
 						<div class="flex-1" />
-						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110" 
+							ref="lyricsButton">
 							<div class="w-6 h-6 relative">
 								<span class="text-black blur-md absolute top-0 left-0">
 									<ChatBubbleQuoteIcon :size="6" />
@@ -323,7 +447,8 @@ function calculateStickyTop() {
 								</span>
 							</div>
 						</button>
-						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
+						<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110" 
+							ref="moreButton">
 							<div class="w-6 h-6 relative">
 								<span class="text-black blur-sm absolute top-0 left-0">
 									<EllipsisHorizontalIcon :size="6" />
@@ -336,53 +461,37 @@ function calculateStickyTop() {
 					</div>
 				</div>
 			</div>
-		</div>
-		<div>
-			<ScrollingLyrics :lrcSrc="getCurrentTrack().song.lyricUrl ?? undefined" />
+
+			<!-- Lyrics section - height synced with controller -->
+			<div class="w-96" ref="lyricsSection">
+				<ScrollingLyrics :lrcSrc="getCurrentTrack().song.lyricUrl ?? undefined" 
+					class="h-full" ref="scrollingLyrics" />
+			</div>
 		</div>
 	</div>
 
-	<!-- Queue list -->
+	<!-- Queue list dialog with enhanced animations -->
 	<dialog :open="presentQueueListDialog" class="z-20 w-screen h-screen" @click="makePlayQueueListDismiss"
-		ref="playQueueDialogContainer" style="background-color: #17171780;">
-		<div
-			class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl pt-8 flex flex-col"
+		ref="playQueueDialogContainer" style="background-color: transparent;">
+		<div class="w-96 h-screen bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl pt-8 flex flex-col transform -translate-x-96"
 			@click.stop ref="playQueueDialog">
 			<div class="flex justify-between mx-8 mb-4">
 				<div class="text-white font-medium text-2xl">播放队列</div>
-				<button
-					class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+				<button class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center transition-all duration-200 hover:bg-neutral-700/80 hover:scale-110"
 					@click="makePlayQueueListDismiss">
 					<XIcon :size="4" />
 				</button>
 			</div>
 
 			<div class="flex gap-2 mx-8 mb-4">
-				<button
-					class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+				<button class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center transition-all duration-200 hover:scale-105"
 					:class="playQueueStore.playMode.shuffle ? 'bg-[#ffffffaa] text-neutral-700' : 'text-white bg-neutral-800/80'"
-					@click="() => {
-						playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
-						playQueueStore.shuffleCurrent = false
-					}">
+					@click="toggleShuffle">
 					<ShuffleIcon :size="4" />
 				</button>
-				<button
-					class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+				<button class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center transition-all duration-200 hover:scale-105"
 					:class="playQueueStore.playMode.repeat === 'off' ? 'text-white bg-neutral-800/80' : 'bg-[#ffffffaa] text-neutral-700'"
-					@click="() => {
-						switch (playQueueStore.playMode.repeat) {
-							case 'off':
-								playQueueStore.playMode.repeat = 'all'
-								break
-							case 'all':
-								playQueueStore.playMode.repeat = 'single'
-								break
-							case 'single':
-								playQueueStore.playMode.repeat = 'off'
-								break
-						}
-					}">
+					@click="toggleRepeat">
 					<CycleTwoArrowsIcon :size="4" v-if="playQueueStore.playMode.repeat !== 'single'" />
 					<CycleTwoArrowsWithNumOneIcon :size="4" v-else />
 				</button>
