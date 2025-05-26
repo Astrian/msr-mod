@@ -148,27 +148,9 @@ function handlePlayPause() {
 function toggleShuffle() {
 	playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
 	playQueueStore.shuffleCurrent = false
-
-	nextTick(() => {
-		const shuffleBtn = playQueueDialog.value?.querySelector('.flex-1:first-child') as HTMLElement
-		if (shuffleBtn) {
-			gsap.to(shuffleBtn, {
-				scale: 0.95, duration: 0.1, yoyo: true, repeat: 1, ease: "power2.inOut"
-			})
-		}
-	})
 }
 
 function toggleRepeat() {
-	nextTick(() => {
-		const repeatBtn = playQueueDialog.value?.querySelector('.flex-1:last-child') as HTMLElement
-		if (repeatBtn) {
-			gsap.to(repeatBtn, {
-				rotateZ: 360, scale: 0.95, duration: 0.3, ease: "back.out(1.7)"
-			})
-		}
-	})
-
 	switch (playQueueStore.playMode.repeat) {
 		case 'off': playQueueStore.playMode.repeat = 'all'; break
 		case 'all': playQueueStore.playMode.repeat = 'single'; break
