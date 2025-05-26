@@ -41,6 +41,7 @@ const songInfo = useTemplateRef('songInfo')
 const playButton = useTemplateRef('playButton')
 
 const presentQueueListDialog = ref(false)
+// const presentLyrics = ref(false)
 
 onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {

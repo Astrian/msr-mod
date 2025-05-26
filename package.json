@@ -24,6 +24,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@types/chrome": "^0.0.323",
 		"@types/node": "^22.15.21",
 		"@types/webextension-polyfill": "^0.12.3",
 		"@vitejs/plugin-vue": "^5.2.1",

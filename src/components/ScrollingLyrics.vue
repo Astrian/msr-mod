@@ -511,6 +511,7 @@ watch(() => playQueueStore.currentTime, (time) => {
 
 // 监听歌词源变化
 watch(() => props.lrcSrc, async (newSrc) => {
+  console.log('Loading new lyrics from:', newSrc)
   // 重置状态
   currentLineIndex.value = -1
   lineRefs.value = []

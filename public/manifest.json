@@ -17,7 +17,8 @@
 	"host_permissions": [
 		"https://monster-siren.hypergryph.com/*",
 		"http://localhost:5173/*",
-		"https://res01.hycdn.cn/*"
+		"https://res01.hycdn.cn/*",
+		"https://web.hycdn.cn/*"
 	],
 	"icons": {
 		"16": "vite.svg",
@@ -29,10 +30,11 @@
 	},
 	"permissions": [
 		"tabs",
-		"webRequest"
+		"webRequest",
+		"storage"
 	],
 	"content_security_policy": {
-		"extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com; img-src 'self' https://web.hycdn.cn; media-src 'self' https://res01.hycdn.cn;",
+		"extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com https://web.hycdn.cn; img-src 'self' https://web.hycdn.cn; media-src 'self' https://res01.hycdn.cn;",
 		"sandbox": "sandbox"
 	}
 }
