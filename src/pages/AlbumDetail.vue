@@ -78,7 +78,12 @@ function playTheAlbum(from: number = 0) {
 					</button>
 
 					<button
-						class="text-white w-10 h-10 bg-white/5 border border-[#ffffff39] rounded-full flex justify-center items-center">
+						class="text-white w-10 h-10 bg-white/5 border border-[#ffffff39] rounded-full flex justify-center items-center"
+						@click="() => {
+							playTheAlbum()
+							playQueue.shuffleCurrent = true
+							playQueue.playMode.shuffle = true
+						}">
 						<ShuffleIcon :size="4" />
 					</button>
 

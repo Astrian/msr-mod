@@ -161,6 +161,8 @@ watch(() => playQueueStore.playMode.shuffle, (isShuffle) => {
 		if (!playQueueStore.shuffleCurrent) {
 			shuffledList.push(currentIndex)
 		}
+		// 重置 shuffleCurrent 标签
+		playQueueStore.shuffleCurrent = undefined
 
 		// 将剩余的项目列出来
 		let shuffleSpace = [...Array(trackCount).keys()]
