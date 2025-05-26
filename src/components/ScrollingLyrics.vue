@@ -50,7 +50,7 @@
       </div>
       
       <!-- 底部填充 -->
-      <div class="h-1/2 pointer-events-none"></div>
+      <div class="h-96 pointer-events-none"></div>
     </div>
     
     <!-- 歌词控制面板 -->
@@ -357,42 +357,39 @@ function highlightCurrentLine(lineIndex: number) {
 function handleWheel(event: WheelEvent) {
   event.preventDefault()
   
-  if (!lyricsWrapper.value) return
-  
-  // 用户手动滚动
+  if (!lyricsWrapper.value || !lyricsContainer.value) return
+
   userScrolling.value = true
   autoScroll.value = false
-  
-  // 停止当前滚动动画
+
   if (scrollTween) {
     scrollTween.kill()
   }
-  
-  // 获取当前位置并应用滚动
+
   const currentY = gsap.getProperty(lyricsWrapper.value, "y") as number
   const newY = currentY - event.deltaY * 0.5
-  
-  // 限制滚动范围
-  const maxScroll = parsedLyrics.value.length * 80
-  const limitedY = Math.max(-maxScroll, Math.min(maxScroll, newY))
-  
+
+  // 修正滚动范围计算
+  const wrapperHeight = lyricsWrapper.value.scrollHeight
+  const containerHeight = lyricsContainer.value.clientHeight
+  const minY = containerHeight - wrapperHeight // 最底部
+  const maxY = 0 // 最顶部
+  const limitedY = Math.max(minY, Math.min(maxY, newY))
+
   gsap.to(lyricsWrapper.value, {
     y: limitedY,
     duration: 0.1,
     ease: "power2.out"
   })
-  
-  // 清除之前的超时
+
   if (userScrollTimeout) {
     clearTimeout(userScrollTimeout)
   }
-  
-  // 3秒后重新启用自动滚动
+
   userScrollTimeout = setTimeout(() => {
     userScrolling.value = false
     autoScroll.value = true
-    
-    // 重新滚动到当前行
+
     if (currentLineIndex.value >= 0) {
       scrollToLine(currentLineIndex.value, true)
     }
