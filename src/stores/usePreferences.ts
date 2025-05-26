@@ -10,6 +10,8 @@ declare global {
 
 export const usePreferences = defineStore('preferences', () => {
 	const displayTimeLeft = ref<boolean>(false)
+	const presentLyrics = ref<boolean>(false)
+
 	const isLoaded = ref(false)
 	const storageType = ref<'chrome' | 'localStorage' | 'memory'>('chrome')
 	const debugInfo = ref<string[]>([])
@@ -153,10 +155,11 @@ export const usePreferences = defineStore('preferences', () => {
 		addDebugInfo('开始初始化偏好设置...')
 
 		try {
-			const value = await getStoredValue('displayTimeLeft', false)
-			displayTimeLeft.value = value as boolean
+			const displayTimeLeftValue = await getStoredValue('displayTimeLeft', false)
+			displayTimeLeft.value = displayTimeLeftValue as boolean
+			const presentLyricsValue = await getStoredValue('presentLyrics', false)
+			presentLyrics.value = presentLyricsValue as boolean
 			isLoaded.value = true
-			addDebugInfo(`✅ 偏好设置初始化完成: displayTimeLeft = ${value}`)
 		} catch (error) {
 			addDebugInfo(`❌ 初始化失败: ${error}`)
 			displayTimeLeft.value = false
@@ -169,6 +172,15 @@ export const usePreferences = defineStore('preferences', () => {
 		if (isLoaded.value) {
 			try {
 				await setStoredValue('displayTimeLeft', val)
+			} catch (error) {
+				addDebugInfo(`❌ 监听器保存失败: ${error}`)
+			}
+		}
+	})
+	watch(presentLyrics, async (val) => {
+		if (isLoaded.value) {
+			try {
+				await setStoredValue('presentLyrics', val)
 			} catch (error) {
 				addDebugInfo(`❌ 监听器保存失败: ${error}`)
 			}
@@ -204,6 +216,7 @@ export const usePreferences = defineStore('preferences', () => {
 
 	return {
 		displayTimeLeft,
+		presentLyrics,
 		isLoaded,
 		storageType,
 		debugInfo,
