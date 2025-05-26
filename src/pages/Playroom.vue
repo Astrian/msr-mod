@@ -19,6 +19,7 @@ import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
 import XIcon from '../assets/icons/x.vue'
 import ShuffleIcon from '../assets/icons/shuffle.vue'
 import CycleTwoArrowsIcon from '../assets/icons/cycletwoarrows.vue'
+import SpeakerIcon from '../assets/icons/speaker.vue'
 
 const playQueueStore = usePlayQueueStore()
 gsap.registerPlugin(Draggable)
@@ -147,27 +148,35 @@ function makePlayQueueListDismiss() {
 		<div class="flex flex-col w-96 gap-4">
 			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl"
 				class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
-			<div class="relative">
-				<div class="">
-					<div class="text-black/90 blur-lg text-lg font-medium truncate">
-						{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+			<div class="flex justify-between items-center">
+				<div class="relative flex-auto w-0">
+					<div class="">
+						<div class="text-black/90 blur-lg text-lg font-medium truncate">
+							{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+						</div>
+						<div class="text-black/90 blur-lg text-base truncate">
+							{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
+							{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
+						</div>
 					</div>
-					<div class="text-black/90 blur-lg text-base truncate">
-						{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
-						{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
+
+					<div class="absolute top-0">
+						<div class="text-white text-lg font-medium truncate">
+							{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+						</div>
+						<div class="text-white/75 text-base truncate">
+							{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
+							{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
+						</div>
 					</div>
+
 				</div>
 
-				<div class="absolute top-0">
-					<div class="text-white text-lg font-medium truncate">
-						{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
-					</div>
-					<div class="text-white/75 text-base truncate">
-						{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
-						{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
-					</div>
+				<div class="relative">
+					<button class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl">
+						<span class="text-white"><StarEmptyIcon :size="6" /></span>
+					</button>
 				</div>
-
 			</div>
 
 			<div class="flex flex-col gap-1">
@@ -179,7 +188,8 @@ function makePlayQueueListDismiss() {
 
 				<div class="w-full flex justify-between">
 					<div class="font-medium flex-1 text-left relative">
-						<span class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+						<span
+							class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 						<span class="text-white/90">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 					</div>
 					<div class="text-xs text-center relative">
@@ -188,9 +198,9 @@ function makePlayQueueListDismiss() {
 					</div>
 					<div class="flex flex-1">
 						<div class="flex-1" />
-						<button class="text-white/90 font-medium text-right relative"
-							@click="displayTimeLeft = !displayTimeLeft">
-							<span class="text-black blur-lg absolute top-0">{{ `${displayTimeLeft? '-' : ''}${timeFormatter(displayTimeLeft? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+						<button class="text-white/90 font-medium text-right relative" @click="displayTimeLeft = !displayTimeLeft">
+							<span
+								class="text-black blur-lg absolute top-0">{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
 							<span>{{ `${displayTimeLeft ? '-' : ''}${timeFormatter(displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
 						</button>
 					</div>
@@ -203,15 +213,23 @@ function makePlayQueueListDismiss() {
 				<div class="flex-1 text-left flex gap-1">
 					<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
 						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0"><StarEmptyIcon :size="6" /></span>
-							<span class="text-white"><StarEmptyIcon :size="6" /></span>
+							<span class="text-black blur-md absolute top-0 left-0">
+								<SpeakerIcon :size="6" />
+							</span>
+							<span class="text-white">
+								<SpeakerIcon :size="6" />
+							</span>
 						</div>
 					</button>
 					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25"
 						@click="makePlayQueueListPresent">
 						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0"><MusicListIcon :size="6" /></span>
-							<span class="text-white"><MusicListIcon :size="6" /></span>
+							<span class="text-black blur-md absolute top-0 left-0">
+								<MusicListIcon :size="6" />
+							</span>
+							<span class="text-white">
+								<MusicListIcon :size="6" />
+							</span>
 						</div>
 					</button>
 				</div>
@@ -221,8 +239,12 @@ function makePlayQueueListDismiss() {
 					<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
 						@click="playPrevious">
 						<div class="w-8 h-8 relative">
-							<span class="text-black/80 blur-lg absolute top-0 left-0"><RewindIcon :size="8" /></span>
-							<span class="text-white"><RewindIcon :size="8" /></span>
+							<span class="text-black/80 blur-lg absolute top-0 left-0">
+								<RewindIcon :size="8" />
+							</span>
+							<span class="text-white">
+								<RewindIcon :size="8" />
+							</span>
 						</div>
 					</button>
 
@@ -230,18 +252,30 @@ function makePlayQueueListDismiss() {
 						@click="playQueueStore.isPlaying = !playQueueStore.isPlaying">
 						<div v-if="playQueueStore.isPlaying">
 							<div v-if="playQueueStore.isBuffering" class="w-6 h-6 relative">
-								<span class="text-black/80 blur-lg absolute top-0 left-0"><LoadingIndicator :size="6" /></span>
-								<span class="text-white"><LoadingIndicator :size="6" /></span>
+								<span class="text-black/80 blur-lg absolute top-0 left-0">
+									<LoadingIndicator :size="6" />
+								</span>
+								<span class="text-white">
+									<LoadingIndicator :size="6" />
+								</span>
 							</div>
 							<div v-else class="w-8 h-8 relative">
-								<span class="text-black/80 blur-lg absolute top-0 left-0"><PauseIcon :size="8" /></span>
-								<span class="text-white"><PauseIcon :size="8" /></span>
+								<span class="text-black blur-md absolute top-0 left-0">
+									<PauseIcon :size="8" />
+								</span>
+								<span class="text-white">
+									<PauseIcon :size="8" />
+								</span>
 							</div>
 						</div>
 						<div v-else>
 							<div class="w-8 h-8 relative">
-								<span class="text-black/80 blur-lg absolute top-0 left-0"><PlayIcon :size="8" /></span>
-								<span class="text-white"><PlayIcon :size="8" /></span>
+								<span class="text-black/80 blur-lg absolute top-0 left-0">
+									<PlayIcon :size="8" />
+								</span>
+								<span class="text-white">
+									<PlayIcon :size="8" />
+								</span>
 							</div>
 						</div>
 					</button>
@@ -249,8 +283,12 @@ function makePlayQueueListDismiss() {
 					<button class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25"
 						@click="playNext">
 						<div class="w-8 h-8 relative">
-							<span class="text-black/80 blur-lg absolute top-0 left-0"><ForwardIcon :size="8" /></span>
-							<span class="text-white"><ForwardIcon :size="8" /></span>
+							<span class="text-black/80 blur-lg absolute top-0 left-0">
+								<ForwardIcon :size="8" />
+							</span>
+							<span class="text-white">
+								<ForwardIcon :size="8" />
+							</span>
 						</div>
 					</button>
 				</div>
@@ -259,14 +297,22 @@ function makePlayQueueListDismiss() {
 					<div class="flex-1" />
 					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
 						<div class="w-6 h-6 relative">
-							<span class="text-black blur-md absolute top-0 left-0"><ChatBubbleQuoteIcon :size="6" /></span>
-							<span class="text-white"><ChatBubbleQuoteIcon :size="6" /></span>
+							<span class="text-black blur-md absolute top-0 left-0">
+								<ChatBubbleQuoteIcon :size="6" />
+							</span>
+							<span class="text-white">
+								<ChatBubbleQuoteIcon :size="6" />
+							</span>
 						</div>
 					</button>
 					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
 						<div class="w-6 h-6 relative">
-							<span class="text-black blur-sm absolute top-0 left-0"><EllipsisHorizontalIcon :size="6" /></span>
-							<span class="text-white"><EllipsisHorizontalIcon :size="6" /></span>
+							<span class="text-black blur-sm absolute top-0 left-0">
+								<EllipsisHorizontalIcon :size="6" />
+							</span>
+							<span class="text-white">
+								<EllipsisHorizontalIcon :size="6" />
+							</span>
 						</div>
 					</button>
 				</div>
@@ -327,7 +373,8 @@ function makePlayQueueListDismiss() {
 						<div class="flex flex-col text-left flex-auto w-0">
 							<div class="text-white text-base font-medium truncate">{{ track.song.name }}</div>
 							<div class="text-white/75 text-sm truncate">{{ artistsOrganize(track.song.artists ?? []) }} —
-								{{ track.album?.name ?? '未知专辑' }}</div>
+								{{ track.album?.name ?? '未知专辑' }}
+							</div>
 						</div>
 					</div>
 				</button>
