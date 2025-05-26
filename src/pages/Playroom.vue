@@ -319,8 +319,9 @@ watch(() => playQueueStore.currentIndex, () => {
 			<div class="flex flex-col w-96 gap-4" ref="controllerRef">
 				<!-- Album cover with enhanced hover effect -->
 				<div ref="albumCover" class="relative">
-					<img :src="getCurrentTrack().album?.coverUrl"
-						class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96 transition-transform duration-300 hover:scale-105" />
+					<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96
+							transition-transform duration-300
+							" :class="playQueueStore.isPlaying ? 'scale-100' : 'scale-95'" />
 				</div>
 
 				<!-- Song info with enhanced styling -->
