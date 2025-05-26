@@ -181,6 +181,14 @@ watch(() => playQueueStore.playMode.shuffle, (isShuffle) => {
 		playQueueStore.currentIndex = playQueueStore.shuffleList[playQueueStore.currentIndex]
 	}
 })
+
+function getCurrentTrack() {
+	if (playQueueStore.playMode.shuffle) {
+		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]] 
+	} else {
+		return playQueueStore.list[playQueueStore.currentIndex]
+	}
+}
 </script>
 
 <template>
@@ -217,12 +225,12 @@ watch(() => playQueueStore.playMode.shuffle, (isShuffle) => {
 			v-if="playQueueStore.list.length !== 0 && route.path !== '/playroom'"
 			>
 			<RouterLink to="/playroom">
-				<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl ?? ''" class="rounded-full h-9 w-9" />
+				<img :src="getCurrentTrack().album?.coverUrl ?? ''" class="rounded-full h-9 w-9" />
 			</RouterLink>
 
 			<RouterLink to="/playroom">
 				<div class="flex items-center w-32 h-9">
-					<span class="truncate">{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}</span>
+					<span class="truncate">{{ getCurrentTrack().song.name }}</span>
 				</div>
 			</RouterLink>
 
