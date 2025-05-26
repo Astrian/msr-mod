@@ -3,7 +3,7 @@ import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { artistsOrganize } from '../utils'
 import gsap from 'gsap'
 import { Draggable } from "gsap/Draggable"
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, nextTick } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 import { usePreferences } from '../stores/usePreferences'
@@ -34,27 +34,13 @@ const progressBarContainer = useTemplateRef('progressBarContainer')
 const playQueueDialogContainer = useTemplateRef('playQueueDialogContainer')
 const playQueueDialog = useTemplateRef('playQueueDialog')
 const controllerRef = useTemplateRef('controllerRef')
-const mainContainer = useTemplateRef('mainContainer')
 const lyricsSection = useTemplateRef('lyricsSection')
-const scrollingLyrics = useTemplateRef('scrollingLyrics')
 const albumCover = useTemplateRef('albumCover')
 const songInfo = useTemplateRef('songInfo')
-const progressSection = useTemplateRef('progressSection')
-const controlButtons = useTemplateRef('controlButtons')
 
-const favoriteButton = useTemplateRef('favoriteButton')
-const volumeButton = useTemplateRef('volumeButton')
-const queueButton = useTemplateRef('queueButton')
-const prevButton = useTemplateRef('prevButton')
 const playButton = useTemplateRef('playButton')
-const nextButton = useTemplateRef('nextButton')
-const lyricsButton = useTemplateRef('lyricsButton')
-const moreButton = useTemplateRef('moreButton')
 
 const presentQueueListDialog = ref(false)
-const controllerHeight = ref(500)
-let resizeObserver: ResizeObserver | null = null
-let heightSyncTween: gsap.core.Tween | null = null
 
 onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {
@@ -68,8 +54,7 @@ onMounted(async () => {
 		}
 	})
 	thumbUpdate()
-
-	setupHeightSync()
+	
 	setupEntranceAnimations()
 })
 
@@ -125,37 +110,6 @@ function playPrevious() {
 	}
 }
 
-function setupHeightSync() {
-	if (controllerRef.value && lyricsSection.value) {
-		updateLyricsHeight()
-		
-		resizeObserver = new ResizeObserver(() => {
-			updateLyricsHeight()
-		})
-		resizeObserver.observe(controllerRef.value)
-	}
-}
-
-function updateLyricsHeight() {
-	if (!controllerRef.value || !lyricsSection.value) return
-	
-	const newHeight = controllerRef.value.offsetHeight
-	
-	if (Math.abs(newHeight - controllerHeight.value) > 5) {
-		controllerHeight.value = newHeight
-		
-		if (heightSyncTween) {
-			heightSyncTween.kill()
-		}
-		
-		heightSyncTween = gsap.to(lyricsSection.value, {
-			height: newHeight,
-			duration: 0.3,
-			ease: "power2.out"
-		})
-	}
-}
-
 function setupEntranceAnimations() {
 	if (controllerRef.value) {
 		gsap.fromTo(controllerRef.value.children,
@@ -184,15 +138,35 @@ function handlePlayPause() {
 				playQueueStore.isPlaying = !playQueueStore.isPlaying
 			}
 		})
+	} else {
+		playQueueStore.isPlaying = !playQueueStore.isPlaying
 	}
 }
 
 function toggleShuffle() {
 	playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
 	playQueueStore.shuffleCurrent = false
+	
+	nextTick(() => {
+		const shuffleBtn = playQueueDialog.value?.querySelector('.flex-1:first-child') as HTMLElement
+		if (shuffleBtn) {
+			gsap.to(shuffleBtn, {
+				scale: 0.95, duration: 0.1, yoyo: true, repeat: 1, ease: "power2.inOut"
+			})
+		}
+	})
 }
 
 function toggleRepeat() {
+	nextTick(() => {
+		const repeatBtn = playQueueDialog.value?.querySelector('.flex-1:last-child') as HTMLElement
+		if (repeatBtn) {
+			gsap.to(repeatBtn, {
+				rotateZ: 360, scale: 0.95, duration: 0.3, ease: "back.out(1.7)"
+			})
+		}
+	})
+	
 	switch (playQueueStore.playMode.repeat) {
 		case 'off': playQueueStore.playMode.repeat = 'all'; break
 		case 'all': playQueueStore.playMode.repeat = 'single'; break
@@ -203,30 +177,52 @@ function toggleRepeat() {
 function makePlayQueueListPresent() {
 	presentQueueListDialog.value = true
 	
-	const tl = gsap.timeline()
-	tl.to(playQueueDialogContainer.value, {
-		backgroundColor: '#17171780', duration: 0.3, ease: 'power2.out'
-	}).to(playQueueDialog.value, {
-		x: 0, duration: 0.4, ease: 'power3.out'
-	}, '<0.1').fromTo(playQueueDialog.value.children,
-		{ opacity: 0, x: -20 },
-		{ opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05 }, '<0.2')
+	nextTick(() => {
+		if (!playQueueDialogContainer.value || !playQueueDialog.value) return
+		
+		const tl = gsap.timeline()
+		tl.to(playQueueDialogContainer.value, {
+			backgroundColor: '#17171780', duration: 0.3, ease: 'power2.out'
+		}).to(playQueueDialog.value, {
+			x: 0, duration: 0.4, ease: 'power3.out'
+		}, '<0.1')
+		
+		if (playQueueDialog.value.children.length > 0) {
+			tl.fromTo(playQueueDialog.value.children,
+				{ opacity: 0, x: -20 },
+				{ opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05 }, '<0.2')
+		}
+	})
 }
 
 function makePlayQueueListDismiss() {
+	if (!playQueueDialogContainer.value || !playQueueDialog.value) {
+		presentQueueListDialog.value = false
+		return
+	}
+	
 	const tl = gsap.timeline({
 		onComplete: () => {
 			presentQueueListDialog.value = false
-			gsap.set(playQueueDialog.value, { x: -384 })
-			gsap.set(playQueueDialogContainer.value, { backgroundColor: 'transparent' })
+			if (playQueueDialog.value) {
+				gsap.set(playQueueDialog.value, { x: -384 })
+			}
+			if (playQueueDialogContainer.value) {
+				gsap.set(playQueueDialogContainer.value, { backgroundColor: 'transparent' })
+			}
 		}
 	})
 	
-	tl.to(playQueueDialog.value.children, {
-		opacity: 0, x: -20, duration: 0.2, ease: 'power2.in', stagger: 0.03
-	}).to(playQueueDialog.value, {
+	if (playQueueDialog.value.children.length > 0) {
+		tl.to(playQueueDialog.value.children, {
+			opacity: 0, x: -20, duration: 0.2, ease: 'power2.in', stagger: 0.03
+		})
+	}
+	
+	tl.to(playQueueDialog.value, {
 		x: -384, duration: 0.3, ease: 'power2.in'
-	}, '<0.1').to(playQueueDialogContainer.value, {
+	}, playQueueDialog.value.children.length > 0 ? '<0.1' : '0')
+	.to(playQueueDialogContainer.value, {
 		backgroundColor: 'transparent', duration: 0.2, ease: 'power2.in'
 	}, '<')
 }
@@ -239,13 +235,7 @@ function getCurrentTrack() {
 	}
 }
 
-function calculateStickyTop() {
-	return (window.innerHeight - (controllerRef.value?.clientHeight ?? 0)) / 2
-}
-
 onUnmounted(() => {
-	if (resizeObserver) resizeObserver.disconnect()
-	if (heightSyncTween) heightSyncTween.kill()
 })
 
 // New: Watch for track changes and animate
@@ -273,13 +263,13 @@ watch(() => playQueueStore.currentIndex, () => {
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
-	<!-- Main content area - new flex layout -->
+	<!-- Main content area - new centered flex layout -->
 	<div class="absolute top-0 left-0 flex justify-center h-screen w-screen overflow-y-auto z-10 select-none">
 		<div class="flex items-center justify-center gap-16 h-fit my-auto" ref="mainContainer">
 			
 			<!-- Controller area -->
 			<div class="flex flex-col w-96 gap-4" ref="controllerRef">
-				<!-- Album cover with hover effect -->
+				<!-- Album cover with enhanced hover effect -->
 				<div ref="albumCover" class="relative">
 					<img :src="getCurrentTrack().album?.coverUrl" 
 						class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96 transition-transform duration-300 hover:scale-105" />
@@ -318,7 +308,7 @@ watch(() => playQueueStore.currentIndex, () => {
 					</button>
 				</div>
 
-				<!-- Progress section with enhanced interactions -->
+				<!-- Progress section -->
 				<div class="flex flex-col gap-1" ref="progressSection">
 					<!-- ...existing progress bar code... -->
 					<div class="w-full p-[0.125rem] bg-white/20 shadow-[0_.125rem_1rem_0_#00000010] rounded-full backdrop-blur-3xl">
@@ -348,7 +338,7 @@ watch(() => playQueueStore.currentIndex, () => {
 					</div>
 				</div>
 
-				<!-- Control buttons with enhanced animations -->
+				<!-- Control buttons -->
 				<div class="w-full flex justify-between items-center" ref="controlButtons">
 					<div class="flex-1 text-left flex gap-1">
 						<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110" 
@@ -462,8 +452,8 @@ watch(() => playQueueStore.currentIndex, () => {
 				</div>
 			</div>
 
-			<!-- Lyrics section - height synced with controller -->
-			<div class="w-96" ref="lyricsSection">
+			<!-- Lyrics section - full screen height -->
+			<div class="w-[40rem] h-screen" ref="lyricsSection">
 				<ScrollingLyrics :lrcSrc="getCurrentTrack().song.lyricUrl ?? undefined" 
 					class="h-full" ref="scrollingLyrics" />
 			</div>

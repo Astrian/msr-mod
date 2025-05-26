@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="relative overflow-hidden h-full w-full bg-gradient-to-b from-black/5 via-transparent to-black/5"
+    class="relative overflow-hidden h-full w-[40rem]"
     ref="lyricsContainer"
     @wheel="handleWheel"
   >
@@ -15,16 +15,16 @@
       <div 
         v-for="(line, index) in parsedLyrics" 
         :key="index"
-        :ref="el => setLineRef(el, index)"
+        :ref="el => setLineRef(el as HTMLElement, index)"
         class="py-8 px-16 cursor-pointer transition-all duration-300 hover:scale-105"
         @click="handleLineClick(line, index)"
       >
-        <div v-if="line.type === 'lyric'" class="relative text-center">
+        <div v-if="line.type === 'lyric'" class="relative">
           <!-- 背景模糊文字 -->
           <div 
             class="text-3xl font-bold transition-all duration-500"
             :class="[
-              currentLineIndex === index ? 'text-black/80 blur-3xl' : 'text-black/20 blur-3xl'
+              currentLineIndex === index ? 'text-black/80 blur-xl' : 'text-black/20 blur-2xl'
             ]"
           >
             {{ line.text }}
@@ -36,8 +36,8 @@
               currentLineIndex === index 
                 ? 'text-white scale-110' 
                 : index < currentLineIndex 
-                  ? 'text-white/60' 
-                  : 'text-white/40'
+                  ? userScrolling ? 'text-white/60' : 'text-white/60 blur-sm'
+                  : userScrolling ? 'text-white/40' : 'text-white/40 blur-sm'
             ]"
           >
             {{ line.text }}
@@ -45,16 +45,13 @@
         </div>
         
         <div v-else-if="line.type === 'gap'" class="flex justify-center items-center py-4">
-          <div class="w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full"></div>
+          <div class="w-16 h-px rounded-full"></div>
         </div>
       </div>
       
       <!-- 底部填充 -->
       <div class="h-1/2 pointer-events-none"></div>
     </div>
-
-    <!-- 中央指示线 -->
-    <div class="absolute top-1/2 left-16 right-16 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none transform -translate-y-1/2"></div>
     
     <!-- 歌词控制面板 -->
     <div 
@@ -161,7 +158,7 @@ const noLyricsIndicator = ref<HTMLElement>()
 // GSAP 动画实例
 let scrollTween: gsap.core.Tween | null = null
 let highlightTween: gsap.core.Tween | null = null
-let userScrollTimeout: number | null = null
+let userScrollTimeout: NodeJS.Timeout | null = null
 
 // Props
 const props = defineProps<{
@@ -332,7 +329,7 @@ function highlightCurrentLine(lineIndex: number) {
   highlightTween = gsap.to(lineElement, {
     scale: 1.05,
     opacity: 1,
-    duration: 0.5,
+    duration: 0.2,
     ease: "back.out(1.7)",
     onComplete: () => {
       highlightTween = null
@@ -449,7 +446,7 @@ function resetScroll() {
   // 重置位置
   gsap.to(lyricsWrapper.value, {
     y: 0,
-    duration: 0.6,
+    duration: 0.3,
     ease: "power2.out"
   })
   
@@ -552,7 +549,7 @@ onMounted(() => {
   if (controlPanel.value) {
     gsap.fromTo(controlPanel.value,
       { opacity: 0, x: 20 },
-      { opacity: 0, x: 0, duration: 0.5, ease: "power2.out", delay: 0.5 }
+      { opacity: 0, x: 0, duration: 0.2, ease: "power2.out", delay: 0.2 }
     )
   }
   
@@ -565,7 +562,7 @@ onMounted(() => {
           { 
             opacity: 1, 
             y: 0, 
-            duration: 0.5, 
+            duration: 0.2, 
             ease: "power2.out",
             delay: index * 0.1
           }
