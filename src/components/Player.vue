@@ -69,8 +69,13 @@ function playNext() {
 	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
 		console.log("at the bottom, pause")
 		playQueueStore.currentIndex = 0
-		player.value?.pause()
-		playQueueStore.isPlaying = false
+		if(playQueueStore.playMode.repeat === 'all') {
+			playQueueStore.currentIndex = 0
+			playQueueStore.isPlaying = true
+		} else {
+			player.value?.pause()
+			playQueueStore.isPlaying = false
+		}
 	} else {
 		playQueueStore.currentIndex++
 		playQueueStore.isPlaying = true
@@ -204,7 +209,10 @@ function getCurrentTrack() {
 			ref="playerRef" 
 			:autoplay="playQueueStore.isPlaying" 
 			v-if="playQueueStore.list.length !== 0" 
-			@ended="playNext"
+			@ended="() => {
+				if (playQueueStore.playMode.repeat === 'single') { playQueueStore.isPlaying = true }
+				else { playNext() }
+			}"
 			@pause="playQueueStore.isPlaying = false" 
 			@play="playQueueStore.isPlaying = true" 
 			@playing="() => {

@@ -19,6 +19,7 @@ import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
 import XIcon from '../assets/icons/x.vue'
 import ShuffleIcon from '../assets/icons/shuffle.vue'
 import CycleTwoArrowsIcon from '../assets/icons/cycletwoarrows.vue'
+import CycleTwoArrowsWithNumOneIcon from '../assets/icons/cycletwoarrowswithnumone.vue'
 import SpeakerIcon from '../assets/icons/speaker.vue'
 
 const playQueueStore = usePlayQueueStore()
@@ -301,7 +302,7 @@ function getCurrentTrack() {
 					</button>
 				</div>
 
-				<div class="flex-1 text-right flex">
+				<div class="flex-1 text-right flex gap-1">
 					<div class="flex-1" />
 					<button class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25">
 						<div class="w-6 h-6 relative">
@@ -354,9 +355,23 @@ function getCurrentTrack() {
 					<ShuffleIcon :size="4" />
 				</button>
 				<button
-					class="text-white flex-1 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
-					@click="">
-					<CycleTwoArrowsIcon :size="4" />
+					class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+					:class="playQueueStore.playMode.repeat === 'off' ? 'text-white bg-neutral-800/80' : 'bg-[#ffffffaa] text-neutral-700'"
+					@click="() => {
+						switch (playQueueStore.playMode.repeat) {
+							case 'off':
+								playQueueStore.playMode.repeat = 'all'
+								break
+							case 'all':
+								playQueueStore.playMode.repeat = 'single'
+								break
+							case 'single':
+								playQueueStore.playMode.repeat = 'off'
+								break
+						}
+					}">
+					<CycleTwoArrowsIcon :size="4" v-if="playQueueStore.playMode.repeat !== 'single'" />
+					<CycleTwoArrowsWithNumOneIcon :size="4" v-else />
 				</button>
 			</div>
 
