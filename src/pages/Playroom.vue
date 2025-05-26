@@ -16,6 +16,7 @@ import PlayIcon from '../assets/icons/play.vue'
 import PauseIcon from '../assets/icons/pause.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import ChatBubbleQuoteIcon from '../assets/icons/chatbubblequote.vue'
+import ChatBubbleQuoteFullIcon from '../assets/icons/chatbubblequotefull.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
 import MusicListIcon from '../assets/icons/musiclist.vue'
 import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
@@ -389,9 +390,10 @@ watch(() => playQueueStore.currentIndex, () => {
 						<div class="font-medium flex-1 text-left relative">
 							<span
 								class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
-							<span class="text-white/90">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+							<span
+								class="text-white/90 absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 						</div>
-						<div class="text-xs text-center relative">
+						<div class="text-xs text-center relative flex-1">
 							<span class="text-black blur-lg absolute top-0">{{ formatDetector() }}</span>
 							<span class="text-white">{{ formatDetector() }}</span>
 						</div>
@@ -418,7 +420,7 @@ watch(() => playQueueStore.currentIndex, () => {
 								<span class="text-black blur-md absolute top-0 left-0">
 									<SpeakerIcon :size="6" />
 								</span>
-								<span class="text-white">
+								<span class="text-white absolute top-0 left-0">
 									<SpeakerIcon :size="6" />
 								</span>
 							</div>
@@ -430,7 +432,7 @@ watch(() => playQueueStore.currentIndex, () => {
 								<span class="text-black blur-md absolute top-0 left-0">
 									<MusicListIcon :size="6" />
 								</span>
-								<span class="text-white">
+								<span class="text-white absolute top-0 left-0">
 									<MusicListIcon :size="6" />
 								</span>
 							</div>
@@ -445,7 +447,7 @@ watch(() => playQueueStore.currentIndex, () => {
 								<span class="text-black/80 blur-lg absolute top-0 left-0">
 									<RewindIcon :size="8" />
 								</span>
-								<span class="text-white">
+								<span class="text-white absolute top-0 left-0">
 									<RewindIcon :size="8" />
 								</span>
 							</div>
@@ -460,7 +462,7 @@ watch(() => playQueueStore.currentIndex, () => {
 									<span class="text-black/80 blur-lg absolute top-0 left-0">
 										<LoadingIndicator :size="6" />
 									</span>
-									<span class="text-white">
+									<span class="text-white absolute top-0 left-0">
 										<LoadingIndicator :size="6" />
 									</span>
 								</div>
@@ -468,7 +470,7 @@ watch(() => playQueueStore.currentIndex, () => {
 									<span class="text-black blur-md absolute top-0 left-0">
 										<PauseIcon :size="8" />
 									</span>
-									<span class="text-white">
+									<span class="text-white absolute top-0 left-0">
 										<PauseIcon :size="8" />
 									</span>
 								</div>
@@ -478,7 +480,7 @@ watch(() => playQueueStore.currentIndex, () => {
 									<span class="text-black/80 blur-lg absolute top-0 left-0">
 										<PlayIcon :size="8" />
 									</span>
-									<span class="text-white">
+									<span class="text-white absolute top-0 left-0">
 										<PlayIcon :size="8" />
 									</span>
 								</div>
@@ -492,7 +494,7 @@ watch(() => playQueueStore.currentIndex, () => {
 								<span class="text-black/80 blur-lg absolute top-0 left-0">
 									<ForwardIcon :size="8" />
 								</span>
-								<span class="text-white">
+								<span class="text-white absolute top-0 left-0">
 									<ForwardIcon :size="8" />
 								</span>
 							</div>
@@ -505,12 +507,15 @@ watch(() => playQueueStore.currentIndex, () => {
 							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
 							ref="lyricsButton" @click="preferences.presentLyrics = !preferences.presentLyrics">
 							<div class="w-6 h-6 relative">
-								<span class="text-black blur-md absolute top-0 left-0">
-									<ChatBubbleQuoteIcon :size="6" />
+								<span class="text-white absolute top-0 left-0 z-10">
+									<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
+									<ChatBubbleQuoteIcon :size="6" v-else />
 								</span>
-								<span class="text-white">
-									<ChatBubbleQuoteIcon :size="6" />
+								<span class="text-black/40 blur-md absolute top-0 left-0 z-0">
+									<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
+									<ChatBubbleQuoteIcon :size="6" v-else />
 								</span>
+
 							</div>
 						</button>
 						<button
@@ -520,7 +525,7 @@ watch(() => playQueueStore.currentIndex, () => {
 								<span class="text-black blur-sm absolute top-0 left-0">
 									<EllipsisHorizontalIcon :size="6" />
 								</span>
-								<span class="text-white">
+								<span class="text-white absolute top-0 left-0">
 									<EllipsisHorizontalIcon :size="6" />
 								</span>
 							</div>
