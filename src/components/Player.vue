@@ -12,10 +12,7 @@ const playQueueStore = usePlayQueueStore()
 const route = useRoute()
 const player = useTemplateRef('playerRef')
 
-console.log('[Player] 组件初始化')
-
 watch(() => playQueueStore.isPlaying, (newValue) => {
-	console.log('[Player] 播放状态变化:', newValue)
 	if (newValue) {
 		player.value?.play()
 		setMetadata()
@@ -37,7 +34,6 @@ function artistsOrganize(list: string[]) {
 }
 
 function setMetadata() {
-	console.log('[Player] 设置元数据')
 	if ('mediaSession' in navigator) {
 		navigator.mediaSession.metadata = new MediaMetadata({
 			title: playQueueStore.list[playQueueStore.currentIndex].song.name,
@@ -128,16 +124,13 @@ watch(() => playQueueStore.list.length, async (newLength) => {
 
 // 监听音频元素变化
 watch(() => player.value, (audioElement) => {
-	console.log('[Player] 音频元素 ref 变化:', !!audioElement)
 	if (audioElement && playQueueStore.list.length > 0) {
-		console.log('[Player] 重新连接音频元素')
 		connectAudio(audioElement)
 	}
 })
 
 // 监听可视化器数据变化
 watch(() => barHeights.value, (newHeights) => {
-	console.log('[Player] 可视化器数据更新:', newHeights.map(h => Math.round(h)))
 	playQueueStore.visualizer = newHeights
 }, { deep: true })
 
