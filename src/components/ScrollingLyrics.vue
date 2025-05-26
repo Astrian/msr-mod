@@ -188,7 +188,14 @@ function setLineRef(el: HTMLElement | null, index: number) {
 
 // 歌词解析函数
 function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine | GapLine)[] {
-  if (!lrcText) return []
+  if (!lrcText) return [
+    {
+      type: 'lyric',
+      time: 0,
+      text: '',
+      originalTime: '[00:00]'
+    }
+  ]
   
   const lines = lrcText.split('\n')
   const tempParsedLines: (LyricsLine | GapLine)[] = []
@@ -248,15 +255,24 @@ function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine |
   }
   
   finalLines.push(...lyricLines)
-  return finalLines.sort((a, b) => a.time - b.time)
+  const sortedLines = finalLines.sort((a, b) => a.time - b.time)
+  // 在最前面插入一个空行
+  sortedLines.unshift({
+    type: 'lyric',
+    time: 0,
+    text: '',
+    originalTime: '[00:00]'
+  })
+  return sortedLines
 }
 
 // 查找当前行索引
 function findCurrentLineIndex(time: number): number {
   if (parsedLyrics.value.length === 0) return -1
-  
-  let index = -1
-  for (let i = 0; i < parsedLyrics.value.length; i++) {
+  // 如果时间小于第一句歌词，则返回0（空行）
+  if (time < parsedLyrics.value[1]?.time) return 0
+  let index = 0
+  for (let i = 1; i < parsedLyrics.value.length; i++) {
     if (time >= parsedLyrics.value[i].time) {
       index = i
     } else {
