@@ -35,12 +35,19 @@ function artistsOrganize(list: string[]) {
 
 function setMetadata() {
 	if ('mediaSession' in navigator) {
+		let current = (() => {
+			if (playQueueStore.playMode.shuffle) {
+				return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]]
+			} else {
+				return playQueueStore.list[playQueueStore.currentIndex]
+			}
+		})()
 		navigator.mediaSession.metadata = new MediaMetadata({
-			title: playQueueStore.list[playQueueStore.currentIndex].song.name,
-			artist: artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []),
-			album: playQueueStore.list[playQueueStore.currentIndex].album?.name,
+			title: current.song.name,
+			artist: artistsOrganize(current.song.artists ?? []),
+			album: current.album?.name,
 			artwork: [
-				{ src: playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl ?? '', sizes: '500x500', type: 'image/png' },
+				{ src: current.album?.coverUrl ?? '', sizes: '500x500', type: 'image/png' },
 			]
 		})
 
@@ -140,12 +147,50 @@ watch(() => error.value, (newError) => {
 		console.error('[Player] 可视化器错误:', newError)
 	}
 })
+
+// 切换播放模式
+watch(() => playQueueStore.playMode.shuffle, (isShuffle) => {
+	if (isShuffle) {
+		// 提取当前歌曲的索引和队列中总项目数
+		const currentIndex = playQueueStore.currentIndex
+		const trackCount = playQueueStore.list.length
+		// 生成新的随机播放列表，该列表是原来列表的下标数组（保持原有的顺序不变，以便用户关闭随机播放时恢复原有队列）
+		// 将队列中剩余的项目随机排列，队列中更早的歌曲保持不变
+		let shuffledList = [...Array(currentIndex).keys()]
+		// 如果 shuffleCurrent 被指定为 false 或 undefined，那么将当前歌曲放在新列表的开头
+		if (!playQueueStore.shuffleCurrent) {
+			shuffledList.push(currentIndex)
+		}
+
+		// 将剩余的项目列出来
+		let shuffleSpace = [...Array(trackCount).keys()]
+		shuffleSpace = shuffleSpace.filter((item) => item > currentIndex)
+		console.log(shuffleSpace)
+		// 随机打乱剩余的项目
+		shuffleSpace.sort(() => Math.random() - 0.5)
+
+		// 拼接新队列
+		shuffledList = shuffledList.concat(shuffleSpace)
+
+		// 应用新的随机播放列表
+		playQueueStore.shuffleList = shuffledList
+	} else {
+		// 将当前播放的歌曲的原来的索引赋给 currentIndex
+		playQueueStore.currentIndex = playQueueStore.shuffleList[playQueueStore.currentIndex]
+	}
+})
 </script>
 
 <template>
 	<div>
 		<audio
-			:src="playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''"
+			:src="(() => {
+				if (playQueueStore.playMode.shuffle) {
+					return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]] ? playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]].song.sourceUrl : ''
+				} else {
+					return playQueueStore.list[playQueueStore.currentIndex] ? playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl : ''
+				}
+			})()"
 			ref="playerRef" 
 			:autoplay="playQueueStore.isPlaying" 
 			v-if="playQueueStore.list.length !== 0" 

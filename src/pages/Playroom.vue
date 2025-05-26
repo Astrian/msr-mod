@@ -134,39 +134,47 @@ function makePlayQueueListDismiss() {
 		ease: 'power2.out'
 	})
 }
+
+function getCurrentTrack() {
+	if (playQueueStore.playMode.shuffle) {
+		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]] 
+	} else {
+		return playQueueStore.list[playQueueStore.currentIndex]
+	}
+}
 </script>
 
 <template>
 	<div class="z-0 absolute top-0 left-0 w-screen h-screen"
-		v-if="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl">
+		v-if="getCurrentTrack().album?.coverDeUrl">
 		<img class="w-full h-full blur-2xl object-cover"
-			:src="playQueueStore.list[playQueueStore.currentIndex].album?.coverDeUrl" />
+			:src="getCurrentTrack().album?.coverDeUrl" />
 		<div class="bg-transparent w-full h-full absolute top-0 left-0" />
 	</div>
 
 	<div class="w-full flex justify-center items-center my-auto gap-16 z-10 select-none">
 		<div class="flex flex-col w-96 gap-4">
-			<img :src="playQueueStore.list[playQueueStore.currentIndex].album?.coverUrl"
+			<img :src="getCurrentTrack().album?.coverUrl"
 				class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96" />
 			<div class="flex justify-between items-center">
 				<div class="relative flex-auto w-0">
 					<div class="">
 						<div class="text-black/90 blur-lg text-lg font-medium truncate">
-							{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+							{{ getCurrentTrack().song.name }}
 						</div>
 						<div class="text-black/90 blur-lg text-base truncate">
-							{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
-							{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
+							{{ getCurrentTrack().song.artists ?? [] }} —
+							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
 						</div>
 					</div>
 
 					<div class="absolute top-0">
 						<div class="text-white text-lg font-medium truncate">
-							{{ playQueueStore.list[playQueueStore.currentIndex].song.name }}
+							{{ getCurrentTrack().song.name }}
 						</div>
 						<div class="text-white/75 text-base truncate">
-							{{ artistsOrganize(playQueueStore.list[playQueueStore.currentIndex].song.artists ?? []) }} —
-							{{ playQueueStore.list[playQueueStore.currentIndex].album?.name ?? '未知专辑' }}
+							{{ artistsOrganize(getCurrentTrack().song.artists ?? []) }} —
+							{{ getCurrentTrack().album?.name ?? '未知专辑' }}
 						</div>
 					</div>
 
@@ -337,8 +345,12 @@ function makePlayQueueListDismiss() {
 
 			<div class="flex gap-2 mx-8 mb-4">
 				<button
-					class="text-white flex-1 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
-					@click="">
+					class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+					:class="playQueueStore.playMode.shuffle ? 'bg-[#ffffffaa] text-neutral-700' : 'text-white bg-neutral-800/80'"
+					@click="() => {
+						playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
+						playQueueStore.shuffleCurrent = false
+					}">
 					<ShuffleIcon :size="4" />
 				</button>
 				<button
@@ -350,7 +362,36 @@ function makePlayQueueListDismiss() {
 
 			<hr class="border-[#ffffff39]" />
 
-			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2">
+			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.playMode.shuffle">
+				<button v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2"
+					:key="oriIndex" @click="() => {
+						if (playQueueStore.currentIndex === shuffledIndex) { return }
+						playQueueStore.currentIndex = shuffledIndex
+						playQueueStore.isPlaying = true
+					}">
+					<div class="flex gap-2">
+						<div class="relative w-12 h-12 rounded-md shadow-xl overflow-hidden">
+							<img :src="playQueueStore.list[oriIndex].album?.coverUrl" />
+							<div class="w-full h-full absolute top-0 left-0 bg-neutral-900/75 flex justify-center items-center"
+								v-if="shuffledIndex === playQueueStore.currentIndex">
+								<div style="height: 1rem;" class="flex justify-center items-center gap-[.125rem]">
+									<div class="bg-white w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
+										:key="index" :style="{
+											height: `${Math.max(10, bar)}%`
+										}" />
+								</div>
+							</div>
+						</div>
+						<div class="flex flex-col text-left flex-auto w-0">
+							<div class="text-white text-base font-medium truncate">{{ playQueueStore.list[oriIndex].song.name }}</div>
+							<div class="text-white/75 text-sm truncate">{{ artistsOrganize(playQueueStore.list[oriIndex].song.artists ?? []) }} —
+								{{ playQueueStore.list[oriIndex].album?.name ?? '未知专辑' }}
+							</div>
+						</div>
+					</div>
+				</button>
+			</div>
+			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-else>
 				<button v-for="(track, index) in playQueueStore.list" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2"
 					:key="track.song.cid" @click="() => {
 						if (playQueueStore.currentIndex === index) { return }

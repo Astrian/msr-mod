@@ -10,7 +10,16 @@ export const usePlayQueueStore = defineStore('queue', () =>{
 	const currentTime = ref<number>(0)
 	const duration = ref<number>(0)
 	const updatedCurrentTime = ref<number | null>(null)
-	const visualizer = ref<number[]>([0, 0, 0, 0])
+	const visualizer = ref<number[]>([0, 0, 0, 0, 0, 0])
+	const shuffleList = ref<number[]>([])
+	const playMode = ref<{
+		shuffle: boolean,
+		repeat: 'off' | 'single' | 'all'
+	}>({
+		shuffle: false,
+		repeat: 'off'
+	})
+	const shuffleCurrent = ref<boolean | undefined>(undefined)
 
-  return { list, currentIndex, isPlaying, queueReplaceLock, isBuffering, currentTime, duration, updatedCurrentTime, visualizer }
+  return { list, currentIndex, isPlaying, queueReplaceLock, isBuffering, currentTime, duration, updatedCurrentTime, visualizer, shuffleList, playMode, shuffleCurrent }
 })
