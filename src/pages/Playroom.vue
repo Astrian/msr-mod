@@ -321,7 +321,7 @@ watch(() => playQueueStore.currentIndex, () => {
 				<div ref="albumCover" class="relative">
 					<img :src="getCurrentTrack().album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96
 							transition-transform duration-300
-							" :class="playQueueStore.isPlaying ? 'scale-100' : 'scale-95'" />
+							" :class="playQueueStore.isPlaying ? 'scale-100' : 'scale-85'" />
 				</div>
 
 				<!-- Song info with enhanced styling -->
