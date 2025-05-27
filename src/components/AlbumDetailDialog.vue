@@ -2,7 +2,7 @@
 import XIcon from '../assets/icons/x.vue'
 import ShuffleIcon from '../assets/icons/shuffle.vue'
 import PlayIcon from '../assets/icons/play.vue'
-import StarEmptyIcon from '../assets/icons/starempty.vue'
+// import StarEmptyIcon from '../assets/icons/starempty.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { gsap } from 'gsap'
@@ -188,10 +188,10 @@ function playTheAlbum(from: number = 0) {
 									<ShuffleIcon :size="4" />
 								</button>
 
-								<button
+								<!-- <button
 									class="text-white w-10 h-10 bg-neutral-800/80 border border-[#ffffff39] backdrop-blur-3xl rounded-full flex justify-center items-center hover:bg-neutral-700/80 transition-all">
 									<StarEmptyIcon :size="4" />
-								</button>
+								</button> -->
 							</div>
 
 							<div class="text-sm text-neutral-500 font-medium z-0">
