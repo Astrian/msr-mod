@@ -198,7 +198,7 @@ function playTheAlbum(from: number = 0) {
 								共 {{ album?.songs?.length ?? '？' }} 首曲目
 							</div>
 						</div>
-						<div class="flex flex-col border border-neutral-600/30 rounded-lg backdrop-blur-lg">
+						<div class="flex flex-col border border-neutral-600/30 rounded-lg backdrop-blur-lg overflow-hidden">
 							<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track"
 								:index="index" :playfrom="playTheAlbum" />
 						</div>
