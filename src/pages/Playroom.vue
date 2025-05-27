@@ -7,6 +7,7 @@ import { onMounted, onUnmounted, nextTick } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 import { usePreferences } from '../stores/usePreferences'
+import { useFavourites } from '../stores/useFavourites'
 
 import ScrollingLyrics from '../components/ScrollingLyrics.vue'
 
@@ -18,6 +19,7 @@ import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import ChatBubbleQuoteIcon from '../assets/icons/chatbubblequote.vue'
 import ChatBubbleQuoteFullIcon from '../assets/icons/chatbubblequotefull.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
+import StarFilledIcon from '../assets/icons/starfilled.vue'
 import MusicListIcon from '../assets/icons/musiclist.vue'
 import EllipsisHorizontalIcon from '../assets/icons/ellipsishorizontal.vue'
 import XIcon from '../assets/icons/x.vue'
@@ -28,6 +30,8 @@ import SpeakerIcon from '../assets/icons/speaker.vue'
 
 const playQueueStore = usePlayQueueStore()
 const preferences = usePreferences()
+const favourites = useFavourites()
+
 gsap.registerPlugin(Draggable)
 
 const progressBarThumb = useTemplateRef('progressBarThumb')
@@ -353,10 +357,12 @@ watch(() => playQueueStore.currentIndex, () => {
 					</div>
 
 					<button
-						class="h-10 w-10 flex justify-center items-center rounded-full bg-black/10 backdrop-blur-3xl transition-all duration-200 hover:bg-black/20 hover:scale-110"
-						ref="favoriteButton">
-						<span class="text-white">
-							<StarEmptyIcon :size="6" />
+						class="h-10 w-10 flex justify-center items-center rounded-full backdrop-blur-3xl transition-all duration-200 hover:scale-110"
+						ref="favoriteButton" @click="favourites.toggleFavourite(getCurrentTrack())"
+						:class="favourites.isFavourite(getCurrentTrack().song.cid) ? 'bg-neutral-200/90' : 'bg-black/10 hover:bg-black/20'">
+						<span :class="favourites.isFavourite(getCurrentTrack().song.cid) ? 'text-neutral-700' : 'text-white'">
+							<StarFilledIcon v-if="favourites.isFavourite(getCurrentTrack().song.cid)" :size="6" />
+							<StarEmptyIcon v-else :size="6" />
 						</span>
 					</button>
 				</div>
