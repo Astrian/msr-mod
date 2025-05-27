@@ -3,9 +3,11 @@ import { artistsOrganize } from '../utils'
 import { ref } from 'vue'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { useToast } from 'vue-toast-notification'
+import { useFavourites } from '../stores/useFavourites'
 
 import QueueAddIcon from '../assets/icons/queueadd.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
+import StarFilledIcon from '../assets/icons/starfilled.vue'
 
 const props = defineProps<{
 	album?: Album,
@@ -18,6 +20,7 @@ const hover = ref(false)
 
 const playQueueStore = usePlayQueueStore()
 const toast = useToast()
+const favourites = useFavourites()
 
 function appendToQueue() {
 	console.log('aaa')
@@ -55,9 +58,12 @@ function appendToQueue() {
 				class="hover:scale-110 transition-all text-white/50 hover:text-white active:text-white/40 active:scale-95">
 				<QueueAddIcon :size="4" />
 			</button>
-			<button @click.stop=""
-				class="hover:scale-110 transition-all text-white/50 hover:text-white active:text-white/40 active:scale-95">
-				<StarEmptyIcon :size="4" />
+			<button @click.stop="favourites.toggleFavourite({
+				song: track,
+				album: album,
+			})" class="hover:scale-110 transition-all text-white/50 hover:text-white active:text-white/40 active:scale-95">
+				<StarFilledIcon v-if="favourites.isFavourite(track.cid)" :size="4" />
+				<StarEmptyIcon v-else :size="4" />
 			</button>
 		</div>
 
