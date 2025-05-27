@@ -21,7 +21,7 @@ export const useFavourites = defineStore('favourites', () => {
 	const detectAvailableAPIs = () => {
 		// 检查原生 chrome API
 		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -31,7 +31,7 @@ export const useFavourites = defineStore('favourites', () => {
 
 		// 检查 window.chrome
 		try {
-			if (window.chrome && window.chrome.storage && window.chrome.storage.sync) {
+			if (window.chrome && window.chrome.storage && window.chrome.storage.local) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -64,7 +64,7 @@ export const useFavourites = defineStore('favourites', () => {
 			switch (type) {
 				case 'chrome':
 					return await new Promise((resolve) => {
-						const api = chrome?.storage?.sync || window.chrome?.storage?.sync
+						const api = chrome?.storage?.local || window.chrome?.storage?.local
 						if (api) {
 							api.get({ [key]: defaultValue }, (result) => {
 								if (chrome.runtime.lastError) {
@@ -100,7 +100,7 @@ export const useFavourites = defineStore('favourites', () => {
 			switch (type) {
 				case 'chrome':
 					return await new Promise<void>((resolve, reject) => {
-						const api = chrome?.storage?.sync || window.chrome?.storage?.sync
+						const api = chrome?.storage?.local || window.chrome?.storage?.local
 						if (api) {
 							api.set({ [key]: value }, () => {
 								if (chrome.runtime.lastError) {
@@ -127,17 +127,62 @@ export const useFavourites = defineStore('favourites', () => {
 		}
 	}
 
+	// 数据验证和规范化函数
+	const normalizeFavourites = (data: any[]): QueueItem[] => {
+		if (!Array.isArray(data)) return []
+
+		return data.map(item => {
+			if (!item || !item.song) return null
+
+			// 规范化 Song 对象
+			const song: Song = {
+				cid: item.song.cid || '',
+				name: item.song.name || '',
+				albumCid: item.song.albumCid,
+				sourceUrl: item.song.sourceUrl,
+				lyricUrl: item.song.lyricUrl,
+				mvUrl: item.song.mvUrl,
+				mvCoverUrl: item.song.mvCoverUrl,
+				// 确保 artistes 和 artists 是数组
+				artistes: Array.isArray(item.song.artistes) ? item.song.artistes :
+					typeof item.song.artistes === 'object' ? Object.values(item.song.artistes) :
+						[],
+				artists: Array.isArray(item.song.artists) ? item.song.artists :
+					typeof item.song.artists === 'object' ? Object.values(item.song.artists) :
+						[]
+			}
+
+			// 规范化 Album 对象（如果存在）
+			const album = item.album ? {
+				cid: item.album.cid || '',
+				name: item.album.name || '',
+				intro: item.album.intro,
+				belong: item.album.belong,
+				coverUrl: item.album.coverUrl || '',
+				coverDeUrl: item.album.coverDeUrl,
+				artistes: Array.isArray(item.album.artistes) ? item.album.artistes :
+					typeof item.album.artistes === 'object' ? Object.values(item.album.artistes) :
+						[],
+				songs: item.album.songs
+			} : undefined
+
+			return { song, album }
+		}).filter(Boolean) as QueueItem[]
+	}
+
 	// 获取收藏列表
 	const getFavourites = async () => {
 		const result = await getStoredValue('favourites', defaultFavourites)
-		// 确保返回的是数组
-		return Array.isArray(result) ? result : defaultFavourites
+		// 确保返回的是数组并进行数据规范化
+		const normalizedResult = Array.isArray(result) ? normalizeFavourites(result) : defaultFavourites
+		return normalizedResult
 	}
 
 	// 保存收藏列表
 	const saveFavourites = async () => {
-		// 确保保存的是数组
-		await setStoredValue('favourites', [...favourites.value])
+		// 确保保存的是规范化的数组
+		const normalizedFavourites = normalizeFavourites([...favourites.value])
+		await setStoredValue('favourites', normalizedFavourites)
 	}
 
 	// 检查歌曲是否已收藏
@@ -209,7 +254,7 @@ export const useFavourites = defineStore('favourites', () => {
 	const initializeFavourites = async () => {
 		try {
 			const savedFavourites = await getFavourites()
-			// 确保设置的是有效数组
+			// 确保设置的是有效且规范化的数组
 			favourites.value = Array.isArray(savedFavourites) ? savedFavourites : []
 			isLoaded.value = true
 		} catch (error) {

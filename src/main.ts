@@ -9,11 +9,13 @@ import App from './App.vue'
 import HomePage from './pages/Home.vue'
 import AlbumDetailView from './pages/AlbumDetail.vue'
 import Playroom from './pages/Playroom.vue'
+import Library from './pages/Library.vue'
 
 const routes = [
   { path: '/', component: HomePage },
   { path: '/albums/:albumId', component: AlbumDetailView },
-  { path: '/playroom', component: Playroom }
+  { path: '/playroom', component: Playroom },
+  { path: '/library', component: Library }
 ]
 
 const router = createRouter({
