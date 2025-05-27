@@ -137,9 +137,9 @@ function playTheAlbum(from: number = 0) {
 	<dialog :open="present" class="bg-transparent z-20">
 		<div ref="dialogBackdrop" class="w-screen h-screen z-20 bg-neutral-700/30 flex" @click="handleClose">
 			<div ref="dialogContent"
-				class="max-w-[60rem] w-full h-[40rem] mx-auto my-auto rounded-lg shadow-lg flex flex-col p-8 overflow-y-auto"
+				class="max-w-[60rem] w-full h-[40rem] mx-auto my-auto rounded-lg shadow-lg flex flex-col p-8 overflow-y-auto backdrop-blur-3xl"
 				:style="{
-					background: album ? 'linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9)), url(' + (album.coverDeUrl) + ')' : '#191919',
+					background: album ? `linear-gradient(180deg, rgba(25, 25, 25, 0.8), rgba(25, 25, 25, 0.95)), url(${album.coverDeUrl})` : '#191919',
 					backgroundSize: 'cover',
 					backgroundPosition: 'center',
 					backgroundRepeat: 'no-repeat',
@@ -157,7 +157,7 @@ function playTheAlbum(from: number = 0) {
 						<div class="md:sticky md:top-[4.5rem] flex flex-col gap-8">
 							<div
 								class="border border-[#5b5b5b] rounded-md overflow-hidden shadow-2xl bg-neutral-800 top-0 w-48 mx-auto md:w-72">
-								<img :src="album?.coverUrl" class="md:w-72 md:h-72 w-48 h-48 object-contain" />
+								<img :src="album?.coverUrl" class="md:w-72 md:h-72 w-48 h-48 object-contain shadow-2xl" />
 							</div>
 							<div class="flex flex-col gap-2 text-center md:text-left">
 								<div class="text-white text-2xl font-semibold">{{ album?.name }}</div>
