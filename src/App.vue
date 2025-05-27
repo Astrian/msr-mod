@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Player from './components/Player.vue'
 import LeftArrowIcon from './assets/icons/leftarrow.vue'
 import SearchIcon from './assets/icons/search.vue'
 import CorgIcon from './assets/icons/corg.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 </script>
 
@@ -41,7 +42,7 @@ const route = useRoute()
 					<div v-else>
 						<button
 							class="text-white w-9 h-9 bg-white/5 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
-							@click="$router.back()">
+							@click="router.back()">
 							<LeftArrowIcon :size="4" />
 						</button>
 					</div>
