@@ -28,9 +28,9 @@ function appendToQueue() {
 	} as QueueItem)
 	playQueueStore.list = queue
 	playQueueStore.queueReplaceLock = true
-	toast.success('已添加到队列末尾', {
+	toast.success('已添加到播放队列末尾', {
 		position: 'top-right',
-		duration: 500,
+		duration: 1000,
 	})
 }
 </script>
