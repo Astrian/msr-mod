@@ -14,40 +14,33 @@ export const usePreferences = defineStore('preferences', () => {
 
 	const isLoaded = ref(false)
 	const storageType = ref<'chrome' | 'localStorage' | 'memory'>('chrome')
-	const debugInfo = ref<string[]>([])
 
-	// 添加调试日志
-	const addDebugInfo = (info: string) => {
-		debugInfo.value.push(`[${new Date().toISOString()}] ${info}`)
-		console.log(info)
+	// 默认偏好设置
+	const defaultPreferences = {
+		displayTimeLeft: false,
+		presentLyrics: false
 	}
 
 	// 检测可用的 API
 	const detectAvailableAPIs = () => {
-		addDebugInfo('开始检测可用的存储 API...')
-
 		// 检查原生 chrome API
 		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-				addDebugInfo('✅ 检测到 chrome.storage.local')
+			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
 				storageType.value = 'chrome'
 				return 'chrome'
-			} else {
-				addDebugInfo('❌ 未检测到原生 chrome.storage.local')
 			}
 		} catch (error) {
-			addDebugInfo(`❌ chrome API 检测失败: ${error}`)
+			// Silent fail
 		}
 
 		// 检查 window.chrome
 		try {
-			if (window.chrome && window.chrome.storage && window.chrome.storage.local) {
-				addDebugInfo('✅ 检测到 window.chrome.storage.local')
+			if (window.chrome && window.chrome.storage && window.chrome.storage.sync) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
 		} catch (error) {
-			addDebugInfo(`❌ window.chrome API 检测失败: ${error}`)
+			// Silent fail
 		}
 
 		// 检查 localStorage
@@ -55,16 +48,14 @@ export const usePreferences = defineStore('preferences', () => {
 			if (typeof localStorage !== 'undefined') {
 				localStorage.setItem('msr_test', 'test')
 				localStorage.removeItem('msr_test')
-				addDebugInfo('✅ 检测到 localStorage')
 				storageType.value = 'localStorage'
 				return 'localStorage'
 			}
 		} catch (error) {
-			addDebugInfo(`❌ localStorage 检测失败: ${error}`)
+			// Silent fail
 		}
 
 		// 都不可用，使用内存存储
-		addDebugInfo('⚠️ 使用内存存储（不持久化）')
 		storageType.value = 'memory'
 		return 'memory'
 	}
@@ -77,14 +68,12 @@ export const usePreferences = defineStore('preferences', () => {
 			switch (type) {
 				case 'chrome':
 					return await new Promise((resolve) => {
-						const api = chrome?.storage?.local || window.chrome?.storage?.local
+						const api = chrome?.storage?.sync || window.chrome?.storage?.sync
 						if (api) {
 							api.get({ [key]: defaultValue }, (result) => {
 								if (chrome.runtime.lastError) {
-									addDebugInfo(`Chrome storage 错误: ${chrome.runtime.lastError.message}`)
 									resolve(defaultValue)
 								} else {
-									addDebugInfo(`从 Chrome storage 读取: ${key} = ${result[key]}`)
 									resolve(result[key])
 								}
 							})
@@ -96,16 +85,13 @@ export const usePreferences = defineStore('preferences', () => {
 				case 'localStorage':
 					const stored = localStorage.getItem(`msr_${key}`)
 					const value = stored ? JSON.parse(stored) : defaultValue
-					addDebugInfo(`从 localStorage 读取: ${key} = ${value}`)
 					return value
 
 				case 'memory':
 				default:
-					addDebugInfo(`从内存返回默认值: ${key} = ${defaultValue}`)
 					return defaultValue
 			}
 		} catch (error) {
-			addDebugInfo(`获取存储值失败 (${type}): ${error}`)
 			return defaultValue
 		}
 	}
@@ -118,15 +104,12 @@ export const usePreferences = defineStore('preferences', () => {
 			switch (type) {
 				case 'chrome':
 					return await new Promise<void>((resolve, reject) => {
-						const api = chrome?.storage?.local || window.chrome?.storage?.local
+						const api = chrome?.storage?.sync || window.chrome?.storage?.sync
 						if (api) {
 							api.set({ [key]: value }, () => {
 								if (chrome.runtime.lastError) {
-									const error = `Chrome storage 保存错误: ${chrome.runtime.lastError.message}`
-									addDebugInfo(error)
-									reject(new Error(error))
+									reject(new Error(chrome.runtime.lastError.message))
 								} else {
-									addDebugInfo(`保存到 Chrome storage: ${key} = ${value}`)
 									resolve()
 								}
 							})
@@ -137,79 +120,55 @@ export const usePreferences = defineStore('preferences', () => {
 
 				case 'localStorage':
 					localStorage.setItem(`msr_${key}`, JSON.stringify(value))
-					addDebugInfo(`保存到 localStorage: ${key} = ${value}`)
 					break
 
 				case 'memory':
-					addDebugInfo(`内存存储（不持久化）: ${key} = ${value}`)
+					// 内存存储（不持久化）
 					break
 			}
 		} catch (error) {
-			addDebugInfo(`保存设置失败 (${type}): ${error}`)
 			throw error
 		}
 	}
 
+	// 获取所有偏好设置
+	const getPreferences = async () => {
+		return await getStoredValue('preferences', defaultPreferences)
+	}
+
+	// 保存所有偏好设置
+	const savePreferences = async () => {
+		const preferences = {
+			displayTimeLeft: displayTimeLeft.value,
+			presentLyrics: presentLyrics.value
+		}
+		await setStoredValue('preferences', preferences)
+	}
+
 	// 异步初始化函数
 	const initializePreferences = async () => {
-		addDebugInfo('开始初始化偏好设置...')
-
 		try {
-			const displayTimeLeftValue = await getStoredValue('displayTimeLeft', false)
-			displayTimeLeft.value = displayTimeLeftValue as boolean
-			const presentLyricsValue = await getStoredValue('presentLyrics', false)
-			presentLyrics.value = presentLyricsValue as boolean
+			const preferences = await getPreferences()
+			displayTimeLeft.value = preferences.displayTimeLeft
+			presentLyrics.value = preferences.presentLyrics
 			isLoaded.value = true
 		} catch (error) {
-			addDebugInfo(`❌ 初始化失败: ${error}`)
 			displayTimeLeft.value = false
+			presentLyrics.value = false
 			isLoaded.value = true
 		}
 	}
 
 	// 监听变化并保存
-	watch(displayTimeLeft, async (val) => {
+	watch([displayTimeLeft, presentLyrics], async () => {
 		if (isLoaded.value) {
 			try {
-				await setStoredValue('displayTimeLeft', val)
+				await savePreferences()
 			} catch (error) {
-				addDebugInfo(`❌ 监听器保存失败: ${error}`)
+				// Silent fail
 			}
 		}
 	})
-	watch(presentLyrics, async (val) => {
-		if (isLoaded.value) {
-			try {
-				await setStoredValue('presentLyrics', val)
-			} catch (error) {
-				addDebugInfo(`❌ 监听器保存失败: ${error}`)
-			}
-		}
-	})
-
-	// 手动保存函数（用于调试）
-	const manualSave = async () => {
-		try {
-			await setStoredValue('displayTimeLeft', displayTimeLeft.value)
-			addDebugInfo(`✅ 手动保存成功`)
-		} catch (error) {
-			addDebugInfo(`❌ 手动保存失败: ${error}`)
-		}
-	}
-
-	// 获取调试信息
-	const getDebugInfo = () => {
-		return {
-			storageType: storageType.value,
-			isLoaded: isLoaded.value,
-			displayTimeLeft: displayTimeLeft.value,
-			logs: debugInfo.value,
-			chromeAvailable: typeof chrome !== 'undefined',
-			chromeStorageAvailable: !!(chrome?.storage?.local),
-			windowChromeAvailable: !!(window.chrome?.storage?.local),
-			localStorageAvailable: typeof localStorage !== 'undefined'
-		}
-	}
 
 	// 立即初始化
 	initializePreferences()
@@ -219,11 +178,10 @@ export const usePreferences = defineStore('preferences', () => {
 		presentLyrics,
 		isLoaded,
 		storageType,
-		debugInfo,
 		initializePreferences,
 		getStoredValue,
 		setStoredValue,
-		manualSave,
-		getDebugInfo
+		getPreferences,
+		savePreferences
 	}
 })
