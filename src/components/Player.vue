@@ -180,7 +180,6 @@ function updateCurrentTime() {
 		const remainingTimeThreshold = config.remainingTimeThreshold || 30
 
 		if ((progress > preloadTrigger || remainingTime < remainingTimeThreshold) && !playQueueStore.isPreloading) {
-			console.log(`[Player] 触发预加载 - 进度: ${Math.round(progress * 100)}%, 剩余: ${Math.round(remainingTime)}s`)
 
 			try {
 				if (typeof playQueueStore.preloadNext === 'function') {

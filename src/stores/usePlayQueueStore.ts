@@ -55,11 +55,9 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 	// 预加载下一首歌
 	const preloadNext = async () => {
-		console.log('[Store] preloadNext 被调用')
-		
+
 		const nextIndex = getNextIndex.value
 		if (nextIndex === -1) {
-			console.log('[Store] 没有下一首歌，跳过预加载')
 			return
 		}
 
@@ -72,7 +70,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		}
 
 		if (!nextSong || !nextSong.song) {
-			console.log('[Store] 下一首歌曲不存在，跳过预加载')
 			return
 		}
 
@@ -80,7 +77,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 		// 如果已经预加载过，跳过
 		if (preloadedAudio.value.has(songId)) {
-			console.log(`[Store] 歌曲 ${songId} 已预加载`)
 			return
 		}
 
@@ -156,8 +152,8 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	const limitPreloadCache = () => {
 		while (preloadedAudio.value.size > 3) {
 			const oldestKey = preloadedAudio.value.keys().next().value
-			if (oldestKey) { 
-				clearPreloadedAudio(oldestKey) 
+			if (oldestKey) {
+				clearPreloadedAudio(oldestKey)
 			} else {
 				break
 			}

@@ -131,6 +131,7 @@ function playTheAlbum(from: number = 0) {
 	playQueue.isPlaying = true
 	playQueue.isBuffering = true
 }
+
 </script>
 
 <template>
