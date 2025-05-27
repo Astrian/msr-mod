@@ -41,7 +41,7 @@ const router = useRouter()
 
 					<div v-else>
 						<button
-							class="text-white w-9 h-9 bg-white/5 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
 							@click="router.back()">
 							<LeftArrowIcon :size="4" />
 						</button>
