@@ -43,6 +43,7 @@ const playButton = useTemplateRef('playButton')
 
 const presentQueueListDialog = ref(false)
 const presentLyrics = ref(false)
+const showLyricsTooltip = ref(false)
 
 onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {
@@ -486,21 +487,31 @@ watch(() => playQueueStore.currentIndex, () => {
 
 					<div class="flex-1 text-right flex gap-1">
 						<div class="flex-1" />
-						<button
-							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
-							ref="lyricsButton" @click="preferences.presentLyrics = !preferences.presentLyrics">
-							<div class="w-6 h-6 relative">
-								<span class="text-white absolute top-0 left-0 z-10">
-									<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
-									<ChatBubbleQuoteIcon :size="6" v-else />
-								</span>
-								<span class="text-black/40 blur-md absolute top-0 left-0 z-0">
-									<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
-									<ChatBubbleQuoteIcon :size="6" v-else />
-								</span>
-
-							</div>
-						</button>
+						<!-- Lyrics button with tooltip only on hover -->
+						<div @mouseenter="showLyricsTooltip = true" @mouseleave="showLyricsTooltip = false" class="relative">
+							<button
+								class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
+								ref="lyricsButton" @click="preferences.presentLyrics = !preferences.presentLyrics">
+								<div class="w-6 h-6 relative">
+									<span class="text-white absolute top-0 left-0 z-10">
+										<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
+										<ChatBubbleQuoteIcon :size="6" v-else />
+									</span>
+									<span class="text-black/40 blur-md absolute top-0 left-0 z-0">
+										<ChatBubbleQuoteFullIcon :size="6" v-if="preferences.presentLyrics" />
+										<ChatBubbleQuoteIcon :size="6" v-else />
+									</span>
+								</div>
+							</button>
+							<!-- Show tooltip only on hover, with transition -->
+							<transition name="lyrics-tooltip-fade">
+								<div v-if="showLyricsTooltip && !getCurrentTrack().song.lyricUrl"
+									class="absolute bottom-10 w-60 left-[-7rem] bg-white/10 backdrop-blur-3xl rounded-md p-2 text-xs flex flex-col text-left text-white shadow-md">
+									<div class="font-semibold">这首曲目不提供歌词文本</div>
+									<div>启用歌词时，将会在下一首有歌词的曲目中显示歌词文本。</div>
+								</div>
+							</transition>
+						</div>
 						<button
 							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
 							ref="moreButton">
@@ -619,3 +630,23 @@ watch(() => playQueueStore.currentIndex, () => {
 		</div>
 	</dialog>
 </template>
+
+<style scoped>
+/* ...existing styles... */
+.lyrics-tooltip-fade-enter-active,
+.lyrics-tooltip-fade-leave-active {
+	transition: opacity 0.18s cubic-bezier(.4, 0, .2, 1), transform 0.18s cubic-bezier(.4, 0, .2, 1);
+}
+
+.lyrics-tooltip-fade-enter-from,
+.lyrics-tooltip-fade-leave-to {
+	opacity: 0;
+	transform: translateY(10px) scale(0.98);
+}
+
+.lyrics-tooltip-fade-enter-to,
+.lyrics-tooltip-fade-leave-from {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+</style>
