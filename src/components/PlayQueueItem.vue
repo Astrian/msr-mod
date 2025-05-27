@@ -19,6 +19,8 @@ const playQueueStore = usePlayQueueStore()
 const hover = ref(false)
 
 function removeItem() {
+	playQueueStore.queueReplaceLock = true
+
 	const queue = [...playQueueStore.list]
 
 	if (!playQueueStore.playMode.shuffle) {
