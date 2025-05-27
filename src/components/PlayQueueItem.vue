@@ -18,6 +18,79 @@ const playQueueStore = usePlayQueueStore()
 
 const hover = ref(false)
 
+function moveUp() {
+	if (props.index === 0) return
+
+	playQueueStore.queueReplaceLock = true
+	const queue = [...playQueueStore.list]
+
+	if (!playQueueStore.playMode.shuffle) {
+		// 非shuffle模式：直接交换位置
+		const temp = queue[props.index]
+		queue[props.index] = queue[props.index - 1]
+		queue[props.index - 1] = temp
+		playQueueStore.list = queue
+
+		// 更新currentIndex
+		if (props.index === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex--
+		} else if (props.index - 1 === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex++
+		}
+	} else {
+		// Shuffle模式：交换shuffle列表中的索引
+		const shuffleList = [...playQueueStore.shuffleList]
+		const temp = shuffleList[props.index]
+		shuffleList[props.index] = shuffleList[props.index - 1]
+		shuffleList[props.index - 1] = temp
+		playQueueStore.shuffleList = shuffleList
+
+		// 更新currentIndex
+		if (props.index === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex--
+		} else if (props.index - 1 === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex++
+		}
+	}
+}
+
+function moveDown() {
+	const listLength = playQueueStore.playMode.shuffle ? playQueueStore.shuffleList.length : playQueueStore.list.length
+	if (props.index === listLength - 1) return
+
+	playQueueStore.queueReplaceLock = true
+	const queue = [...playQueueStore.list]
+
+	if (!playQueueStore.playMode.shuffle) {
+		// 非shuffle模式：直接交换位置
+		const temp = queue[props.index]
+		queue[props.index] = queue[props.index + 1]
+		queue[props.index + 1] = temp
+		playQueueStore.list = queue
+
+		// 更新currentIndex
+		if (props.index === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex++
+		} else if (props.index + 1 === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex--
+		}
+	} else {
+		// Shuffle模式：交换shuffle列表中的索引
+		const shuffleList = [...playQueueStore.shuffleList]
+		const temp = shuffleList[props.index]
+		shuffleList[props.index] = shuffleList[props.index + 1]
+		shuffleList[props.index + 1] = temp
+		playQueueStore.shuffleList = shuffleList
+
+		// 更新currentIndex
+		if (props.index === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex++
+		} else if (props.index + 1 === playQueueStore.currentIndex) {
+			playQueueStore.currentIndex--
+		}
+	}
+}
+
 function removeItem() {
 	playQueueStore.queueReplaceLock = true
 
@@ -103,13 +176,15 @@ function removeItem() {
 		<div class="flex gap-1" v-if="hover">
 			<button
 				class="text-white/90 w-4 h-4 hover:scale-110 hover:text-white active:scale-95 active:text-white/85 transition-all"
-				@click.stop>
+				@click.stop="moveUp" :disabled="index === 0" v-if="index !== 0">
 				<UpHyphenIcon :size="4" />
 			</button>
 
 			<button
 				class="text-white/90 w-4 h-4 hover:scale-110 hover:text-white active:scale-95 active:text-white/85 transition-all"
-				@click.stop>
+				@click.stop="moveDown"
+				:disabled="index === (playQueueStore.playMode.shuffle ? playQueueStore.shuffleList.length : playQueueStore.list.length) - 1"
+				v-if="index !== (playQueueStore.playMode.shuffle ? playQueueStore.shuffleList.length : playQueueStore.list.length) - 1">
 				<DownHyphenIcon :size="4" />
 			</button>
 
