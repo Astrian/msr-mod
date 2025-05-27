@@ -25,12 +25,12 @@ const router = useRouter()
 									:class="route.path === '/' ? 'font-semibold text-white' : 'text-white/50 hover:text-white/80'">浏览</span>
 							</RouterLink>
 						</li>
-						<li>
+						<!-- <li>
 							<RouterLink to="/lucky"
 								:class="route.path === '/lucky' ? 'font-semibold text-white' : 'text-white/50 hover:text-white/80'">
 								<span class="text-4xl">手气不错</span>
 							</RouterLink>
-						</li>
+						</li> -->
 						<li>
 							<RouterLink to="/library"
 								:class="route.path === '/library' ? 'font-semibold text-white' : 'text-white/50 hover:text-white/80'">
