@@ -339,7 +339,7 @@ function getCurrentTrack() {
 			class="text-white h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden select-none"
 			v-if="playQueueStore.list.length !== 0 && route.path !== '/playroom'">
 			<RouterLink to="/playroom">
-				<img :src="getCurrentTrack()?.album?.coverUrl ?? ''" class="rounded-full h-9 w-9" />
+				<img :src="getCurrentTrack()?.album?.coverUrl ?? ''" class="rounded-full h-8 w-8 mt-[.0625rem]" />
 			</RouterLink>
 
 			<RouterLink to="/playroom">
