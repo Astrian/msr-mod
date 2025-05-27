@@ -331,10 +331,10 @@ function getCurrentTrack() {
 		</audio>
 
 		<!-- 预加载进度指示器（可选显示） -->
-		<div v-if="playQueueStore.isPreloading"
+		<!-- <div v-if="playQueueStore.isPreloading"
 			class="fixed top-4 right-4 bg-black/80 text-white px-3 py-1 rounded text-xs z-50">
 			预加载中... {{ Math.round(playQueueStore.preloadProgress) }}%
-		</div>
+		</div> -->
 
 		<div
 			class="text-white h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex gap-2 overflow-hidden select-none"
