@@ -45,6 +45,8 @@ const presentQueueListDialog = ref(false)
 const presentLyrics = ref(false)
 const showLyricsTooltip = ref(false)
 
+import PlayQueueItem from '../components/PlayQueueItem.vue'
+
 onMounted(async () => {
 	Draggable.create(progressBarThumb.value, {
 		type: 'x',
@@ -569,63 +571,13 @@ watch(() => playQueueStore.currentIndex, () => {
 			<hr class="border-[#ffffff39]" />
 
 			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.playMode.shuffle">
-				<button v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList"
-					class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2" :key="oriIndex" @click="() => {
-						if (playQueueStore.currentIndex === shuffledIndex) { return }
-						playQueueStore.currentIndex = shuffledIndex
-						playQueueStore.isPlaying = true
-					}">
-					<div class="flex gap-2">
-						<div class="relative w-12 h-12 rounded-md shadow-xl overflow-hidden">
-							<img :src="playQueueStore.list[oriIndex].album?.coverUrl" />
-							<div class="w-full h-full absolute top-0 left-0 bg-neutral-900/75 flex justify-center items-center"
-								v-if="shuffledIndex === playQueueStore.currentIndex">
-								<div style="height: 1rem;" class="flex justify-center items-center gap-[.125rem]">
-									<div class="bg-white w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
-										:key="index" :style="{
-											height: `${Math.max(10, bar)}%`
-										}" />
-								</div>
-							</div>
-						</div>
-						<div class="flex flex-col text-left flex-auto w-0">
-							<div class="text-white text-base font-medium truncate">{{ playQueueStore.list[oriIndex].song.name }}</div>
-							<div class="text-white/75 text-sm truncate">
-								{{ artistsOrganize(playQueueStore.list[oriIndex].song.artists ?? []) }} —
-								{{ playQueueStore.list[oriIndex].album?.name ?? '未知专辑' }}
-							</div>
-						</div>
-					</div>
-				</button>
+				<PlayQueueItem v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList"
+					:queueItem="playQueueStore.list[oriIndex]" :isCurrent="playQueueStore.currentIndex === shuffledIndex"
+					:key="playQueueStore.list[oriIndex].song.cid" :index="shuffledIndex" />
 			</div>
 			<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-else>
-				<button v-for="(track, index) in playQueueStore.list" class="p-4 w-full rounded-md hover:bg-white/5 first:mt-2"
-					:key="track.song.cid" @click="() => {
-						if (playQueueStore.currentIndex === index) { return }
-						playQueueStore.currentIndex = index
-						playQueueStore.isPlaying = true
-					}">
-					<div class="flex gap-2">
-						<div class="relative w-12 h-12 rounded-md shadow-xl overflow-hidden">
-							<img :src="track.album?.coverUrl" />
-							<div class="w-full h-full absolute top-0 left-0 bg-neutral-900/75 flex justify-center items-center"
-								v-if="index === playQueueStore.currentIndex">
-								<div style="height: 1rem;" class="flex justify-center items-center gap-[.125rem]">
-									<div class="bg-white w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
-										:key="index" :style="{
-											height: `${Math.max(10, bar)}%`
-										}" />
-								</div>
-							</div>
-						</div>
-						<div class="flex flex-col text-left flex-auto w-0">
-							<div class="text-white text-base font-medium truncate">{{ track.song.name }}</div>
-							<div class="text-white/75 text-sm truncate">{{ artistsOrganize(track.song.artists ?? []) }} —
-								{{ track.album?.name ?? '未知专辑' }}
-							</div>
-						</div>
-					</div>
-				</button>
+				<PlayQueueItem :queueItem="track" :isCurrent="playQueueStore.currentIndex === index"
+					v-for="(track, index) in playQueueStore.list" :index="index" :key="track.song.cid" />
 			</div>
 		</div>
 	</dialog>
