@@ -11,6 +11,7 @@ declare global {
 export const usePreferences = defineStore('preferences', () => {
 	const displayTimeLeft = ref<boolean>(false)
 	const presentLyrics = ref<boolean>(false)
+	const autoRedirect = ref<boolean>(true)
 
 	const isLoaded = ref(false)
 	const storageType = ref<'chrome' | 'localStorage' | 'memory'>('chrome')
@@ -18,7 +19,8 @@ export const usePreferences = defineStore('preferences', () => {
 	// 默认偏好设置
 	const defaultPreferences = {
 		displayTimeLeft: false,
-		presentLyrics: false
+		presentLyrics: false,
+		autoRedirect: true
 	}
 
 	// 检测可用的 API
@@ -140,7 +142,8 @@ export const usePreferences = defineStore('preferences', () => {
 	const savePreferences = async () => {
 		const preferences = {
 			displayTimeLeft: displayTimeLeft.value,
-			presentLyrics: presentLyrics.value
+			presentLyrics: presentLyrics.value,
+			autoRedirect: autoRedirect.value
 		}
 		await setStoredValue('preferences', preferences)
 	}
@@ -151,16 +154,18 @@ export const usePreferences = defineStore('preferences', () => {
 			const preferences = await getPreferences()
 			displayTimeLeft.value = preferences.displayTimeLeft
 			presentLyrics.value = preferences.presentLyrics
+			autoRedirect.value = preferences.autoRedirect
 			isLoaded.value = true
 		} catch (error) {
 			displayTimeLeft.value = false
 			presentLyrics.value = false
+			autoRedirect.value = true
 			isLoaded.value = true
 		}
 	}
 
 	// 监听变化并保存
-	watch([displayTimeLeft, presentLyrics], async () => {
+	watch([displayTimeLeft, presentLyrics, autoRedirect], async () => {
 		if (isLoaded.value) {
 			try {
 				await savePreferences()
@@ -176,6 +181,7 @@ export const usePreferences = defineStore('preferences', () => {
 	return {
 		displayTimeLeft,
 		presentLyrics,
+		autoRedirect,
 		isLoaded,
 		storageType,
 		initializePreferences,

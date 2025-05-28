@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import Player from './components/Player.vue'
+import PreferencePanel from './components/PreferencePanel.vue'
+import { ref } from 'vue'
+
 import LeftArrowIcon from './assets/icons/leftarrow.vue'
 // import SearchIcon from './assets/icons/search.vue'
 import CorgIcon from './assets/icons/corg.vue'
+import { watch } from 'vue'
+
+const presentPreferencePanel = ref(true)
 
 const route = useRoute()
 const router = useRouter()
+
+watch(() => presentPreferencePanel, (value) => {
+	console.log(value)
+})
 
 </script>
 
@@ -54,7 +64,8 @@ const router = useRouter()
 						</button> -->
 
 						<button
-							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center">
+							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
+							@click="presentPreferencePanel = true">
 							<CorgIcon :size="4" />
 						</button>
 
@@ -64,5 +75,6 @@ const router = useRouter()
 			</div>
 			<RouterView />
 		</div>
+		<PreferencePanel :present="presentPreferencePanel" @dismiss="presentPreferencePanel = false" />
 	</div>
 </template>
