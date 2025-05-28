@@ -1,5 +1,9 @@
-# Vue 3 + TypeScript + Vite
+# MSR Mod
+*海量泰拉金曲，全无广告干扰（逃*
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+MSR Mod 是一款用于「塞壬唱片」官网（monster-siren.hypergryph.com）的替代前端（alternate frontend）。安装后访问塞壬官网可自动重定向至扩展（可在偏好设置中关闭），为其提供更现代的用户界面以及强大的音乐播放队列、星标和歌单等管理功能。
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 隐私协议 & 版权声明
+MSR Mod 仅与特定的服务器进行交互，譬如由鹰角网络设立的后端服务器及媒体资源服务器等。同时，您在 MSR Mod 中的部分行为（包括星标、建立歌单等）可根据情况提交至 MSR Mod 的服务器。这些数据将根据您的特定偏好设置公开或隐藏。MSR Mod 不会主动将您的数据汇报给任何第三方，也将利用行业标准保护您的个人信息不被泄露。
+
+「鹰角网络」、「塞壬唱片」或其他相关商标是鹰角网络在中国大陆和（或）其他地区的注册商标。MSR Mod 与鹰角网络无任何关联。
