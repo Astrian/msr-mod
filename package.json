@@ -5,12 +5,13 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vue-tsc -b && vite build && cp -r public/* dist/",
+		"build": "npm run prebuild && vue-tsc -b && vite build && cp -r public/* dist/",
 		"build:watch": "vite build --watch",
 		"preview": "vite preview",
 		"lint": "biome format --write .",
 		"quality-check": "biome ci",
-		"qc": "npm run quality-check"
+		"qc": "npm run quality-check",
+		"prebuild": "node scripts/prebuild.js"
 	},
 	"dependencies": {
 		"@tailwindcss/vite": "^4.1.7",
