@@ -9,7 +9,7 @@ import LeftArrowIcon from './assets/icons/leftarrow.vue'
 import CorgIcon from './assets/icons/corg.vue'
 import { watch } from 'vue'
 
-const presentPreferencePanel = ref(true)
+const presentPreferencePanel = ref(false)
 
 const route = useRoute()
 const router = useRouter()

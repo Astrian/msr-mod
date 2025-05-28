@@ -1,5 +1,5 @@
 chrome.webRequest.onBeforeRequest.addListener(
-	(details) => {
+	async (details) => {
 		console.log(
 			'onBeforeRequest MAIN_FRAME:',
 			details.url,
@@ -12,8 +12,13 @@ chrome.webRequest.onBeforeRequest.addListener(
 			details.type === 'other' &&
 			details.frameId === 0
 		) {
-			chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
-			chrome.tabs.remove(details.tabId)
+			const pref = await chrome.storage.sync.get('preferences')
+			console.log(pref.preferences.autoRedirect)
+
+			if (pref === undefined || pref.preferences === undefined || pref.preferences.autoRedirect === undefined || pref.preferences.autoRedirect === true) {
+				chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
+				chrome.tabs.remove(details.tabId)
+			}
 		}
 	},
 	{ urls: ['https://monster-siren.hypergryph.com/manifest.json'] },
