@@ -8,7 +8,10 @@ on:
 
 jobs:
   build:
+    name: 构建扩展程序
     runs-on: ubuntu-latest
+    env:
+      EXTENSION_ID: kphoaomopljjiofeaigjmbagmbdaamhh
     
     steps:
     - uses: actions/checkout@v3
@@ -28,5 +31,39 @@ jobs:
     - name: 上传工件
       uses: actions/upload-artifact@v3
       with:
-        name: extension-build
+        name: artifact-${{ gitea.sha }}
         path: dist/
+  
+  publish:
+    name: 发布至 Chrome 应用商店
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+      name: 检出代码
+      
+    - name: 下载构建工件
+      uses: actions/download-artifact@v3
+      with:
+        name: artifact-${{ gitea.sha }}
+        
+    - uses: actions/setup-node@v2-beta
+      name: 设置 Node.js
+      with:
+        node-version: "16.10"
+
+    - name: 安装提交器
+      run: |-
+        npm install -g chrome-webstore-upload-cli
+
+    - name: 上传扩展程序
+      run: |-
+        chrome-webstore-upload upload \\
+          --source artifact-${{ gitea.sha }}.zip \\
+          --extension-id ${{ env.EXTENSION_ID }} \\
+          --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \\
+          --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \\
+          --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
+      
