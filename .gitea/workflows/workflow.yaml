@@ -10,8 +10,6 @@ jobs:
   build:
     name: 构建扩展程序
     runs-on: ubuntu-latest
-    env:
-      EXTENSION_ID: kphoaomopljjiofeaigjmbagmbdaamhh
     
     steps:
     - uses: actions/checkout@v3
@@ -62,5 +60,5 @@ jobs:
 
     - name: 上传扩展程序
       run: |-
-        chrome-webstore-upload upload --source artifact-${{ gitea.sha }}.zip --extension-id ${{ env.EXTENSION_ID }} --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
+        chrome-webstore-upload upload --source artifact-${{ gitea.sha }}.zip --extension-id kphoaomopljjiofeaigjmbagmbdaamhh --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
       
