@@ -44,6 +44,7 @@ function playTheAlbum(from: number = 0) {
 			album: album.value
 		})
 	}
+	playQueue.playMode.shuffle = false
 	playQueue.list = newPlayQueue
 	playQueue.currentIndex = from
 	playQueue.isPlaying = true

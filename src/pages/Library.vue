@@ -31,6 +31,7 @@ function playTheList(list: 'favourites' | number, playFrom: number = 0) {
 		}))
 		playQueueStore.list = newPlayQueue.slice().reverse()
 		playQueueStore.currentIndex = playFrom
+		playQueueStore.playMode.shuffle = false
 		playQueueStore.isPlaying = true
 		playQueueStore.isBuffering = true
 	} else {
