@@ -25,6 +25,14 @@
 		"48": "vite.svg",
 		"128": "vite.svg"
 	},
+	"action": {
+		"default_title": "打开 MSR Mod",
+		"default_icon": {
+			"16": "vite.svg",
+			"48": "vite.svg",
+			"128": "vite.svg"
+		}
+	},
 	"background": {
 		"service_worker": "background.js"
 	},

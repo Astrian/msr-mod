@@ -23,3 +23,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 	},
 	{ urls: ['https://monster-siren.hypergryph.com/manifest.json'] },
 )
+
+chrome.action.onClicked.addListener(() => {
+	chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
+})
