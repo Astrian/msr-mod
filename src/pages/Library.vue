@@ -5,7 +5,7 @@ import ShuffleIcon from '../assets/icons/shuffle.vue'
 
 import { useFavourites } from '../stores/useFavourites'
 import { ref } from 'vue'
-import { artistsOrganize } from '../utils'
+import PlayListItem from '../components/PlayListItem.vue'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 
 const favourites = useFavourites()
@@ -13,7 +13,9 @@ const playQueueStore = usePlayQueueStore()
 
 const currentList = ref<'favourites' | number>('favourites')
 
-function playTheList(list: 'favourites' | number) {
+function playTheList(list: 'favourites' | number, playFrom: number = 0) {
+	if (playFrom < 0 || playFrom >= favourites.favouritesCount) { playFrom = 0 }
+
 	if (usePlayQueueStore().queueReplaceLock) {
 		if (!confirm("当前操作会将你的播放队列清空、放入这张歌单所有曲目，并从头播放。继续吗？")) { return }
 		usePlayQueueStore().queueReplaceLock = false
@@ -28,7 +30,7 @@ function playTheList(list: 'favourites' | number) {
 			album: item.album
 		}))
 		playQueueStore.list = newPlayQueue.slice().reverse()
-		playQueueStore.currentIndex = 0
+		playQueueStore.currentIndex = playFrom
 		playQueueStore.isPlaying = true
 		playQueueStore.isBuffering = true
 	} else {
@@ -118,16 +120,12 @@ function shuffle(list: 'favourites' | number) {
 			</div>
 
 
-			<div class="flex flex-col gap-2 mt-4 mr-8">
-				<button v-for="item in favourites.favourites.slice().reverse()" :key="item.song.cid"
-					class="text-left flex items-center p-2 hover:bg-neutral-400/10 odd:bg-neutral-400/5 rounded-md transition-all">
-					<img :src="item.album?.coverUrl" class="w-12 h-12 rounded-md object-cover inline-block mr-2" />
-					<div>
-						<div class="text-white text-base font-medium">{{ item.song.name }}</div>
-						<div class="text-white/50 text-sm">{{ item.album?.name }} - {{ artistsOrganize(item.song.artists ?? []) }}
-						</div>
-					</div>
-				</button>
+			<div class="flex flex-col gap-2 mt-4 mr-8 pb-8">
+				<PlayListItem v-for="(item, index) in favourites.favourites.slice().reverse()" :key="item.song.cid" :item="item"
+					:index="index" @play="(playFrom) => {
+						console.log('play from', playFrom)
+						playTheList('favourites', playFrom)
+					}" />
 			</div>
 		</div>
 	</div>
