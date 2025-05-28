@@ -6,10 +6,47 @@ import ShuffleIcon from '../assets/icons/shuffle.vue'
 import { useFavourites } from '../stores/useFavourites'
 import { ref } from 'vue'
 import { artistsOrganize } from '../utils'
+import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 
 const favourites = useFavourites()
+const playQueueStore = usePlayQueueStore()
 
 const currentList = ref<'favourites' | number>('favourites')
+
+function playTheList(list: 'favourites' | number) {
+	if (usePlayQueueStore().queueReplaceLock) {
+		if (!confirm("当前操作会将你的播放队列清空、放入这张歌单所有曲目，并从头播放。继续吗？")) { return }
+		usePlayQueueStore().queueReplaceLock = false
+	}
+	playQueueStore.list = []
+
+	if (list === 'favourites') {
+		if (favourites.favouritesCount === 0) return
+
+		let newPlayQueue = favourites.favourites.map(item => ({
+			song: item.song,
+			album: item.album
+		}))
+		playQueueStore.list = newPlayQueue.slice().reverse()
+		playQueueStore.currentIndex = 0
+		playQueueStore.isPlaying = true
+		playQueueStore.isBuffering = true
+	} else {
+		// Handle other lists if needed
+	}
+}
+
+function shuffle(list: 'favourites' | number) {
+	playTheList(list)
+	playQueueStore.shuffleCurrent = true
+	playQueueStore.playMode.shuffle = false
+	setTimeout(() => {
+		playQueueStore.playMode.shuffle = true
+		playQueueStore.isPlaying = true
+		playQueueStore.isBuffering = true
+	}, 100)
+}
+
 </script>
 
 <template>
@@ -66,14 +103,14 @@ const currentList = ref<'favourites' | number>('favourites')
 					<div class="flex gap-2">
 						<button
 							class="bg-sky-500/20 hover:bg-sky-500/30 active:bg-sky-600/30 active:shadow-inner backdrop-blur-3xl border border-[#ffffff39] rounded-full w-56 h-10 text-base text-white flex justify-center items-center gap-2 transition-all"
-							@click="">
+							@click="playTheList('favourites')">
 							<PlayIcon :size="4" />
 							<div>播放歌单</div>
 						</button>
 
 						<button
 							class="text-white w-10 h-10 bg-neutral-800/80 border border-[#ffffff39] backdrop-blur-3xl rounded-full flex justify-center items-center hover:bg-neutral-700/80 transition-all"
-							@click="">
+							@click="shuffle('favourites')">
 							<ShuffleIcon :size="4" />
 						</button>
 					</div>

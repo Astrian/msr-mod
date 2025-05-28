@@ -260,33 +260,35 @@ watch(() => error.value, (newError) => {
 // 切换播放模式
 watch(() => playQueueStore.playMode.shuffle, (isShuffle) => {
 	if (isShuffle) {
-		// 提取当前歌曲的索引和队列中总项目数
 		const currentIndex = playQueueStore.currentIndex
 		const trackCount = playQueueStore.list.length
-		// 生成新的随机播放列表，该列表是原来列表的下标数组（保持原有的顺序不变，以便用户关闭随机播放时恢复原有队列）
-		// 将队列中剩余的项目随机排列，队列中更早的歌曲保持不变
+
+		// 1. 已播放部分：不变
 		let shuffledList = [...Array(currentIndex).keys()]
-		// 如果 shuffleCurrent 被指定为 false 或 undefined，那么将当前歌曲放在新列表的开头
+
+		// 2. 构建待打乱的列表
+		let shuffleSpace = [...Array(trackCount).keys()].filter(index =>
+			playQueueStore.shuffleCurrent ? index >= currentIndex : index > currentIndex
+		)
+
+		// 3. 随机打乱
+		shuffleSpace.sort(() => Math.random() - 0.5)
+
+		// 4. 如果当前曲目不参与打乱，插入回当前位置（即 currentIndex 处）
 		if (!playQueueStore.shuffleCurrent) {
 			shuffledList.push(currentIndex)
 		}
-		// 重置 shuffleCurrent 标签
-		playQueueStore.shuffleCurrent = undefined
 
-		// 将剩余的项目列出来
-		let shuffleSpace = [...Array(trackCount).keys()]
-		shuffleSpace = shuffleSpace.filter((item) => item > currentIndex)
-		console.log(shuffleSpace)
-		// 随机打乱剩余的项目
-		shuffleSpace.sort(() => Math.random() - 0.5)
-
-		// 拼接新队列
+		// 5. 拼接：已播放部分 + 当前（可选）+ 打乱后的剩余部分
 		shuffledList = shuffledList.concat(shuffleSpace)
 
-		// 应用新的随机播放列表
+		// 6. 应用 shuffleList
 		playQueueStore.shuffleList = shuffledList
+
+		// 清除 shuffleCurrent 状态
+		playQueueStore.shuffleCurrent = undefined
 	} else {
-		// 将当前播放的歌曲的原来的索引赋给 currentIndex
+		// 退出随机播放：恢复当前播放曲目的原索引
 		playQueueStore.currentIndex = playQueueStore.shuffleList[playQueueStore.currentIndex]
 	}
 

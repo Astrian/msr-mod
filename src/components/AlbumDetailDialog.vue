@@ -114,7 +114,7 @@ const playQueue = usePlayQueueStore()
 
 function playTheAlbum(from: number = 0) {
 	if (playQueue.queueReplaceLock) {
-		if (!confirm("当前操作会将你的待播列表清空、放入这张专辑所有曲目，并从新待播清单的开头播放。继续吗？")) { return }
+		if (!confirm("当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？")) { return }
 		playQueue.queueReplaceLock = false
 	}
 
@@ -130,6 +130,17 @@ function playTheAlbum(from: number = 0) {
 	playQueue.currentIndex = from
 	playQueue.isPlaying = true
 	playQueue.isBuffering = true
+}
+
+function shuffle() {
+	playTheAlbum()
+	playQueue.shuffleCurrent = true
+	playQueue.playMode.shuffle = false
+	setTimeout(() => {
+		playQueue.playMode.shuffle = true
+		playQueue.isPlaying = true
+		playQueue.isBuffering = true
+	}, 100)
 }
 
 </script>
@@ -180,11 +191,7 @@ function playTheAlbum(from: number = 0) {
 
 								<button
 									class="text-white w-10 h-10 bg-neutral-800/80 border border-[#ffffff39] backdrop-blur-3xl rounded-full flex justify-center items-center hover:bg-neutral-700/80 transition-all"
-									@click="() => {
-										playTheAlbum()
-										playQueue.shuffleCurrent = true
-										playQueue.playMode.shuffle = true
-									}">
+									@click="shuffle">
 									<ShuffleIcon :size="4" />
 								</button>
 

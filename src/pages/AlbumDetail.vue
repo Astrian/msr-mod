@@ -32,7 +32,7 @@ onMounted(async () => {
 
 function playTheAlbum(from: number = 0) {
 	if (playQueue.queueReplaceLock) {
-		if (!confirm("当前操作会将你的待播列表清空、放入这张专辑所有曲目，并从新待播清单的开头播放。继续吗？")) { return }
+		if (!confirm("当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？")) { return }
 		playQueue.queueReplaceLock = false
 	}
 
@@ -98,7 +98,8 @@ function playTheAlbum(from: number = 0) {
 				</div>
 			</div>
 			<div class="flex flex-col gap-2">
-				<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track" :index="index" :playfrom="playTheAlbum" />
+				<TrackItem v-for="(track, index) in album?.songs" :key="track.cid" :album="album" :track="track" :index="index"
+					:playfrom="playTheAlbum" />
 			</div>
 		</div>
 	</div>
