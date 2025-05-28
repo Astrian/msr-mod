@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { watch } from 'vue';
+
 import XIcon from '../assets/icons/x.vue'
 import { usePreferences } from '../stores/usePreferences'
+import { computed } from 'vue'
 
 const preferences = usePreferences()
 
-const props = defineProps<{
+
+defineProps<{
 	present: boolean
 }>()
 
@@ -13,7 +15,14 @@ defineEmits<{
 	(e: 'dismiss'): void
 }>()
 
-watch(() => props.present, (value) => console.log(value))
+const version = computed(() => {
+	try {
+		// 如果你的构建工具支持，可以直接导入
+		return chrome?.runtime?.getManifest?.()?.version || 'unknown'
+	} catch (error) {
+		return 'unknown'
+	}
+})
 </script>
 
 <template>
@@ -34,7 +43,7 @@ watch(() => props.present, (value) => console.log(value))
 					</button>
 				</div>
 
-				<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-4 mb-8">
 					<div>
 						<div class="px-8">
 							<div class="text-white/50 text-sm ml-6">播放间</div>
@@ -103,13 +112,23 @@ watch(() => props.present, (value) => console.log(value))
 							<div class="text-white/50 text-sm ml-6">关于</div>
 							<ul class="border border-[#ffffff39] rounded-lg backdrop-blur-lg mt-2 overflow-hidden">
 								<li class="odd:bg-neutral-300/5">
-									<button
+									<div
 										class="flex justify-between items-center px-6 py-4 w-full text-left hover:bg-neutral-300/10 transition-all">
 										<div class="flex flex-col">
 											<div class="text-base text-white">MSR Mod</div>
-											<div class="text-sm text-white/80">版本号 0.0.1</div>
+											<div class="text-sm text-white/80">版本号 {{ version }}</div>
 										</div>
-									</button>
+									</div>
+								</li>
+
+								<li class="odd:bg-neutral-300/5">
+									<a href="https://github.com/astrian/msr-mod" target="_blank"
+										class="flex justify-between items-center px-6 py-4 w-full text-left hover:bg-neutral-300/10 transition-all">
+										<div class="flex flex-col">
+											<div class="text-base text-white">前往 GitHub 仓库</div>
+											<div class="text-sm text-white/80">修 Bug 的事情就拜托了，大佬桑！（鞠躬）</div>
+										</div>
+									</a>
 								</li>
 							</ul>
 						</div>
