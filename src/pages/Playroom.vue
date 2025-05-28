@@ -27,6 +27,8 @@ import ShuffleIcon from '../assets/icons/shuffle.vue'
 import CycleTwoArrowsIcon from '../assets/icons/cycletwoarrows.vue'
 import CycleTwoArrowsWithNumOneIcon from '../assets/icons/cycletwoarrowswithnumone.vue'
 import SpeakerIcon from '../assets/icons/speaker.vue'
+import MuscialNoteSparklingIcon from '../assets/icons/musicalnotesparkling.vue'
+import CastEmptyIcon from '../assets/icons/castempty.vue'
 
 const playQueueStore = usePlayQueueStore()
 const preferences = usePreferences()
@@ -48,6 +50,7 @@ const playButton = useTemplateRef('playButton')
 const presentQueueListDialog = ref(false)
 const presentLyrics = ref(false)
 const showLyricsTooltip = ref(false)
+const showMoreOptions = ref(false)
 
 import PlayQueueItem from '../components/PlayQueueItem.vue'
 
@@ -521,15 +524,44 @@ watch(() => playQueueStore.currentIndex, () => {
 							</transition>
 						</div>
 						<button
-							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
-							ref="moreButton">
+							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all"
+							@click="showMoreOptions = !showMoreOptions">
 							<div class="w-6 h-6 relative">
-								<span class="text-black blur-sm absolute top-0 left-0">
+								<span class="text-black blur-sm absolute top-0 left-0 hover:scale-110 transition-all">
 									<EllipsisHorizontalIcon :size="6" />
 								</span>
-								<span class="text-white absolute top-0 left-0">
+								<span class="text-white absolute top-0 left-0 hover:scale-110 transition-all">
 									<EllipsisHorizontalIcon :size="6" />
 								</span>
+
+								<dialog :open="showMoreOptions" @click.self="showMoreOptions = false"
+									class="bottom-8 left-[-13.3rem] w-60 rounded-md overflow-hidden bg-black/60 backdrop-blur-3xl shadow-2xl border border-[#ffffff39]">
+									<ul class="my-2 flex flex-col gap-1">
+										<li>
+											<button
+												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed"
+												disabled>
+												<MuscialNoteSparklingIcon :size="4" class="text-white mr-2" />
+												<div class="flex-col">
+													<div class="text-white text-sm">音频质量</div>
+													<div class="text-white/60 text-xs">改不了，海猫没给这个选项！</div>
+												</div>
+											</button>
+										</li>
+
+										<li>
+											<button
+												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed"
+												disabled>
+												<CastEmptyIcon :size="4" class="text-white mr-2" />
+												<div class="flex-col">
+													<div class="text-white text-sm">Chromecast 投放</div>
+													<div class="text-white/60 text-xs">下个版本！</div>
+												</div>
+											</button>
+										</li>
+									</ul>
+								</dialog>
 							</div>
 						</button>
 					</div>
