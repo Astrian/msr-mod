@@ -26,16 +26,17 @@ jobs:
     - name: 构建扩展程序
       run: npm run build
 
-    - name: 将工件压缩成 ZIP
+    - name: 将构建结果压缩成 ZIP
       run: |-
-        mkdir -p dist
-        zip -r artifact-${{ gitea.sha }}.zip dist/*
+        cd dist
+        zip -r ../extension-${{ gitea.sha }}.zip ./*
+        cd ..
       
-    - name: 上传工件
+    - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}
-        path: artifact-${{ gitea.sha }}.zip
+        name: extension-${{ gitea.sha }}
+        path: extension-${{ gitea.sha }}.zip
   
   publish:
     name: 发布至 Chrome 应用商店
@@ -47,18 +48,22 @@ jobs:
     - name: 下载构建工件
       uses: actions/download-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}
+        name: extension-${{ gitea.sha }}
         
-    - uses: actions/setup-node@v2-beta
-      name: 设置 Node.js
+    - name: 设置 Node.js
+      uses: actions/setup-node@v3
       with:
         node-version: "22"
 
-    - name: 安装提交器
+    - name: 安装 Chrome Web Store 上传工具
       run: |-
         npm install -g chrome-webstore-upload-cli
 
-    - name: 上传扩展程序
+    - name: 上传扩展程序到 Chrome Web Store
       run: |-
-        chrome-webstore-upload upload --source artifact-${{ gitea.sha }}.zip --extension-id kphoaomopljjiofeaigjmbagmbdaamhh --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
-      
+        chrome-webstore-upload upload \
+          --source extension-${{ gitea.sha }}.zip \
+          --extension-id kphoaomopljjiofeaigjmbagmbdaamhh \
+          --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \
+          --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \
+          --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
