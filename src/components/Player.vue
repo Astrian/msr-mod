@@ -236,6 +236,11 @@ watch(() => playQueueStore.list.length, async (newLength) => {
 	setTimeout(() => {
 		playQueueStore.preloadNext()
 	}, 2000)
+
+	// 初始化音量
+	if (player.value) {
+		initializeVolume()
+	}
 })
 
 // 监听音频元素变化
@@ -303,6 +308,48 @@ function getCurrentTrack() {
 	return currentTrack.value
 }
 
+// 初始化音量
+function initializeVolume() {
+	if (player.value) {
+		const savedVolume = localStorage.getItem('audioVolume')
+		if (savedVolume) {
+			const volumeValue = parseFloat(savedVolume)
+			player.value.volume = volumeValue
+			console.log('[Player] 初始化音量:', volumeValue)
+		} else {
+			// 设置默认音量
+			player.value.volume = 1
+			localStorage.setItem('audioVolume', '1')
+		}
+	}
+}
+
+// 监听音量变化事件
+function handleVolumeChange(event: Event) {
+	const target = event.target as HTMLAudioElement
+	if (target) {
+		// 保存音量变化到localStorage
+		localStorage.setItem('audioVolume', target.volume.toString())
+		console.log('[Player] 音量变化:', target.volume)
+	}
+}
+
+// 监听localStorage中音量的变化，同步到音频元素
+function syncVolumeFromStorage() {
+	if (player.value) {
+		const savedVolume = localStorage.getItem('audioVolume')
+		if (savedVolume) {
+			const volumeValue = parseFloat(savedVolume)
+			if (player.value.volume !== volumeValue) {
+				player.value.volume = volumeValue
+			}
+		}
+	}
+}
+
+// 定期检查音量同步（可选，或者使用storage事件）
+setInterval(syncVolumeFromStorage, 100)
+
 // 组件卸载时清理预加载
 // onUnmounted(() => {
 //   playQueueStore.clearAllPreloadedAudio()
@@ -312,16 +359,18 @@ function getCurrentTrack() {
 <template>
 	<div>
 		<audio :src="currentAudioSrc" ref="playerRef" :autoplay="playQueueStore.isPlaying"
-			v-if="playQueueStore.list.length !== 0" @ended="() => {
+			v-if="playQueueStore.list.length !== 0" @volumechange="handleVolumeChange" @ended="() => {
 				if (playQueueStore.playMode.repeat === 'single') { playQueueStore.isPlaying = true }
 				else { playNext() }
 			}" @pause="playQueueStore.isPlaying = false" @play="playQueueStore.isPlaying = true" @playing="() => {
 				console.log('[Player] 音频开始播放事件')
 				playQueueStore.isBuffering = false
 				setMetadata()
+				initializeVolume()
 			}" @waiting="playQueueStore.isBuffering = true" @loadeddata="() => {
 				console.log('[Player] 音频数据加载完成')
 				playQueueStore.isBuffering = false
+				initializeVolume()
 			}" @canplay="() => {
 				console.log('[Player] 音频可以播放')
 				playQueueStore.isBuffering = false

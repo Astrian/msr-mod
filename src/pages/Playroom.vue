@@ -47,11 +47,15 @@ const songInfo = useTemplateRef('songInfo')
 const moreOptionsDialog = useTemplateRef('moreOptionsDialog')
 
 const playButton = useTemplateRef('playButton')
+const volumeSliderThumb = useTemplateRef('volumeSliderThumb')
+const volumeSliderContainer = useTemplateRef('volumeSliderContainer')
 
 const presentQueueListDialog = ref(false)
 const presentLyrics = ref(false)
 const showLyricsTooltip = ref(false)
 const showMoreOptions = ref(false)
+const presentVolumeControl = ref(false)
+const volume = ref(1) // 音量值 0-1
 
 import PlayQueueItem from '../components/PlayQueueItem.vue'
 
@@ -66,6 +70,16 @@ onMounted(async () => {
 			playQueueStore.updatedCurrentTime = newTime
 		}
 	})
+
+	// 等待DOM完全渲染后再初始化拖拽
+	await nextTick()
+
+	// 初始化音量从localStorage或默认值
+	const savedVolume = localStorage.getItem('audioVolume')
+	if (savedVolume) {
+		volume.value = parseFloat(savedVolume)
+	}
+
 	thumbUpdate()
 
 	setupEntranceAnimations()
@@ -91,6 +105,71 @@ function thumbUpdate() {
 	const thumbWidth = progressBarThumb.value?.clientWidth || 0
 	const newPosition = (containerWidth - thumbWidth) * progress
 	gsap.to(progressBarThumb.value, { x: newPosition, duration: 0.1 })
+}
+
+function volumeThumbUpdate() {
+	const containerWidth = volumeSliderContainer.value?.clientWidth || 0
+	const thumbWidth = volumeSliderThumb.value?.clientWidth || 0
+	const newPosition = (containerWidth - thumbWidth) * volume.value
+	gsap.to(volumeSliderThumb.value, { x: newPosition, duration: 0.1 })
+}
+
+function toggleVolumeControl() {
+	if (!presentVolumeControl.value) {
+		presentVolumeControl.value = true
+		nextTick(() => {
+			// 在音量控制显示后再创建Draggable
+			createVolumeDraggable()
+			volumeThumbUpdate()
+		})
+	} else {
+		presentVolumeControl.value = false
+	}
+}
+
+function createVolumeDraggable() {
+	if (!volumeSliderThumb.value || !volumeSliderContainer.value) {
+		console.warn('Volume slider elements not found')
+		return
+	}
+
+	// 确保容器有宽度
+	const containerWidth = volumeSliderContainer.value.clientWidth
+	if (containerWidth === 0) {
+		console.warn('Volume slider container has no width')
+		return
+	}
+
+	// 创建音量滑杆的 Draggable
+	Draggable.create(volumeSliderThumb.value, {
+		type: 'x',
+		bounds: volumeSliderContainer.value,
+		onDrag: function () {
+			const thumbPosition = this.x
+			const containerWidth = volumeSliderContainer.value?.clientWidth || 0
+			const thumbWidth = volumeSliderThumb.value?.clientWidth || 0
+			// 确保音量值在0-1之间
+			const newVolume = Math.max(0, Math.min(1, thumbPosition / (containerWidth - thumbWidth)))
+			volume.value = newVolume
+			updateAudioVolume()
+			// 保存音量到localStorage
+			localStorage.setItem('audioVolume', newVolume.toString())
+		},
+		onDragEnd: function () {
+			// 拖拽结束时也保存一次
+			localStorage.setItem('audioVolume', volume.value.toString())
+		}
+	})
+
+	console.log('Volume draggable created successfully')
+}
+
+function updateAudioVolume() {
+	// 通过事件或直接访问音频元素来设置音量
+	const audioElement = document.querySelector('audio')
+	if (audioElement) {
+		audioElement.volume = volume.value
+	}
 }
 
 function formatDetector() {
@@ -450,17 +529,26 @@ watch(() => playQueueStore.currentIndex, () => {
 				<!-- Control buttons -->
 				<div class="w-full flex justify-between items-center" ref="controlButtons">
 					<div class="flex-1 text-left flex gap-1">
-						<button
-							class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
-							ref="volumeButton">
+						<button class="h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 relative"
+							ref="volumeButton" @click="toggleVolumeControl">
 							<div class="w-6 h-6 relative">
-								<span class="text-black blur-md absolute top-0 left-0">
+								<span class="text-black blur-md absolute top-0 left-0 transition-all duration-200 hover:scale-110">
 									<SpeakerIcon :size="6" />
 								</span>
-								<span class="text-white absolute top-0 left-0">
+								<span class="text-white absolute top-0 left-0 transition-all duration-200 hover:scale-110">
 									<SpeakerIcon :size="6" />
 								</span>
 							</div>
+
+							<transition name="volume-control-fade">
+								<div v-if="presentVolumeControl" @click.stop
+									class="absolute bg-black/60 backdrop-blur-3xl rounded-md shadow-2xl border border-[#ffffff39] w-64 h-10 bottom-10 left-[-0.3rem] flex items-center justify-between px-4 z-50">
+									<div class="w-full py-[0.125rem] px-[0.25rem] bg-white/20 rounded-full" ref="volumeSliderContainer">
+										<div class="w-2 h-2 bg-white rounded-full shadow-md cursor-pointer" ref="volumeSliderThumb" />
+									</div>
+									<!-- <span class="text-white text-xs w-8 text-right flex-shrink-0">{{ Math.round(volume * 100) }}%</span> -->
+								</div>
+							</transition>
 						</button>
 						<button
 							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all duration-200 hover:scale-110"
@@ -678,6 +766,23 @@ watch(() => playQueueStore.currentIndex, () => {
 
 .lyrics-tooltip-fade-enter-to,
 .lyrics-tooltip-fade-leave-from {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+.volume-control-fade-enter-active,
+.volume-control-fade-leave-active {
+	transition: opacity 0.2s cubic-bezier(.4, 0, .2, 1), transform 0.2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.volume-control-fade-enter-from,
+.volume-control-fade-leave-to {
+	opacity: 0;
+	transform: translateY(10px) scale(0.95);
+}
+
+.volume-control-fade-enter-to,
+.volume-control-fade-leave-from {
 	opacity: 1;
 	transform: translateY(0) scale(1);
 }
