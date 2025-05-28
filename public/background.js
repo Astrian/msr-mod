@@ -13,7 +13,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 			details.frameId === 0
 		) {
 			const pref = await chrome.storage.sync.get('preferences')
-			console.log(pref.preferences.autoRedirect)
 
 			if (pref === undefined || pref.preferences === undefined || pref.preferences.autoRedirect === undefined || pref.preferences.autoRedirect === true) {
 				chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })

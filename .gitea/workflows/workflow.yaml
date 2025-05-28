@@ -1,4 +1,4 @@
-name: Build Extension
+name: 构建扩展程序
 
 on:
   push:
@@ -12,19 +12,20 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      name: 检出代码
     
-    - name: Setup Node.js
+    - name: 设置 Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
         
-    - name: Install dependencies
+    - name: 安装依赖
       run: npm install
       
-    - name: Build extension
+    - name: 构建扩展程序
       run: npm run build
       
-    - name: Upload build artifacts
+    - name: 上传工件
       uses: actions/upload-artifact@v3
       with:
         name: extension-build
