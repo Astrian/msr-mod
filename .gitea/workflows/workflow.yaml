@@ -54,7 +54,7 @@ jobs:
     - uses: actions/setup-node@v2-beta
       name: 设置 Node.js
       with:
-        node-version: "16.10"
+        node-version: "22"
 
     - name: 安装提交器
       run: |-
