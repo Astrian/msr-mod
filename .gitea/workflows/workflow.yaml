@@ -7,7 +7,7 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  build:
+  build-for-chrome:
     name: 构建 Chrome 扩展程序
     runs-on: ubuntu-latest
     
@@ -24,31 +24,64 @@ jobs:
       run: npm install
       
     - name: 构建扩展程序
-      run: npm run build
+      run: npm run build:chrome
 
     - name: 将构建结果压缩成 ZIP
       run: |-
         cd dist
-        zip -r ../extension-${{ gitea.sha }}.zip ./*
+        zip -r ../msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip ./*
         cd ..
       
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
-        name: extension-${{ gitea.sha }}
-        path: extension-${{ gitea.sha }}.zip
+        name: chrome-extension
+        path: msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip
   
+  build-for-firefox:
+    name: 构建 Firefox 扩展程序
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      name: 检出代码
+    
+    - name: 设置 Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+        
+    - name: 安装依赖
+      run: npm install
+      
+    - name: 构建扩展程序
+      run: npm run build:firefox
+
+    - name: 将构建结果压缩成 ZIP
+      run: |-
+        cd dist
+        zip -r ../msrmod-firefox-${{ gitea.sha | slice(0, 8) }}.zip ./*
+        cd ..
+      
+    - name: 上传构建工件
+      uses: actions/upload-artifact@v3
+      with:
+        name: firefox-addon
+        path: msrmod-firefox-${{ gitea.sha | slice(0, 8) }}.zip
+
   publish:
     name: 发布至 Chrome 应用商店
     runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
+    needs: build-for-chrome
+    # 仅在 main 分支上执行发布
+    if: gitea.ref == 'refs/heads/main'
     
     steps:
     - name: 下载构建工件
       uses: actions/download-artifact@v3
       with:
-        name: extension-${{ gitea.sha }}
+        name: chrome-extension
+        path: ./
         
     - name: 设置 Node.js
       uses: actions/setup-node@v3
@@ -62,7 +95,7 @@ jobs:
     - name: 上传扩展程序到 Chrome Web Store
       run: |-
         chrome-webstore-upload upload \
-          --source extension-${{ gitea.sha }}.zip \
+          --source msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip \
           --extension-id kphoaomopljjiofeaigjmbagmbdaamhh \
           --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \
           --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \
