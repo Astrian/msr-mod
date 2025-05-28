@@ -2,13 +2,13 @@ name: 构建扩展程序
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
   build:
-    name: 构建扩展程序
+    name: 构建 Chrome 扩展程序
     runs-on: ubuntu-latest
     
     steps:
