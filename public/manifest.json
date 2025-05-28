@@ -21,16 +21,16 @@
 		"https://web.hycdn.cn/*"
 	],
 	"icons": {
-		"16": "vite.svg",
-		"48": "vite.svg",
-		"128": "vite.svg"
+		"16": "icon_16.png",
+		"48": "icon_48.png",
+		"128": "icon_128.png"
 	},
 	"action": {
 		"default_title": "打开 MSR Mod",
 		"default_icon": {
-			"16": "vite.svg",
-			"48": "vite.svg",
-			"128": "vite.svg"
+			"16": "icon_16.png",
+			"48": "icon_48.png",
+			"128": "icon_128.png"
 		}
 	},
 	"background": {
