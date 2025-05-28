@@ -31,8 +31,7 @@ jobs:
     - name: 将工件压缩成 ZIP
       run: |-
         mkdir -p dist
-        cp -r dist/* dist/manifest.json
-        zip -r dist/artifact-${{ gitea.sha }}.zip dist/
+        zip -r artifact-${{ gitea.sha }}.zip dist/
       
     - name: 上传工件
       uses: actions/upload-artifact@v3
