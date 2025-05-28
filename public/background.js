@@ -1,4 +1,6 @@
-chrome.webRequest.onBeforeRequest.addListener(
+console.log("aaaa")
+
+browser.webRequest.onBeforeRequest.addListener(
 	async (details) => {
 		console.log(
 			'onBeforeRequest MAIN_FRAME:',
@@ -7,22 +9,29 @@ chrome.webRequest.onBeforeRequest.addListener(
 			details.frameId,
 			details.tabId,
 		)
-		if (
-			details.url === 'https://monster-siren.hypergryph.com/manifest.json' &&
-			details.type === 'other' &&
-			details.frameId === 0
-		) {
-			const pref = await chrome.storage.sync.get('preferences')
 
-			if (pref === undefined || pref.preferences === undefined || pref.preferences.autoRedirect === undefined || pref.preferences.autoRedirect === true) {
-				chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
-				chrome.tabs.remove(details.tabId)
+		console.log('recived request for fontset api, redirecting to index.html')
+		const pref = await browser.storage.sync.get('preferences')
+
+		if (pref === undefined || pref.preferences === undefined || pref.preferences.autoRedirect === undefined || pref.preferences.autoRedirect === true) {
+			const isChrome = typeof browser.runtime.getBrowserInfo === 'undefined';
+
+			if (isChrome) {
+				browser.tabs.create({ url: browser.runtime.getURL('index.html') })
+				browser.tabs.remove(details.tabId)
+			} else {
+				// Firefox: 直接在当前标签页导航
+				browser.tabs.update(details.tabId, { url: browser.runtime.getURL('index.html') })
 			}
 		}
 	},
-	{ urls: ['https://monster-siren.hypergryph.com/manifest.json'] },
+	{ urls: ['https://monster-siren.hypergryph.com/api/fontset'] },
 )
 
-chrome.action.onClicked.addListener(() => {
-	chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })
-})
+// 兼容新旧版本的 API
+const actionAPI = browser.action || browser.browserAction;
+if (actionAPI) {
+	actionAPI.onClicked.addListener(() => {
+		browser.tabs.create({ url: browser.runtime.getURL('index.html') })
+	})
+}
