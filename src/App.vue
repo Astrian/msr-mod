@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from 'vue-router'
 import Player from './components/Player.vue'
 import LeftArrowIcon from './assets/icons/leftarrow.vue'
-import SearchIcon from './assets/icons/search.vue'
+// import SearchIcon from './assets/icons/search.vue'
 import CorgIcon from './assets/icons/corg.vue'
 
 const route = useRoute()
@@ -48,10 +48,10 @@ const router = useRouter()
 					</div>
 
 					<div class="flex gap-2">
-						<button
+						<!-- <button
 							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center">
 							<SearchIcon :size="4" />
-						</button>
+						</button> -->
 
 						<button
 							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center">
