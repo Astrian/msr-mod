@@ -36,7 +36,8 @@ jobs:
     - name: 上传工件
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}.zip
+        name: artifact-${{ gitea.sha }}
+        path: artifact-${{ gitea.sha }}.zip
   
   publish:
     name: 发布至 Chrome 应用商店
