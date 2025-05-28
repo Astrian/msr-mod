@@ -49,7 +49,7 @@ jobs:
     - name: 下载构建工件
       uses: actions/download-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}.zip
+        name: artifact-${{ gitea.sha }}
         
     - uses: actions/setup-node@v2-beta
       name: 设置 Node.js
