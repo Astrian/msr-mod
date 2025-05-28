@@ -21,7 +21,6 @@ function processManifest() {
     // 移除 CSP 中的本地开发相关配置
     manifest.content_security_policy.extension_pages = manifest.content_security_policy.extension_pages
       .replace(/script-src 'self' http:\/\/localhost:5173;\s*/g, '')
-      .replace(/style-src 'self' 'unsafe-inline';\s*/g, '')
       .replace(/\s*http:\/\/localhost:5173\s*/g, ' ')
       .replace(/\s*ws:\/\/localhost:5173\s*/g, ' ')
       .replace(/;\s+/g, '; ') // 标准化分号后的空格
