@@ -647,9 +647,9 @@ watch(() => playQueueStore.currentIndex, () => {
 							<!-- Show tooltip only on hover, with transition -->
 							<transition name="lyrics-tooltip-fade">
 								<div v-if="showLyricsTooltip && !getCurrentTrack().song.lyricUrl"
-									class="absolute bottom-10 w-60 left-[-7rem] bg-white/10 backdrop-blur-3xl rounded-md p-2 text-xs flex flex-col text-left text-white shadow-md">
-									<div class="font-semibold">这首曲目不提供歌词文本</div>
-									<div>启用歌词时，将会在下一首有歌词的曲目中显示歌词文本。</div>
+									class="absolute bottom-10 w-60 left-[-7rem] bg-black/60 backdrop-blur-3xl rounded-md p-2 text-xs flex flex-col text-left shadow-2xl border border-[#ffffff39]">
+									<div class="font-semibold text-white">这首曲目不提供歌词文本</div>
+									<div class="text-white/60">启用歌词时，将会在下一首有歌词的曲目中显示歌词文本。</div>
 								</div>
 							</transition>
 						</div>
