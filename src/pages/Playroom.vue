@@ -44,6 +44,7 @@ const controllerRef = useTemplateRef('controllerRef')
 const lyricsSection = useTemplateRef('lyricsSection')
 const albumCover = useTemplateRef('albumCover')
 const songInfo = useTemplateRef('songInfo')
+const moreOptionsDialog = useTemplateRef('moreOptionsDialog')
 
 const playButton = useTemplateRef('playButton')
 
@@ -226,6 +227,47 @@ function getCurrentTrack() {
 		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]]
 	} else {
 		return playQueueStore.list[playQueueStore.currentIndex]
+	}
+}
+
+function toggleMoreOptions() {
+	if (!showMoreOptions.value) {
+		showMoreOptions.value = true
+		nextTick(() => {
+			if (moreOptionsDialog.value) {
+				const tl = gsap.timeline()
+				tl.fromTo(moreOptionsDialog.value,
+					{ opacity: 0, scale: 0.9, y: 10 },
+					{ opacity: 1, scale: 1, y: 0, duration: 0.2, ease: "power2.out" }
+				)
+				if (moreOptionsDialog.value.children[0]?.children) {
+					tl.fromTo(moreOptionsDialog.value.children[0].children,
+						{ opacity: 0, x: -10 },
+						{ opacity: 1, x: 0, duration: 0.15, ease: "power2.out", stagger: 0.05 },
+						"<0.1"
+					)
+				}
+			}
+		})
+	} else {
+		if (moreOptionsDialog.value) {
+			const tl = gsap.timeline({
+				onComplete: () => {
+					showMoreOptions.value = false
+				}
+			})
+			if (moreOptionsDialog.value.children[0]?.children) {
+				tl.to(moreOptionsDialog.value.children[0].children,
+					{ opacity: 0, x: -10, duration: 0.1, ease: "power2.in", stagger: 0.02 }
+				)
+			}
+			tl.to(moreOptionsDialog.value,
+				{ opacity: 0, scale: 0.9, y: 10, duration: 0.15, ease: "power2.in" },
+				moreOptionsDialog.value.children[0]?.children ? "<0.05" : "0"
+			)
+		} else {
+			showMoreOptions.value = false
+		}
 	}
 }
 
@@ -525,7 +567,7 @@ watch(() => playQueueStore.currentIndex, () => {
 						</div>
 						<button
 							class="text-white h-8 w-8 flex justify-center items-center rounded-full hover:bg-white/25 transition-all"
-							@click="showMoreOptions = !showMoreOptions">
+							@click="toggleMoreOptions">
 							<div class="w-6 h-6 relative">
 								<span class="text-black blur-sm absolute top-0 left-0 hover:scale-110 transition-all">
 									<EllipsisHorizontalIcon :size="6" />
@@ -534,12 +576,12 @@ watch(() => playQueueStore.currentIndex, () => {
 									<EllipsisHorizontalIcon :size="6" />
 								</span>
 
-								<dialog :open="showMoreOptions" @click.self="showMoreOptions = false"
+								<dialog :open="showMoreOptions" @click.self="toggleMoreOptions" ref="moreOptionsDialog"
 									class="bottom-8 left-[-13.3rem] w-60 rounded-md overflow-hidden bg-black/60 backdrop-blur-3xl shadow-2xl border border-[#ffffff39]">
 									<ul class="my-2 flex flex-col gap-1">
 										<li>
 											<button
-												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed"
+												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed transition-colors duration-150"
 												disabled>
 												<MuscialNoteSparklingIcon :size="4" class="text-white mr-2" />
 												<div class="flex-col">
@@ -551,7 +593,7 @@ watch(() => playQueueStore.currentIndex, () => {
 
 										<li>
 											<button
-												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed"
+												class="flex px-2 py-1 hover:bg-white/10 w-full text-left disabled:opacity-70 cursor-not-allowed transition-colors duration-150"
 												disabled>
 												<CastEmptyIcon :size="4" class="text-white mr-2" />
 												<div class="flex-col">
