@@ -41,8 +41,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - uses: actions/checkout@v3
-      name: 检出代码
       
     - name: 下载构建工件
       uses: actions/download-artifact@v3
@@ -60,9 +58,5 @@ jobs:
 
     - name: 上传扩展程序
       run: |-
-        chrome-webstore-upload upload \\
-          --source artifact-${{ gitea.sha }}.zip \\
-          --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \\
-          --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \\
-          --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
+        chrome-webstore-upload upload --source artifact-${{ gitea.sha }}.zip --extension-id ${{ env.EXTENSION_ID }} --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
       
