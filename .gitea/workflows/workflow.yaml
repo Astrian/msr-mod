@@ -20,19 +20,24 @@ jobs:
     - name: 设置 Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '22'
         
     - name: 安装依赖
       run: npm install
       
     - name: 构建扩展程序
       run: npm run build
+
+    - name: 将工件压缩成 ZIP
+      run: |-
+        mkdir -p dist
+        cp -r dist/* dist/manifest.json
+        zip -r dist/artifact-${{ gitea.sha }}.zip dist/
       
     - name: 上传工件
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}
-        path: dist/
+        name: artifact-${{ gitea.sha }}.zip
   
   publish:
     name: 发布至 Chrome 应用商店
@@ -41,11 +46,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-      
     - name: 下载构建工件
       uses: actions/download-artifact@v3
       with:
-        name: artifact-${{ gitea.sha }}
+        name: artifact-${{ gitea.sha }}.zip
         
     - uses: actions/setup-node@v2-beta
       name: 设置 Node.js
