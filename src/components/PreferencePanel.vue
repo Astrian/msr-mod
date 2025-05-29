@@ -161,8 +161,7 @@ const version = computed(() => {
 									</div>
 								</li>
 							</ul>
-							<div class="text-white/50 text-sm mx-6 mt-2">MSR Mod 使用 Gitea Actions 完成打包与自动商店提交工作。此信息用于确认 MSR Mod 的
-								CI/CD 构建版本信息，以及当前构建代码是否被篡改。</div>
+							<div class="text-white/50 text-sm mx-6 mt-2">MSR Mod 通过 Gitea Actions 自动化完成构建与发布流程。此信息用于验证当前版本的构建来源，确保代码完整性与安全性。</div>
 						</div>
 					</div>
 				</div>
