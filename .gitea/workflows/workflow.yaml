@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_RUN_ID: ${{ gitea.run_number }}
-      VITE_HASH_ID: ${{ gitea.workflow_sha }}
+      VITE_HASH_ID: ${{ gitea.sha }}
     
     steps:
     - uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_RUN_ID: ${{ gitea.run_number }}
-      VITE_HASH_ID: ${{ gitea.workflow_sha }}
+      VITE_HASH_ID: ${{ gitea.sha }}
     
     steps:
     - uses: actions/checkout@v3
