@@ -69,7 +69,7 @@ jobs:
         name: firefox-addon
         path: msrmod-firefox.zip
 
-  publish:
+  publish-to-chrome-webstore: 
     name: 发布至 Chrome 应用商店
     runs-on: ubuntu-latest
     needs: build-for-chrome
@@ -100,3 +100,40 @@ jobs:
           --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \
           --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \
           --refresh-token ${{ secrets.CI_GOOGLE_REFRESH_TOKEN }}
+
+  publish-to-firefox-addons:
+    name: 发布至 Firefox 附加组件库
+    runs-on: ubuntu-latest
+    needs: build-for-firefox
+    # 仅在 main 分支上执行发布
+    if: gitea.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 下载构建工件
+      uses: actions/download-artifact@v3
+      with:
+        name: firefox-addon
+        path: ./
+
+    - name: 解压工件
+      run: |-
+        unzip msrmod-firefox.zip -d ./dist
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: "22"
+
+    - name: 安装 web-ext 工具
+      run: |-
+        npm install -g web-ext
+
+    - name: 上传附加组件到 Firefox Add-ons
+      run: |-
+        web-ext sign \
+          --source-dir . \
+          --artifacts-dir dist \
+          --api-key ${{ secrets.FIREFOX_API_KEY }} \
+          --api-secret ${{ secrets.FIREFOX_API_SECRET }}
+
+    
