@@ -67,7 +67,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: chrome-extension
-        path: ./
+        path: dist/
 
     - name: 压缩为 ZIP 文件
       run: |-
