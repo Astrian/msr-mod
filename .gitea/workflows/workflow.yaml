@@ -3,8 +3,6 @@ name: 构建扩展程序
 on:
   push:
     branches: [ main, dev ]
-  pull_request:
-    branches: [ main, dev ]
 
 jobs:
   build-for-chrome:
@@ -25,18 +23,12 @@ jobs:
       
     - name: 构建扩展程序
       run: npm run build:chrome
-
-    - name: 将构建结果压缩成 ZIP
-      run: |-
-        cd dist
-        zip -r ../msrmod-chrome.zip ./*
-        cd ..
       
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
         name: chrome-extension
-        path: msrmod-chrome.zip
+        path: dist/
   
   build-for-firefox:
     name: 构建 Firefox 附加组件
@@ -56,18 +48,12 @@ jobs:
       
     - name: 构建扩展程序
       run: npm run build:firefox
-
-    - name: 将构建结果压缩成 ZIP
-      run: |-
-        cd dist
-        zip -r ../msrmod-firefox.zip ./*
-        cd ..
       
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
         name: firefox-addon
-        path: msrmod-firefox.zip
+        path: dist/
 
   publish-to-chrome-webstore: 
     name: 发布至 Chrome 应用商店
@@ -82,6 +68,10 @@ jobs:
       with:
         name: chrome-extension
         path: ./
+
+    - name: 压缩为 ZIP 文件
+      run: |-
+        cd dist && zip -r ../msrmod-chrome.zip . && cd ..
         
     - name: 设置 Node.js
       uses: actions/setup-node@v3
@@ -113,11 +103,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: firefox-addon
-        path: ./
-
-    - name: 解压工件
-      run: |-
-        unzip msrmod-firefox.zip -d ./dist
+        path: dist/
 
     - name: 设置 Node.js
       uses: actions/setup-node@v3
@@ -131,8 +117,8 @@ jobs:
     - name: 上传附加组件到 Firefox Add-ons
       run: |-
         web-ext sign \
-          --source-dir . \
-          --artifacts-dir dist \
+          --source-dir dist \
+          --artifacts-dir artifacts \
           --api-key ${{ secrets.FIREFOX_API_KEY }} \
           --api-secret ${{ secrets.FIREFOX_API_SECRET }} \
           --channel listed
