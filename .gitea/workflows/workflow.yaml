@@ -9,8 +9,8 @@ jobs:
     name: 构建 Chrome 扩展程序
     runs-on: ubuntu-latest
     env:
-      VITE_RUN_ID: ${{ gitea.run_id }}
-      VITE_HASH_ID: ${{ gitea.sha | slice(0, 7) }}
+      VITE_RUN_ID: ${{ gitea.run_number }}
+      VITE_HASH_ID: ${{ gitea.workflow_sha }}
     
     steps:
     - uses: actions/checkout@v3
