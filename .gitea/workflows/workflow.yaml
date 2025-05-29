@@ -8,6 +8,9 @@ jobs:
   build-for-chrome:
     name: 构建 Chrome 扩展程序
     runs-on: ubuntu-latest
+    env:
+      VITE_RUN_ID: ${{ gitea.run_id }}
+      VITE_HASH_ID: ${{ gitea.sha | slice(0, 7) }}
     
     steps:
     - uses: actions/checkout@v3
@@ -33,6 +36,9 @@ jobs:
   build-for-firefox:
     name: 构建 Firefox 附加组件
     runs-on: ubuntu-latest
+    env:
+      VITE_RUN_ID: ${{ gitea.run_id }}
+      VITE_HASH_ID: ${{ gitea.sha | slice(0, 7) }}
     
     steps:
     - uses: actions/checkout@v3
