@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "MSR Mod",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "塞壬唱片（Monster Siren Records）官网的替代前端。",
 	"content_scripts": [
 		{
@@ -42,7 +42,7 @@
 		"storage"
 	],
 	"content_security_policy": {
-		"extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com https://web.hycdn.cn; img-src 'self' https://web.hycdn.cn; media-src 'self' https://res01.hycdn.cn;",
+		"extension_pages": "default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:5173 https://monster-siren.hypergryph.com https://web.hycdn.cn https://res01.hycdn.cn; img-src 'self' https://web.hycdn.cn; media-src 'self' https://res01.hycdn.cn;",
 		"sandbox": "sandbox"
 	}
 }

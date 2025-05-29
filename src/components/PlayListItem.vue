@@ -2,14 +2,17 @@
 import { artistsOrganize } from '../utils'
 import { ref } from 'vue'
 import { useFavourites } from '../stores/useFavourites'
+import apis from '../apis'
+import axios from 'axios'
 
 import StarSlashIcon from '../assets/icons/starslash.vue'
+import { onMounted } from 'vue'
 
 const favourites = useFavourites()
 
 const hover = ref(false)
 
-defineProps<{
+const props = defineProps<{
 	item: QueueItem
 	index: number
 }>()
@@ -17,6 +20,16 @@ defineProps<{
 const emit = defineEmits<{
 	(e: 'play', index: number): void
 }>()
+
+onMounted(async () => {
+	try {
+		await axios.get(props.item.song.sourceUrl ?? '')
+	} catch (error) { }
+	// 刷新资源地址
+	const updatedSong = await apis.getSong(props.item.song.cid)
+	console.log('Updated song:', updatedSong)
+	props.item.song.sourceUrl = updatedSong.sourceUrl
+})
 </script>
 
 <template>
