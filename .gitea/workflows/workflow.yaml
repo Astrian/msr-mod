@@ -29,17 +29,17 @@ jobs:
     - name: 将构建结果压缩成 ZIP
       run: |-
         cd dist
-        zip -r ../msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip ./*
+        zip -r ../msrmod-chrome.zip ./*
         cd ..
       
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
         name: chrome-extension
-        path: msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip
+        path: msrmod-chrome.zip
   
   build-for-firefox:
-    name: 构建 Firefox 扩展程序
+    name: 构建 Firefox 附加组件
     runs-on: ubuntu-latest
     
     steps:
@@ -60,14 +60,14 @@ jobs:
     - name: 将构建结果压缩成 ZIP
       run: |-
         cd dist
-        zip -r ../msrmod-firefox-${{ gitea.sha | slice(0, 8) }}.zip ./*
+        zip -r ../msrmod-firefox.zip ./*
         cd ..
       
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
       with:
         name: firefox-addon
-        path: msrmod-firefox-${{ gitea.sha | slice(0, 8) }}.zip
+        path: msrmod-firefox.zip
 
   publish:
     name: 发布至 Chrome 应用商店
@@ -95,7 +95,7 @@ jobs:
     - name: 上传扩展程序到 Chrome Web Store
       run: |-
         chrome-webstore-upload upload \
-          --source msrmod-chrome-${{ gitea.sha | slice(0, 8) }}.zip \
+          --source msrmod-chrome.zip \
           --extension-id kphoaomopljjiofeaigjmbagmbdaamhh \
           --client-id ${{ secrets.CI_GOOGLE_CLIENT_ID }} \
           --client-secret ${{ secrets.CI_GOOGLE_CLIENT_SECRET }} \
