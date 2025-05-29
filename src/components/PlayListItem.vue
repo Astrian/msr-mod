@@ -23,7 +23,11 @@ const emit = defineEmits<{
 
 onMounted(async () => {
 	try {
-		await axios.get(props.item.song.sourceUrl ?? '')
+		await axios.get(props.item.song.sourceUrl ?? '', {
+			headers: {
+				'Range': 'bytes=0-0'
+			}
+		})
 	} catch (error) { }
 	// 刷新资源地址
 	const updatedSong = await apis.getSong(props.item.song.cid)
