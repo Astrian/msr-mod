@@ -23,7 +23,17 @@ const emit = defineEmits<{
 
 onMounted(async () => {
 	try {
-		await axios.head(props.item.song.sourceUrl ?? '')
+		// 添加缓存控制头和随机参数来避免缓存
+		await axios.head(props.item.song.sourceUrl ?? '', {
+			headers: {
+				'Cache-Control': 'no-cache, no-store, must-revalidate',
+				'Pragma': 'no-cache',
+				'Expires': '0'
+			},
+			params: {
+				_t: Date.now() // 添加时间戳参数避免缓存
+			}
+		})
 	} catch (error) {
 		// 刷新资源地址
 		const updatedSong = await apis.getSong(props.item.song.cid)
