@@ -28,7 +28,7 @@ onMounted(async () => {
 		// 刷新资源地址
 		const updatedSong = await apis.getSong(props.item.song.cid)
 		console.log('Updated song:', updatedSong)
-		props.item.song.sourceUrl = updatedSong.sourceUrl
+		favourites.updateSongInFavourites(props.item.song.cid, updatedSong)
 	}
 })
 </script>

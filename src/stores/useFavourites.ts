@@ -282,6 +282,23 @@ export const useFavourites = defineStore('favourites', () => {
 		}
 	}, { deep: true })
 
+	// 更新收藏列表中的歌曲信息
+	const updateSongInFavourites = async (songCid: string, updatedSong: Song) => {
+		const index = favourites.value.findIndex(item => item.song.cid === songCid)
+		if (index !== -1) {
+			// 更新歌曲信息，保持其他属性不变
+			favourites.value[index].song = { ...favourites.value[index].song, ...updatedSong }
+			if (isLoaded.value) {
+				try {
+					await saveFavourites()
+				} catch (error) {
+					// 保存失败时可以考虑回滚或错误处理
+					console.error('Failed to save updated song:', error)
+				}
+			}
+		}
+	}
+
 	// 立即初始化
 	initializeFavourites()
 
@@ -299,7 +316,8 @@ export const useFavourites = defineStore('favourites', () => {
 		toggleFavourite,
 		clearFavourites,
 		getStoredValue,
-		setStoredValue
+		setStoredValue,
+		updateSongInFavourites
 	}
 })
 
