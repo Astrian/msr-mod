@@ -93,7 +93,7 @@ function timeFormatter(time: number) {
 	if (timeInSeconds < 0) { return '-:--' }
 	const minutes = Math.floor(timeInSeconds / 60)
 	const seconds = Math.floor(timeInSeconds % 60)
-	if (isNaN(minutes) || isNaN(seconds)) { return '-:--' }
+	if (Number.isNaN(minutes) || Number.isNaN(seconds)) { return '-:--' }
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
@@ -158,7 +158,7 @@ function createVolumeDraggable() {
 			// 保存音量到localStorage
 			localStorage.setItem('audioVolume', newVolume.toString())
 		},
-		onDragEnd: function () {
+		onDragEnd: () => {
 			// 拖拽结束时也保存一次
 			localStorage.setItem('audioVolume', volume.value.toString())
 		}
@@ -466,7 +466,7 @@ function setupPageFocusHandlers() {
 // 重新同步歌词状态
 function resyncLyricsState() {
 	const currentTrack = getCurrentTrack()
-	if (!currentTrack) return
+	if (!currentTrack) { return }
 
 	console.log('[Playroom] 重新同步歌词状态')
 
