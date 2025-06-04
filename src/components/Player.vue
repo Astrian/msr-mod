@@ -1,6 +1,6 @@
 <!-- Player.vue - 添加预加载功能 -->
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFavourites } from '../stores/useFavourites'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
