@@ -519,6 +519,13 @@ setInterval(syncVolumeFromStorage, 100)
 			}">
 				<div v-if="playQueueStore.isPlaying">
 					<LoadingIndicator v-if="playQueueStore.isBuffering === true" :size="4" />
+					<!-- 在支持的浏览器上显示可视化，否则显示暂停图标 -->
+					<div v-else-if="isAudioVisualizationSupported" class="h-4 flex justify-center items-center gap-[.125rem]">
+						<div class="bg-white/75 w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
+							:key="index" :style="{
+								height: `${Math.max(10, bar)}%`
+							}" />
+					</div>
 					<PauseIcon v-else :size="4" />
 				</div>
 				<PlayIcon v-else :size="4" />
