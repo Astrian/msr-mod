@@ -1,6 +1,6 @@
-import { defineStore } from "pinia"
-import { ref, computed } from "vue"
-import { checkAndRefreshSongResource } from "../utils"
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { checkAndRefreshSongResource } from '../utils'
 
 export const usePlayQueueStore = defineStore('queue', () => {
 	const list = ref<QueueItem[]>([])
@@ -14,11 +14,11 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	const visualizer = ref<number[]>([0, 0, 0, 0, 0, 0])
 	const shuffleList = ref<number[]>([])
 	const playMode = ref<{
-		shuffle: boolean,
+		shuffle: boolean
 		repeat: 'off' | 'single' | 'all'
 	}>({
 		shuffle: false,
-		repeat: 'off'
+		repeat: 'off',
 	})
 	const shuffleCurrent = ref<boolean | undefined>(undefined)
 
@@ -36,10 +36,13 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		}
 
 		if (playMode.value.shuffle && shuffleList.value.length > 0) {
-			const currentShuffleIndex = shuffleList.value.indexOf(currentIndex.value)
+			// 当前在 shuffleList 中的位置
+			const currentShuffleIndex = currentIndex.value
 			if (currentShuffleIndex < shuffleList.value.length - 1) {
+				// 返回下一个位置对应的原始 list 索引
 				return shuffleList.value[currentShuffleIndex + 1]
 			} else if (playMode.value.repeat === 'all') {
+				// 返回第一个位置对应的原始 list 索引
 				return shuffleList.value[0]
 			}
 			return -1
@@ -56,19 +59,14 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 	// 预加载下一首歌
 	const preloadNext = async () => {
-
 		const nextIndex = getNextIndex.value
 		if (nextIndex === -1) {
 			return
 		}
 
 		// 获取下一首歌曲对象
-		let nextSong
-		if (playMode.value.shuffle && shuffleList.value.length > 0) {
-			nextSong = list.value[shuffleList.value[nextIndex]]
-		} else {
-			nextSong = list.value[nextIndex]
-		}
+		// nextIndex 已经是原始 list 中的索引
+		const nextSong = list.value[nextIndex]
 
 		if (!nextSong || !nextSong.song) {
 			return
@@ -96,18 +94,16 @@ export const usePlayQueueStore = defineStore('queue', () => {
 				nextSong.song,
 				(updated) => {
 					// 更新播放队列中的歌曲信息
-					const actualIndex = playMode.value.shuffle && shuffleList.value.length > 0 
-						? shuffleList.value[nextIndex] 
-						: nextIndex
-					if (list.value[actualIndex]) {
-						list.value[actualIndex].song = updated
+					// nextIndex 已经是原始 list 中的索引
+					if (list.value[nextIndex]) {
+						list.value[nextIndex].song = updated
 					}
-					
+
 					// 如果歌曲在收藏夹中，也更新收藏夹
 					// 注意：这里不直接导入 favourites store 以避免循环依赖
 					// 改为触发一个事件或者在调用方处理
 					console.log('[Store] 预加载时需要更新收藏夹:', updated.name)
-				}
+				},
 			)
 
 			const audio = new Audio()
@@ -140,7 +136,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 			// 使用更新后的音频源
 			audio.src = updatedSong.sourceUrl!
-
 		} catch (error) {
 			console.error('[Store] 预加载过程出错:', error)
 			isPreloading.value = false
@@ -190,7 +185,7 @@ export const usePlayQueueStore = defineStore('queue', () => {
 			progress: preloadProgress.value,
 			cacheSize: preloadedAudio.value.size,
 			cachedSongs: Array.from(preloadedAudio.value.keys()),
-			nextIndex: getNextIndex.value
+			nextIndex: getNextIndex.value,
 		})
 	}
 
@@ -217,6 +212,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		clearPreloadedAudio,
 		clearAllPreloadedAudio,
 		limitPreloadCache,
-		debugPreloadState
+		debugPreloadState,
 	}
 })
