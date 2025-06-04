@@ -2,11 +2,8 @@
 import { artistsOrganize } from '../utils'
 import { ref } from 'vue'
 import { useFavourites } from '../stores/useFavourites'
-import apis from '../apis'
-import axios from 'axios'
 
 import StarSlashIcon from '../assets/icons/starslash.vue'
-import { onMounted } from 'vue'
 
 const favourites = useFavourites()
 
@@ -20,27 +17,6 @@ const props = defineProps<{
 const emit = defineEmits<{
 	(e: 'play', index: number): void
 }>()
-
-onMounted(async () => {
-	try {
-		// 添加缓存控制头和随机参数来避免缓存
-		await axios.head(props.item.song.sourceUrl ?? '', {
-			headers: {
-				'Cache-Control': 'no-cache, no-store, must-revalidate',
-				'Pragma': 'no-cache',
-				'Expires': '0'
-			},
-			params: {
-				_t: Date.now() // 添加时间戳参数避免缓存
-			}
-		})
-	} catch (error) {
-		// 刷新资源地址
-		const updatedSong = await apis.getSong(props.item.song.cid)
-		console.log('Updated song:', updatedSong)
-		favourites.updateSongInFavourites(props.item.song.cid, updatedSong)
-	}
-})
 </script>
 
 <template>

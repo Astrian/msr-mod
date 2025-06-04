@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed } from "vue"
+import { checkAndRefreshSongResource } from "../utils"
 
 export const usePlayQueueStore = defineStore('queue', () => {
 	const list = ref<QueueItem[]>([])
@@ -89,6 +90,26 @@ export const usePlayQueueStore = defineStore('queue', () => {
 			isPreloading.value = true
 			preloadProgress.value = 0
 
+			// 在预加载前检查和刷新资源
+			console.log('[Store] 预加载前检查资源:', nextSong.song.name)
+			const updatedSong = await checkAndRefreshSongResource(
+				nextSong.song,
+				(updated) => {
+					// 更新播放队列中的歌曲信息
+					const actualIndex = playMode.value.shuffle && shuffleList.value.length > 0 
+						? shuffleList.value[nextIndex] 
+						: nextIndex
+					if (list.value[actualIndex]) {
+						list.value[actualIndex].song = updated
+					}
+					
+					// 如果歌曲在收藏夹中，也更新收藏夹
+					// 注意：这里不直接导入 favourites store 以避免循环依赖
+					// 改为触发一个事件或者在调用方处理
+					console.log('[Store] 预加载时需要更新收藏夹:', updated.name)
+				}
+			)
+
 			const audio = new Audio()
 			audio.preload = 'auto'
 			audio.crossOrigin = 'anonymous'
@@ -107,19 +128,21 @@ export const usePlayQueueStore = defineStore('queue', () => {
 				preloadedAudio.value.set(songId, audio)
 				isPreloading.value = false
 				preloadProgress.value = 100
+				console.log('[Store] 预加载完成:', updatedSong.name)
 			})
 
 			// 监听加载错误
 			audio.addEventListener('error', (e) => {
-				console.error(`[Store] 预加载音频失败: ${e}`)
+				console.error(`[Store] 预加载音频失败: ${updatedSong.name}`, e)
 				isPreloading.value = false
 				preloadProgress.value = 0
 			})
 
-			// 设置音频源并开始加载
-			audio.src = nextSong.song.sourceUrl
+			// 使用更新后的音频源
+			audio.src = updatedSong.sourceUrl!
 
 		} catch (error) {
+			console.error('[Store] 预加载过程出错:', error)
 			isPreloading.value = false
 		}
 	}

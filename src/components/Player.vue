@@ -4,12 +4,14 @@
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { useTemplateRef, watch, nextTick, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useFavourites } from '../stores/useFavourites'
 
 import PlayIcon from '../assets/icons/play.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
-import { audioVisualizer } from '../utils'
+import { audioVisualizer, checkAndRefreshSongResource } from '../utils'
 
 const playQueueStore = usePlayQueueStore()
+const favourites = useFavourites()
 const route = useRoute()
 const player = useTemplateRef('playerRef')
 
@@ -53,9 +55,24 @@ watch(() => playQueueStore.currentIndex, async () => {
 		const songId = track.song.cid
 
 		try {
+			// 首先检查和刷新当前歌曲的资源
+			console.log('[Player] 检查当前歌曲资源:', track.song.name)
+			const updatedSong = await checkAndRefreshSongResource(
+				track.song,
+				(updated) => {
+					// 更新播放队列中的歌曲信息
+					if (playQueueStore.list[playQueueStore.currentIndex]) {
+						playQueueStore.list[playQueueStore.currentIndex].song = updated
+					}
+					// 如果歌曲在收藏夹中，也更新收藏夹
+					favourites.updateSongInFavourites(songId, updated)
+				}
+			)
+
+			// 使用更新后的歌曲信息
 			const preloadedAudio = playQueueStore.getPreloadedAudio(songId)
 
-			if (preloadedAudio) {
+			if (preloadedAudio && updatedSong.sourceUrl === track.song.sourceUrl) {
 				console.log(`[Player] 使用预加载的音频: ${track.song.name}`)
 
 				// 直接使用预加载的音频数据
@@ -78,6 +95,11 @@ watch(() => playQueueStore.currentIndex, async () => {
 			} else {
 				console.log(`[Player] 正常加载音频: ${track.song.name}`)
 				playQueueStore.isBuffering = true
+				
+				// 如果资源地址已更新，清除旧的预加载音频
+				if (updatedSong.sourceUrl !== track.song.sourceUrl) {
+					playQueueStore.clearPreloadedAudio(songId)
+				}
 			}
 		} catch (error) {
 			console.error('[Player] 处理预加载音频时出错:', error)
@@ -88,13 +110,21 @@ watch(() => playQueueStore.currentIndex, async () => {
 	setMetadata()
 
 	// 延迟预加载下一首歌，避免影响当前歌曲加载
-	setTimeout(() => {
+	setTimeout(async () => {
 		try {
 			console.log('[Player] 尝试预加载下一首歌')
 
 			// 检查函数是否存在
 			if (typeof playQueueStore.preloadNext === 'function') {
-				playQueueStore.preloadNext()
+				await playQueueStore.preloadNext()
+				
+				// 预加载完成后，检查播放队列是否有更新，同步到收藏夹
+				playQueueStore.list.forEach(item => {
+					if (favourites.isFavourite(item.song.cid)) {
+						favourites.updateSongInFavourites(item.song.cid, item.song)
+					}
+				})
+				
 				playQueueStore.limitPreloadCache()
 			} else {
 				console.error('[Player] preloadNext 不是一个函数')
