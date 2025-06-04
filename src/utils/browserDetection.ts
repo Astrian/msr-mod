@@ -28,7 +28,7 @@ export function isSafari(): boolean {
  * @returns {boolean} 如果是移动版 Safari 返回 true，否则返回 false
  */
 export function isMobileSafari(): boolean {
-	return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+	return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
 }
 
 /**
@@ -47,7 +47,7 @@ export function supportsWebAudioVisualization(): boolean {
 	const hasAudioContext = 'AudioContext' in window || 'webkitAudioContext' in window
 	const hasAnalyserNode = hasAudioContext && (
 		'AnalyserNode' in window || 
-		(window.AudioContext && 'createAnalyser' in AudioContext.prototype)
+		((window as any).AudioContext && 'createAnalyser' in (window as any).AudioContext.prototype)
 	)
 	
 	return hasAudioContext && hasAnalyserNode

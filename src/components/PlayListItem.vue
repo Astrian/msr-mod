@@ -9,7 +9,7 @@ const favourites = useFavourites()
 
 const hover = ref(false)
 
-const props = defineProps<{
+defineProps<{
 	item: QueueItem
 	index: number
 }>()
