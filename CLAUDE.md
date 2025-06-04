@@ -83,6 +83,12 @@ npm run qc                 # Alias for quality-check
 - **URL Refresh Logic**: Checks resource availability before playback/preload
 - **Cache Invalidation**: Automatic cleanup when resource URLs change
 
+### Shuffle/Random Play Logic
+- **shuffleList**: Array storing the shuffled order of original list indices
+- **currentIndex**: In shuffle mode, this is the index within shuffleList
+- **Accessing current song**: `list[shuffleList[currentIndex]]` in shuffle mode
+- **getNextIndex**: Returns the actual list index of the next song to play
+
 ## File Structure Notes
 
 ### `/src/utils/`
@@ -98,6 +104,13 @@ npm run qc                 # Alias for quality-check
 - **manifest.json**: Extension manifest (modified by prebuild scripts)
 - **content.js**: Injects the Vue app into target websites
 - **background.js**: Extension background script
+
+## Code Style and Formatting
+
+### Indentation
+- **This project uses Tab indentation (not spaces)**
+- Ensure all code edits maintain consistent Tab indentation
+- When editing files, preserve the existing Tab character formatting
 
 ## Development Considerations
 
