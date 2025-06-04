@@ -24,9 +24,9 @@ console.log('[Player] 检查 store 方法:', {
 const currentTrack = computed(() => {
 	if (playQueueStore.playMode.shuffle && playQueueStore.shuffleList.length > 0) {
 		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]]
-	} else {
-		return playQueueStore.list[playQueueStore.currentIndex]
 	}
+	
+	return playQueueStore.list[playQueueStore.currentIndex]
 })
 
 // 获取当前歌曲的音频源
