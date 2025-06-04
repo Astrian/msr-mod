@@ -395,7 +395,7 @@ setInterval(syncVolumeFromStorage, 100)
 
 			<RouterLink to="/playroom">
 				<div class="flex items-center w-32 h-9">
-					<span class="truncate">{{ getCurrentTrack()?.song.name }}</span>
+					<span class="truncate text-xs">{{ getCurrentTrack()?.song.name }}</span>
 				</div>
 			</RouterLink>
 
