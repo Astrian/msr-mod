@@ -543,8 +543,39 @@ watch(() => props.lrcSrc, async (newSrc) => {
 	}
 }, { immediate: true })
 
+
+// 页面焦点处理函数变量声明
+let handleVisibilityChange: (() => void) | null = null
+
+// 页面焦点处理
+function setupPageFocusHandlers() {
+	handleVisibilityChange = () => {
+		if (document.hidden) {
+			// 页面失去焦点时暂停动画
+			if (scrollTween) scrollTween.pause()
+			if (highlightTween) highlightTween.pause()
+		} else {
+			// 页面重新获得焦点时恢复并重新同步
+			if (scrollTween && scrollTween.paused()) scrollTween.resume()
+			if (highlightTween && highlightTween.paused()) highlightTween.resume()
+			
+			// 重新同步歌词位置
+			nextTick(() => {
+				if (currentLineIndex.value >= 0 && autoScroll.value && !userScrolling.value) {
+					scrollToLine(currentLineIndex.value, false) // 不使用动画，直接定位
+				}
+			})
+		}
+	}
+
+	document.addEventListener('visibilitychange', handleVisibilityChange)
+}
+
 // 组件挂载时的入场动画
 onMounted(() => {
+	// 设置页面焦点处理
+	setupPageFocusHandlers()
+
 	// 控制面板入场动画
 	if (controlPanel.value) {
 		gsap.fromTo(controlPanel.value,
@@ -577,6 +608,11 @@ onUnmounted(() => {
 	if (scrollTween) scrollTween.kill()
 	if (highlightTween) highlightTween.kill()
 	if (userScrollTimeout) clearTimeout(userScrollTimeout)
+	
+	// 清理页面焦点事件监听器
+	if (handleVisibilityChange) {
+		document.removeEventListener('visibilitychange', handleVisibilityChange)
+	}
 })
 
 // 暴露方法给父组件
