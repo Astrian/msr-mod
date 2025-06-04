@@ -605,9 +605,9 @@ watch(() => playQueueStore.currentIndex, () => {
 
 						<div class="w-full flex justify-between">
 							<!-- ...existing time display code... -->
-							<div class="font-medium flex-1 text-left relative">
+							<div class="font-medium flex-1 text-left text-xs relative">
 								<span
-									class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+									class="text-black blur-lg absolute top-0 text-xs">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 								<span
 									class="text-white/90 absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 							</div>
@@ -618,7 +618,7 @@ watch(() => playQueueStore.currentIndex, () => {
 							<div class="flex flex-1">
 								<div class="flex-1" />
 								<button
-									class="text-white/90 font-medium text-right relative transition-colors duration-200 hover:text-white"
+									class="text-white/90 text-xs font-medium text-right relative transition-colors duration-200 hover:text-white"
 									@click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
 									<span
 										class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
