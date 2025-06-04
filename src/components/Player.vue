@@ -7,7 +7,7 @@ import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import PlayIcon from '../assets/icons/play.vue'
-import { audioVisualizer, checkAndRefreshSongResource } from '../utils'
+import { audioVisualizer, checkAndRefreshSongResource, supportsWebAudioVisualization } from '../utils'
 
 const playQueueStore = usePlayQueueStore()
 const favourites = useFavourites()
@@ -263,21 +263,40 @@ function updateCurrentTime() {
 	}
 }
 
-console.log('[Player] 初始化 audioVisualizer')
-const { barHeights, connectAudio, isAnalyzing, error } = audioVisualizer({
-	sensitivity: 1.5,
-	barCount: 6,
-	maxDecibels: -10,
-	bassBoost: 0.8,
-	midBoost: 1.2,
-	trebleBoost: 1.4,
-	threshold: 0,
-})
+// 检查浏览器是否支持音频可视化
+const isAudioVisualizationSupported = supportsWebAudioVisualization()
+console.log('[Player] 音频可视化支持状态:', isAudioVisualizationSupported)
 
-console.log('[Player] audioVisualizer 返回值:', {
-	barHeights: barHeights.value,
-	isAnalyzing: isAnalyzing.value,
-})
+// 只在支持的浏览器上初始化音频可视化
+let barHeights = ref<number[]>([0, 0, 0, 0, 0, 0])
+let connectAudio = (_audio: HTMLAudioElement) => {}
+let isAnalyzing = ref(false)
+let error = ref<string | null>(null)
+
+if (isAudioVisualizationSupported) {
+	console.log('[Player] 初始化 audioVisualizer')
+	const visualizer = audioVisualizer({
+		sensitivity: 1.5,
+		barCount: 6,
+		maxDecibels: -10,
+		bassBoost: 0.8,
+		midBoost: 1.2,
+		trebleBoost: 1.4,
+		threshold: 0,
+	})
+	
+	barHeights = visualizer.barHeights
+	connectAudio = visualizer.connectAudio
+	isAnalyzing = visualizer.isAnalyzing
+	error = visualizer.error
+	
+	console.log('[Player] audioVisualizer 返回值:', {
+		barHeights: barHeights.value,
+		isAnalyzing: isAnalyzing.value,
+	})
+} else {
+	console.log('[Player] 音频可视化被禁用（Safari 或不支持的浏览器）')
+}
 
 // 监听播放列表变化
 watch(
@@ -293,13 +312,17 @@ watch(
 		await nextTick()
 
 		if (player.value) {
-			console.log('[Player] 连接音频元素到可视化器')
-			console.log('[Player] 音频元素状态:', {
-				src: player.value.src?.substring(0, 50) + '...',
-				readyState: player.value.readyState,
-				paused: player.value.paused,
-			})
-			connectAudio(player.value)
+			if (isAudioVisualizationSupported) {
+				console.log('[Player] 连接音频元素到可视化器')
+				console.log('[Player] 音频元素状态:', {
+					src: player.value.src?.substring(0, 50) + '...',
+					readyState: player.value.readyState,
+					paused: player.value.paused,
+				})
+				connectAudio(player.value)
+			} else {
+				console.log('[Player] 跳过音频可视化连接（不支持的浏览器）')
+			}
 		} else {
 			console.log('[Player] ❌ 音频元素不存在')
 		}
@@ -322,7 +345,7 @@ watch(
 watch(
 	() => player.value,
 	(audioElement) => {
-		if (audioElement && playQueueStore.list.length > 0) {
+		if (audioElement && playQueueStore.list.length > 0 && isAudioVisualizationSupported) {
 			connectAudio(audioElement)
 		}
 	},
