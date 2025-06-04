@@ -7,6 +7,7 @@ import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import PlayIcon from '../assets/icons/play.vue'
+import PauseIcon from '../assets/icons/pause.vue'
 import { audioVisualizer, checkAndRefreshSongResource, supportsWebAudioVisualization } from '../utils'
 
 const playQueueStore = usePlayQueueStore()
@@ -518,12 +519,7 @@ setInterval(syncVolumeFromStorage, 100)
 			}">
 				<div v-if="playQueueStore.isPlaying">
 					<LoadingIndicator v-if="playQueueStore.isBuffering === true" :size="4" />
-					<div v-else class="h-4 flex justify-center items-center gap-[.125rem]">
-						<div class="bg-white/75 w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
-							:key="index" :style="{
-								height: `${Math.max(10, bar)}%`
-							}" />
-					</div>
+					<PauseIcon v-else :size="4" />
 				</div>
 				<PlayIcon v-else :size="4" />
 			</button>

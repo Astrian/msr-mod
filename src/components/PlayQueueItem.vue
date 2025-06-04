@@ -5,6 +5,7 @@ import { artistsOrganize } from '../utils'
 import XIcon from '../assets/icons/x.vue'
 import UpHyphenIcon from '../assets/icons/uphypen.vue'
 import DownHyphenIcon from '../assets/icons/downhyphen.vue'
+import SoundwaveIcon from '../assets/icons/soundwave.vue'
 
 import { ref } from 'vue'
 
@@ -156,12 +157,7 @@ function removeItem() {
 				<img :src="queueItem.album?.coverUrl" />
 				<div class="w-full h-full absolute top-0 left-0 bg-neutral-900/75 flex justify-center items-center"
 					v-if="isCurrent">
-					<div style="height: 1rem;" class="flex justify-center items-center gap-[.125rem]">
-						<div class="bg-white w-[.125rem] rounded-full" v-for="(bar, index) in playQueueStore.visualizer"
-							:key="index" :style="{
-								height: `${Math.max(10, bar)}%`
-							}" />
-					</div>
+					<SoundwaveIcon :size="6" class="text-white animate-pulse" />
 				</div>
 			</div>
 			<div class="flex flex-col text-left flex-auto w-0">
