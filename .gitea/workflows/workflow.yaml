@@ -90,7 +90,7 @@ jobs:
         
     - name: 创建 Safari 扩展项目
       run: |
-        xcrun safari-web-extension-converter dist --project-location safari-extension --app-name "MSR Mod" --bundle-identifier "com.astrian.msrmod" --swift --no-open
+        xcrun safari-web-extension-converter dist --project-location safari-extension --app-name "MSR Mod" --bundle-identifier "moe.astrian.ext-msrmod" --swift --no-open
         
     - name: 构建 Safari 扩展
       run: |
