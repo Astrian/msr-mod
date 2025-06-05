@@ -95,7 +95,7 @@ jobs:
     - name: 构建 Safari 扩展
       run: |
         cd "safari-extension/MSR Mod"
-        xcodebuild -project "MSR Mod.xcodeproj" -scheme "MSR Mod" -configuration Release -destination "generic/platform=macOS" build
+        xcodebuild -project "MSR Mod.xcodeproj" -scheme "MSR Mod (macOS)" -configuration Release -destination "generic/platform=macOS" build
         
     - name: 上传构建工件
       uses: actions/upload-artifact@v3
