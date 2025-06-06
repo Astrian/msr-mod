@@ -83,6 +83,9 @@ onMounted(async () => {
 	thumbUpdate()
 
 	setupEntranceAnimations()
+
+	// 添加页面焦点事件监听
+	setupPageFocusHandlers()
 })
 
 function timeFormatter(time: number) {
@@ -90,7 +93,7 @@ function timeFormatter(time: number) {
 	if (timeInSeconds < 0) { return '-:--' }
 	const minutes = Math.floor(timeInSeconds / 60)
 	const seconds = Math.floor(timeInSeconds % 60)
-	if (isNaN(minutes) || isNaN(seconds)) { return '-:--' }
+	if (Number.isNaN(minutes) || Number.isNaN(seconds)) { return '-:--' }
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
@@ -155,7 +158,7 @@ function createVolumeDraggable() {
 			// 保存音量到localStorage
 			localStorage.setItem('audioVolume', newVolume.toString())
 		},
-		onDragEnd: function () {
+		onDragEnd: () => {
 			// 拖拽结束时也保存一次
 			localStorage.setItem('audioVolume', volume.value.toString())
 		}
@@ -419,8 +422,97 @@ watch(() => [preferences.presentLyrics, getCurrentTrack()?.song.lyricUrl], (newV
 	}
 }, { immediate: true })
 
+// 页面焦点处理函数变量声明
+let handleVisibilityChange: (() => void) | null = null
+let handlePageFocus: (() => void) | null = null
+
 onUnmounted(() => {
+	// 清理页面焦点事件监听器
+	if (handleVisibilityChange) {
+		document.removeEventListener('visibilitychange', handleVisibilityChange)
+	}
+	if (handlePageFocus) {
+		window.removeEventListener('focus', handlePageFocus)
+	}
 })
+
+// 页面焦点处理函数
+function setupPageFocusHandlers() {
+	handleVisibilityChange = () => {
+		if (document.hidden) {
+			// 页面失去焦点时，暂停所有动画
+			console.log('[Playroom] 页面失去焦点，暂停动画')
+		} else {
+			// 页面重新获得焦点时，重新同步状态
+			console.log('[Playroom] 页面重新获得焦点，同步状态')
+			nextTick(() => {
+				resyncLyricsState()
+			})
+		}
+	}
+
+	handlePageFocus = () => {
+		console.log('[Playroom] 窗口获得焦点，同步状态')
+		nextTick(() => {
+			resyncLyricsState()
+		})
+	}
+
+	// 监听页面可见性变化
+	document.addEventListener('visibilitychange', handleVisibilityChange)
+	window.addEventListener('focus', handlePageFocus)
+}
+
+// 重新同步歌词状态
+function resyncLyricsState() {
+	const currentTrack = getCurrentTrack()
+	if (!currentTrack) { return }
+
+	console.log('[Playroom] 重新同步歌词状态')
+
+	// 重置动画状态
+	if (controllerRef.value) {
+		gsap.set(controllerRef.value, { 
+			marginLeft: '0rem', 
+			marginRight: '0rem' 
+		})
+	}
+
+	if (lyricsSection.value) {
+		gsap.set(lyricsSection.value, { 
+			opacity: 1, 
+			x: 0, 
+			y: 0, 
+			scale: 1 
+		})
+	}
+
+	// 检查当前歌词显示状态应该是什么
+	const shouldShowLyrics = preferences.presentLyrics && currentTrack.song.lyricUrl ? true : false
+
+	if (shouldShowLyrics !== presentLyrics.value) {
+		console.log(`[Playroom] 歌词状态不一致，重新设置: ${presentLyrics.value} -> ${shouldShowLyrics}`)
+		
+		// 直接设置状态，不触发动画
+		presentLyrics.value = shouldShowLyrics
+		
+		// 如果需要显示歌词，重新执行显示动画
+		if (shouldShowLyrics) {
+			nextTick(() => {
+				const tl = gsap.timeline()
+				tl.from(controllerRef.value, {
+					marginRight: '-40rem',
+					duration: 0.4,
+					ease: "power2.out"
+				}).fromTo(lyricsSection.value,
+					{ opacity: 0, x: 50, scale: 0.95 },
+					{ opacity: 1, x: 0, scale: 1, duration: 0.5, ease: "power2.out" },
+					"-=0.2"
+				)
+			})
+		}
+	}
+}
 
 // New: Watch for track changes and animate
 watch(() => playQueueStore.currentIndex, () => {
@@ -513,9 +605,9 @@ watch(() => playQueueStore.currentIndex, () => {
 
 						<div class="w-full flex justify-between">
 							<!-- ...existing time display code... -->
-							<div class="font-medium flex-1 text-left relative">
+							<div class="font-medium flex-1 text-left text-xs relative">
 								<span
-									class="text-black blur-lg absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+									class="text-black blur-lg absolute top-0 text-xs">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 								<span
 									class="text-white/90 absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
 							</div>
@@ -526,7 +618,7 @@ watch(() => playQueueStore.currentIndex, () => {
 							<div class="flex flex-1">
 								<div class="flex-1" />
 								<button
-									class="text-white/90 font-medium text-right relative transition-colors duration-200 hover:text-white"
+									class="text-white/90 text-xs font-medium text-right relative transition-colors duration-200 hover:text-white"
 									@click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
 									<span
 										class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
