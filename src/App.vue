@@ -9,6 +9,8 @@ import LeftArrowIcon from './assets/icons/leftarrow.vue'
 import CorgIcon from './assets/icons/corg.vue'
 import { watch } from 'vue'
 
+import Updated from './components/updated.vue'
+
 const presentPreferencePanel = ref(false)
 
 const route = useRoute()
@@ -21,6 +23,8 @@ watch(() => presentPreferencePanel, (value) => {
 </script>
 
 <template>
+	<Updated />
+
 	<div class="w-screen h-screen overflow-hidden bg-[#191919]">
 		<div class="flex flex-col w-full h-full overflow-y-auto">
 			<div class="py-8 px-4 md:px-8 w-screen bg-gradient-to-b from-[#00000080] to-transparent z-20 absolute top-0">
