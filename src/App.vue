@@ -9,7 +9,7 @@ import LeftArrowIcon from './assets/icons/leftarrow.vue'
 import CorgIcon from './assets/icons/corg.vue'
 import { watch } from 'vue'
 
-import Updated from './components/updated.vue'
+import UpdatePopup from './components/UpdatePopup.vue'
 
 const presentPreferencePanel = ref(false)
 
@@ -23,7 +23,7 @@ watch(() => presentPreferencePanel, (value) => {
 </script>
 
 <template>
-	<Updated />
+	<UpdatePopup />
 
 	<div class="w-screen h-screen overflow-hidden bg-[#191919]">
 		<div class="flex flex-col w-full h-full overflow-y-auto">
