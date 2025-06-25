@@ -42,11 +42,14 @@ onMounted(async () => {
 			</div>
 
 			<div class="flex flex-col gap-4 mb-8 px-8 text-lg">
+				<p>最近两周有家事，同时我的 MacBook Pro 的 MagSafe 出了故障，还在 Genius Bar 维修，所以开发进程受到了一些影响。</p>
 				<p>MSR Mod 现在有两种渠道接收错误及意见反馈。如果你对 MSR Mod 有任何的意见建议，或是想要回报错误及体验困惑之处，欢迎前往 <a href="https://github.com/Astrian/msr-mod/issues" target="_blank" class="underline">GitHub Issue</a> 或 <a href="https://discord.gg/QQUfeb2gzH" target="_blank" class="underline">Discord 社群</a> 向我们反馈。如果你的意见或错误回报被接受，我们会将其放入 <a href="https://trello.com/b/Ju1TRXla" target="_blank" class="underline">Trello 看板</a> 中进行跟踪，敬请留意。</p>
 
 				<ul class="list-disc list-inside">
 					<li>新增版本更新提示对话框，将在 MSR Mod 更新后首次启动显示。</li>
 					<li>增强对 Apple Safari 浏览器的兼容性支持。</li>
+					<li>修复 Windows 和其他操作系统中偏好设置面板滚动条显示异常的问题。</li>
+					<li>在偏好设置面板中新增 Discord 社群和 Trello 看板链接。</li>
 				</ul>
 			</div>
 		</div>
