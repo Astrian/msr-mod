@@ -19,6 +19,7 @@ npm i                       # Install dependencies
 ```bash
 npm run build:chrome        # Build for Chrome/Chromium browsers
 npm run build:firefox       # Build for Firefox
+npm run build:safari        # Build for Safari (uses background.html)
 npm run build              # Default build (Chrome)
 ```
 
@@ -71,6 +72,7 @@ npm run qc                 # Alias for quality-check
 ### Browser Compatibility
 - **Chrome**: Uses service worker, full CSP support
 - **Firefox**: Uses background scripts, modified CSP, specific gecko settings
+- **Safari**: Uses background page (background.html) instead of service worker
 - **Prebuild Scripts**: Automatically modify manifest.json and HTML for each platform
 
 ### Storage Strategy
@@ -99,6 +101,7 @@ npm run qc                 # Alias for quality-check
 ### `/scripts/`
 - **prebuild-chrome.js**: Removes localhost dev configs for production
 - **prebuild-firefox.js**: Adapts manifest for Firefox compatibility
+- **prebuild-safari.js**: Creates background.html and adapts manifest for Safari
 
 ### `/public/`
 - **manifest.json**: Extension manifest (modified by prebuild scripts)
@@ -128,3 +131,29 @@ npm run qc                 # Alias for quality-check
 - Graceful fallbacks for storage API unavailability
 - Resource URL rotation handling with automatic refresh
 - Cross-browser compatibility with feature detection
+
+## Safari Extension Considerations
+
+### Background Script Handling
+Safari Web Extensions have different requirements for background scripts:
+
+1. **Background Page vs Service Worker**: Safari uses `background.page` instead of `service_worker`
+2. **Background HTML**: The prebuild script creates `background.html` that loads `background.js`
+3. **Manifest Configuration**: Uses `"background": { "page": "background.html", "persistent": false }`
+
+### Auto-redirect Functionality
+The auto-redirect feature in Safari may require special handling due to:
+- Different WebKit extension APIs
+- Safari's stricter security policies
+- Tab management differences from Chromium
+
+### Building for Safari
+```bash
+npm run build:safari    # Creates background.html and Safari-specific manifest
+```
+
+The Safari build process:
+1. Removes localhost development configurations
+2. Converts `service_worker` to `background.page`
+3. Creates `background.html` wrapper for `background.js`
+4. Adds Safari-specific browser settings
