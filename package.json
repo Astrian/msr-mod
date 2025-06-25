@@ -8,6 +8,7 @@
 		"build": "echo 'No platform specified, will build for Chromium.' && npm run build-chrome",
 		"build:chrome": "npm run prebuild:chrome && vue-tsc -b && vite build && cp -r public/* dist/",
 		"build:firefox": "npm run prebuild:firefox && vue-tsc -b && vite build && cp -r public/* dist/",
+		"build:safari": "npm run prebuild:safari && vue-tsc -b && vite build && cp -r public/* dist/",
 		"dev:refresh": "vue-tsc -b && vite build && cp -r public/* dist/",
 		"build:watch": "vite build --watch",
 		"preview": "vite preview",
@@ -15,7 +16,8 @@
 		"quality-check": "biome ci",
 		"qc": "npm run quality-check",
 		"prebuild:chrome": "node scripts/prebuild-chrome.js",
-		"prebuild:firefox": "node scripts/prebuild-firefox.js"
+		"prebuild:firefox": "node scripts/prebuild-firefox.js",
+		"prebuild:safari": "node scripts/prebuild-safari.js"
 	},
 	"dependencies": {
 		"@tailwindcss/vite": "^4.1.7",

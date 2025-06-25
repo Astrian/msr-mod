@@ -61,6 +61,48 @@ jobs:
         name: firefox-addon
         path: dist/
 
+  build-for-safari:
+    name: 构建 Safari 扩展程序
+    runs-on: macos
+    env:
+      VITE_RUN_ID: ${{ gitea.run_number }}
+      VITE_HASH_ID: ${{ gitea.sha }}
+    
+    steps:
+    - uses: actions/checkout@v3
+      name: 检出代码
+    
+    - name: 设置 Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+        
+    - name: 安装依赖
+      run: npm install
+      
+    - name: 构建扩展程序
+      run: npm run build:safari
+      
+    - name: 设置 Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+        
+    - name: 创建 Safari 扩展项目
+      run: |
+        xcrun safari-web-extension-converter dist --project-location safari-extension --app-name "MSR Mod" --bundle-identifier "moe.astrian.ext-msrmod" --swift --no-open
+        
+    - name: 构建 Safari 扩展
+      run: |
+        cd "safari-extension/MSR Mod"
+        xcodebuild -project "MSR Mod.xcodeproj" -scheme "MSR Mod (macOS)" -configuration Release -destination "generic/platform=macOS" build
+        
+    - name: 上传构建工件
+      uses: actions/upload-artifact@v3
+      with:
+        name: safari-extension
+        path: safari-extension/
+
   publish-to-chrome-webstore: 
     name: 发布至 Chrome 应用商店
     runs-on: ubuntu-latest
