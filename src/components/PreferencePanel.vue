@@ -31,7 +31,7 @@ const version = computed(() => {
 			class="bg-black/30 w-screen h-screen absolute top-0 left-0 z-30 flex justify-center items-center select-none"
 			@click="$emit('dismiss')">
 			<div
-				class="bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl border border-[#ffffff39] rounded-lg w-[60rem] h-3/4 relative overflow-scroll modal-content"
+				class="bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl border border-[#ffffff39] rounded-lg w-[60rem] h-3/4 relative overflow-y-auto modal-content"
 				@click.stop>
 				<div
 					class="flex justify-between items-center p-8 sticky top-0 bg-gradient-to-b from-neutral-900 to-neutral-900/0 z-10">
