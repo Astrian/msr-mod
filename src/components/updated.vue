@@ -13,7 +13,7 @@ const version = computed(() => {
 </script>
 
 <template>
-	<div class="absolute top-0 left-0 w-screen h-screen bg-neutral-700/30 flex justify-center items-center">
+	<div class="absolute top-0 left-0 w-screen h-screen bg-neutral-700/30 flex justify-center items-center select-none">
 		<div class="bg-neutral-900/80 shadow-[0_0_16px_0_rgba(0,0,0,0.5)] backdrop-blur-2xl border border-[#ffffff39] rounded-lg w-[60rem] h-3/4 relative overflow-y-auto text-white">
 			<div
 				class="flex justify-between items-center p-8 sticky top-0 bg-gradient-to-b from-neutral-900 to-neutral-900/0 z-10">
@@ -30,6 +30,7 @@ const version = computed(() => {
 
 				<ul class="list-disc list-inside">
 					<li>新增版本更新提示对话框，将在 MSR Mod 更新后首次启动显示。</li>
+					<li>增强对 Apple Safari 浏览器的兼容性支持。</li>
 				</ul>
 			</div>
 		</div>
