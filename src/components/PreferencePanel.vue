@@ -126,7 +126,27 @@ const version = computed(() => {
 										class="flex justify-between items-center px-6 py-4 w-full text-left hover:bg-neutral-300/10 transition-all">
 										<div class="flex flex-col">
 											<div class="text-base text-white">前往 GitHub 仓库</div>
-											<div class="text-sm text-white/80">修 Bug 的事情就拜托了，大佬桑！（鞠躬）</div>
+											<div class="text-sm text-white/80">在 Issue 中提交问题或建议，或者，修 Bug 的事情就拜托了，大佬桑！（鞠躬）</div>
+										</div>
+									</a>
+								</li>
+
+								<li class="odd:bg-neutral-300/5">
+									<a href="https://discord.gg/QQUfeb2gzH" target="_blank"
+										class="flex justify-between items-center px-6 py-4 w-full text-left hover:bg-neutral-300/10 transition-all">
+										<div class="flex flex-col">
+											<div class="text-base text-white">前往 Discord 社群</div>
+											<div class="text-sm text-white/80">在社群中提交问题或建议，或是来聊聊《明日方舟》的音乐吧！</div>
+										</div>
+									</a>
+								</li>
+
+								<li class="odd:bg-neutral-300/5">
+									<a href="https://trello.com/b/Ju1TRXla" target="_blank"
+										class="flex justify-between items-center px-6 py-4 w-full text-left hover:bg-neutral-300/10 transition-all">
+										<div class="flex flex-col">
+											<div class="text-base text-white">前往 Trello 看板</div>
+											<div class="text-sm text-white/80">了解 MSR Mod 目前的开发进度。</div>
 										</div>
 									</a>
 								</li>
