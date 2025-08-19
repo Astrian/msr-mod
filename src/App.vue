@@ -71,14 +71,17 @@ watch(
 							<SearchIcon :size="4" />
 						</button> -->
 
+						<Player />
+
+
+						<MiniPlayer />
+
 						<button
 							class="text-white w-9 h-9 bg-neutral-800/80 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center"
 							@click="presentPreferencePanel = true">
 							<CorgIcon :size="4" />
 						</button>
 
-						<MiniPlayer />
-						<Player />
 					</div>
 				</div>
 			</div>
