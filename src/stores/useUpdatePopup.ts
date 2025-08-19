@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
+import { debugStore } from '../utils/debug'
 
 // 声明全局类型
 declare global {
@@ -153,7 +154,7 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 
 			return false
 		} catch (error) {
-			console.error('检查更新弹窗状态失败:', error)
+			debugStore('检查更新弹窗状态失败', error)
 			return false
 		}
 	}
@@ -166,7 +167,7 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 				await setStoredValue('lastUpdatePopupVersion', currentVersion)
 			}
 		} catch (error) {
-			console.error('标记更新弹窗已显示失败:', error)
+			debugStore('标记更新弹窗已显示失败', error)
 		}
 	}
 
@@ -182,7 +183,7 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 			detectAvailableAPIs()
 			isLoaded.value = true
 		} catch (error) {
-			console.error('初始化更新弹窗 store 失败:', error)
+			debugStore('初始化更新弹窗 store 失败', error)
 			isLoaded.value = true
 		}
 	}

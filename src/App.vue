@@ -8,6 +8,7 @@ import LeftArrowIcon from './assets/icons/leftarrow.vue'
 // import SearchIcon from './assets/icons/search.vue'
 import CorgIcon from './assets/icons/corg.vue'
 import { watch } from 'vue'
+import { debug } from './utils/debug'
 
 import UpdatePopup from './components/UpdatePopup.vue'
 
@@ -17,7 +18,7 @@ const route = useRoute()
 const router = useRouter()
 
 watch(() => presentPreferencePanel, (value) => {
-	console.log(value)
+	debug('偏好设置面板显示状态', value)
 })
 
 </script>

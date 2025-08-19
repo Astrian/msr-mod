@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { useToast } from 'vue-toast-notification'
 import { useFavourites } from '../stores/useFavourites'
+import { debugUI } from '../utils/debug'
 
 import QueueAddIcon from '../assets/icons/queueadd.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
@@ -23,7 +24,7 @@ const toast = useToast()
 const favourites = useFavourites()
 
 function appendToQueue() {
-	console.log('aaa')
+	debugUI('添加歌曲到队列')
 	let queue = playQueueStore.list
 	queue.push({
 		song: props.track,
@@ -41,7 +42,7 @@ function appendToQueue() {
 <template>
 	<button
 		class="flex justify-between align-center gap-4 text-left px-2 h-[2.75rem] hover:bg-neutral-600/40 odd:bg-netural-600/20 relative overflow-hidden bg-neutral-800/20 odd:bg-neutral-800/40 transition-all"
-		@click="playfrom(index)" @mouseenter="() => { hover = true; console.log('aaa') }" @mouseleave="hover = false">
+		@click="playfrom(index)" @mouseenter="() => { hover = true; debugUI('鼠标悬停在歌曲项') }" @mouseleave="hover = false">
 
 		<span class="text-[3.7rem] text-white/10 absolute left-0 top-[-1.4rem] track_num">{{ index + 1 }}</span>
 

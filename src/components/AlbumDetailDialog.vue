@@ -11,6 +11,7 @@ import { artistsOrganize } from '../utils'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import TrackItem from './TrackItem.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
+import { debugUI } from '../utils/debug'
 
 const props = defineProps<{
 	albumCid: string
@@ -97,7 +98,7 @@ watch(() => props.present, async (newVal) => {
 })
 
 watch(() => props.albumCid, async () => {
-	console.log("AlbumDetailDialog mounted with albumCid:", props.albumCid)
+	debugUI('专辑详情对话框加载', props.albumCid)
 	album.value = undefined // Reset album when cid changes
 	try {
 		let res = await apis.getAlbum(props.albumCid)
@@ -106,7 +107,7 @@ watch(() => props.albumCid, async () => {
 		}
 		album.value = res
 	} catch (error) {
-		console.error(error)
+		debugUI('专辑详情加载失败', error)
 	}
 })
 

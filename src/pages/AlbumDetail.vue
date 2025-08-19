@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { artistsOrganize } from '../utils'
 import TrackItem from '../components/TrackItem.vue'
+import { debugUI } from '../utils/debug'
 
 import PlayIcon from '../assets/icons/play.vue'
 import StarEmptyIcon from '../assets/icons/starempty.vue'
@@ -24,9 +25,9 @@ onMounted(async () => {
 			res.songs[parseInt(track)] = await apis.getSong(res.songs[parseInt(track)].cid)
 		}
 		album.value = res
-		console.log(res)
+		debugUI('专辑详情加载完成', res)
 	} catch (error) {
-		console.log(error)
+		debugUI('专辑详情加载失败', error)
 	}
 })
 
@@ -38,7 +39,7 @@ function playTheAlbum(from: number = 0) {
 
 	let newPlayQueue = []
 	for (const track of album.value?.songs ?? []) {
-		console.log(track)
+		debugUI('添加歌曲到播放队列', track)
 		newPlayQueue.push({
 			song: track,
 			album: album.value

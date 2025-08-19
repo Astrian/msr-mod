@@ -1,5 +1,6 @@
 import axios from 'axios'
 import apis from '../apis'
+import { debugResource } from './debug'
 
 /**
  * 检查歌曲资源 URL 是否可用，如果不可用则刷新
@@ -12,7 +13,7 @@ export const checkAndRefreshSongResource = async (
   updateCallback?: (updatedSong: Song) => void
 ): Promise<Song> => {
   if (!song.sourceUrl) {
-    console.warn('[ResourceChecker] 歌曲没有 sourceUrl:', song.name)
+    debugResource('歌曲没有 sourceUrl', song.name)
     return song
   }
 
@@ -31,15 +32,15 @@ export const checkAndRefreshSongResource = async (
     })
     
     // 资源可用，返回原始歌曲
-    console.log('[ResourceChecker] 资源可用:', song.name)
+    debugResource('资源可用', song.name)
     return song
   } catch (error) {
     // 资源不可用，刷新歌曲信息
-    console.log('[ResourceChecker] 资源不可用，正在刷新:', song.name, error)
+    debugResource('资源不可用，正在刷新', song.name, error)
     
     try {
       const updatedSong = await apis.getSong(song.cid)
-      console.log('[ResourceChecker] 歌曲信息已刷新:', updatedSong.name)
+      debugResource('歌曲信息已刷新', updatedSong.name)
       
       // 调用更新回调（如果提供）
       if (updateCallback) {
@@ -48,7 +49,7 @@ export const checkAndRefreshSongResource = async (
       
       return updatedSong
     } catch (refreshError) {
-      console.error('[ResourceChecker] 刷新歌曲信息失败:', refreshError)
+      debugResource('刷新歌曲信息失败', refreshError)
       // 刷新失败，返回原始歌曲
       return song
     }

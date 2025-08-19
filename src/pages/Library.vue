@@ -2,6 +2,7 @@
 import StarFilledIcon from '../assets/icons/starfilled.vue'
 import PlayIcon from '../assets/icons/play.vue'
 import ShuffleIcon from '../assets/icons/shuffle.vue'
+import { debugUI } from '../utils/debug'
 
 import { useFavourites } from '../stores/useFavourites'
 import { ref } from 'vue'
@@ -124,7 +125,7 @@ function shuffle(list: 'favourites' | number) {
 			<div class="flex flex-col gap-2 mt-4 mr-8 pb-8">
 				<PlayListItem v-for="(item, index) in favourites.favourites.slice().reverse()" :key="item.song.cid" :item="item"
 					:index="index" @play="(playFrom) => {
-						console.log('play from', playFrom)
+						debugUI('从收藏库播放', playFrom)
 						playTheList('favourites', playFrom)
 					}" />
 			</div>

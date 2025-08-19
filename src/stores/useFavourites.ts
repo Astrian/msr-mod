@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, watch, computed } from "vue"
+import { debugStore } from '../utils/debug'
 
 // 声明全局类型
 declare global {
@@ -293,7 +294,7 @@ export const useFavourites = defineStore('favourites', () => {
 					await saveFavourites()
 				} catch (error) {
 					// 保存失败时可以考虑回滚或错误处理
-					console.error('Failed to save updated song:', error)
+					debugStore('更新歌曲信息保存失败', error)
 				}
 			}
 		}

@@ -291,7 +291,7 @@ if (isAudioVisualizationSupported) {
 	isAnalyzing = visualizer.isAnalyzing
 	error = visualizer.error
 	
-	console.log('[Player] audioVisualizer 返回值:', {
+	debugPlayer('audioVisualizer 返回值:', {
 		barHeights: barHeights.value,
 		isAnalyzing: isAnalyzing.value,
 	})

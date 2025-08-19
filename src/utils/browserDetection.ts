@@ -1,6 +1,7 @@
 /**
  * 浏览器检测工具
  */
+import { debugUtils } from './debug'
 
 /**
  * 检测是否为 Safari 浏览器
@@ -39,7 +40,7 @@ export function supportsWebAudioVisualization(): boolean {
 	// Safari 在某些情况下对 AudioContext 的支持有限制
 	// 特别是在处理跨域音频资源时
 	if (isSafari()) {
-		console.log('[BrowserDetection] Safari detected, audio visualization disabled')
+		debugUtils('Safari浏览器检测，音频可视化禁用')
 		return false
 	}
 	

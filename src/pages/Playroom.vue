@@ -8,6 +8,7 @@ import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
 import { usePreferences } from '../stores/usePreferences'
 import { useFavourites } from '../stores/useFavourites'
+import { debugPlayroom } from '../utils/debug'
 
 import ScrollingLyrics from '../components/ScrollingLyrics.vue'
 
@@ -132,14 +133,14 @@ function toggleVolumeControl() {
 
 function createVolumeDraggable() {
 	if (!volumeSliderThumb.value || !volumeSliderContainer.value) {
-		console.warn('Volume slider elements not found')
+		debugPlayroom('音量滑块元素未找到')
 		return
 	}
 
 	// 确保容器有宽度
 	const containerWidth = volumeSliderContainer.value.clientWidth
 	if (containerWidth === 0) {
-		console.warn('Volume slider container has no width')
+		debugPlayroom('音量滑块容器宽度为0')
 		return
 	}
 
@@ -164,7 +165,7 @@ function createVolumeDraggable() {
 		}
 	})
 
-	console.log('Volume draggable created successfully')
+	debugPlayroom('音量滑块拖拽创建成功')
 }
 
 function updateAudioVolume() {
@@ -187,7 +188,7 @@ function formatDetector() {
 
 function playNext() {
 	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
-		console.log("at the bottom, pause")
+		debugPlayroom('到达播放队列末尾，暂停')
 		playQueueStore.currentIndex = 0
 		playQueueStore.isPlaying = false
 	} else {
@@ -305,7 +306,7 @@ function makePlayQueueListDismiss() {
 }
 
 function getCurrentTrack() {
-	console.log(playQueueStore.queue)
+	debugPlayroom('获取当前播放轨道', playQueueStore.queue)
 	if (playQueueStore.queue.length === 0) {
 		return null
 	}
@@ -438,10 +439,10 @@ function setupPageFocusHandlers() {
 	handleVisibilityChange = () => {
 		if (document.hidden) {
 			// 页面失去焦点时，暂停所有动画
-			console.log('[Playroom] 页面失去焦点，暂停动画')
+			debugPlayroom('页面失去焦点，暂停动画')
 		} else {
 			// 页面重新获得焦点时，重新同步状态
-			console.log('[Playroom] 页面重新获得焦点，同步状态')
+			debugPlayroom('页面重新获得焦点，同步状态')
 			nextTick(() => {
 				resyncLyricsState()
 			})
@@ -449,7 +450,7 @@ function setupPageFocusHandlers() {
 	}
 
 	handlePageFocus = () => {
-		console.log('[Playroom] 窗口获得焦点，同步状态')
+		debugPlayroom('窗口获得焦点，同步状态')
 		nextTick(() => {
 			resyncLyricsState()
 		})
@@ -465,7 +466,7 @@ function resyncLyricsState() {
 	const currentTrack = getCurrentTrack()
 	if (!currentTrack) { return }
 
-	console.log('[Playroom] 重新同步歌词状态')
+	debugPlayroom('重新同步歌词状态')
 
 	// 重置动画状态
 	if (controllerRef.value) {
@@ -488,7 +489,7 @@ function resyncLyricsState() {
 	const shouldShowLyrics = preferences.presentLyrics && currentTrack.song.lyricUrl ? true : false
 
 	if (shouldShowLyrics !== presentLyrics.value) {
-		console.log(`[Playroom] 歌词状态不一致，重新设置: ${presentLyrics.value} -> ${shouldShowLyrics}`)
+		debugPlayroom(`歌词状态不一致，重新设置: ${presentLyrics.value} -> ${shouldShowLyrics}`)
 		
 		// 直接设置状态，不触发动画
 		presentLyrics.value = shouldShowLyrics

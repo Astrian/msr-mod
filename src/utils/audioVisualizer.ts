@@ -1,5 +1,6 @@
 // utils/audioVisualizer.ts - 平衡频谱版本
 import { ref, onUnmounted, Ref } from 'vue'
+import { debugVisualizer } from './debug'
 
 interface AudioVisualizerOptions {
   sensitivity?: number
@@ -27,7 +28,7 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
     minHeight = 0         // 最小高度百分比
   } = options
 
-  console.log('[AudioVisualizer] 初始化平衡频谱，选项:', options)
+  debugVisualizer('初始化平衡频谱', options)
 
   // 导出的竖杠高度值数组 (0-100)
   const barHeights: Ref<number[]> = ref(Array(barCount).fill(0))
@@ -46,7 +47,7 @@ export function audioVisualizer(options: AudioVisualizerOptions = {}) {
   // 调试日志
   function log(...args: any[]) {
     if (debug) {
-      console.log('[AudioVisualizer]', ...args)
+      debugVisualizer(...args)
     }
   }
 

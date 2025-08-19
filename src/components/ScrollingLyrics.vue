@@ -90,6 +90,7 @@ import { onMounted, ref, watch, nextTick, computed, onUnmounted } from 'vue'
 import axios from 'axios'
 import gsap from 'gsap'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
+import { debugLyrics } from '../utils/debug'
 
 // 类型定义
 interface LyricsLine {
@@ -367,7 +368,7 @@ function handleWheel(event: WheelEvent) {
 // 处理歌词行点击
 function handleLineClick(line: LyricsLine | GapLine, index: number) {
 	if (line.type === 'lyric') {
-		console.log('Jump to time:', line.time)
+		debugLyrics('跳转到时间点', line.time)
 		// 这里可以发出事件让父组件处理音频跳转
 		// emit('seek', line.time)
 	}
@@ -494,7 +495,7 @@ watch(() => playQueueStore.currentTime, (time) => {
 
 // 监听歌词源变化
 watch(() => props.lrcSrc, async (newSrc) => {
-	console.log('Loading new lyrics from:', newSrc)
+	debugLyrics('加载新歌词', newSrc)
 	// 重置状态
 	currentLineIndex.value = -1
 	lineRefs.value = []
@@ -517,7 +518,7 @@ watch(() => props.lrcSrc, async (newSrc) => {
 		try {
 			const response = await axios.get(newSrc)
 			parsedLyrics.value = parseLyrics(response.data)
-			console.log('Parsed lyrics:', parsedLyrics.value)
+			debugLyrics('歌词解析完成', parsedLyrics.value)
 
 			autoScroll.value = true
 			userScrolling.value = false
@@ -528,7 +529,7 @@ watch(() => props.lrcSrc, async (newSrc) => {
 			}
 
 		} catch (error) {
-			console.error('Failed to load lyrics:', error)
+			debugLyrics('歌词加载失败', error)
 			parsedLyrics.value = []
 		} finally {
 			loading.value = false
