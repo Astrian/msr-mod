@@ -8,10 +8,10 @@ type Song = {
   cid: string
   name: string
   albumCid?: string
-  sourceUrl?: string
-  lyricUrl?: string | null
   mvUrl?: string | null
   mvCoverUrl?: string | null
+	sourceUrl?: string | null
+	lyricUrl?: string | null
   artistes?: string[]
   artists?: string[]
 }
@@ -38,6 +38,8 @@ interface ApiResponse {
 interface QueueItem {
   song: Song
   album?: Album
+  sourceUrl?: string
+  lyricUrl?: string | null
 }
 
 interface LyricsLine {

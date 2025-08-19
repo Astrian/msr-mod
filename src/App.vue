@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import Player from './components/Player.vue'
+import MiniPlayer from './components/MiniPlayer.vue'
 import PreferencePanel from './components/PreferencePanel.vue'
 import { ref } from 'vue'
 
@@ -73,7 +73,7 @@ watch(() => presentPreferencePanel, (value) => {
 							<CorgIcon :size="4" />
 						</button>
 
-						<Player />
+						<MiniPlayer />
 					</div>
 				</div>
 			</div>

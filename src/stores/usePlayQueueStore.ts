@@ -1,217 +1,154 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { checkAndRefreshSongResource } from '../utils'
+import { ref, computed } from 'vue'
+import apis from '../apis'
 
 export const usePlayQueueStore = defineStore('queue', () => {
-	const list = ref<QueueItem[]>([])
-	const currentIndex = ref<number>(0)
-	const isPlaying = ref<boolean>(false)
+	// 内部状态
+	const queue = ref<QueueItem[]>([])
+	const isShuffle = ref<boolean>(false)
+	const loopingMode = ref<'single' | 'all' | 'off'>('off')
 	const queueReplaceLock = ref<boolean>(false)
-	const isBuffering = ref<boolean>(false)
-	const currentTime = ref<number>(0)
-	const duration = ref<number>(0)
-	const updatedCurrentTime = ref<number | null>(null)
-	const visualizer = ref<number[]>([0, 0, 0, 0, 0, 0])
-	const shuffleList = ref<number[]>([])
-	const playMode = ref<{
-		shuffle: boolean
-		repeat: 'off' | 'single' | 'all'
-	}>({
-		shuffle: false,
-		repeat: 'off',
+	const currentPlaying = ref<number>(0) // 当前播放指针，指针在 queueOrder 中寻址（无论是否开启了随机播放）
+	const queueOrder = ref<number[]>([]) // 播放队列顺序
+	
+	// 暴露给外部的响应式只读引用
+	const queueState = computed(() => 
+		// 按 queueOrder 的顺序排序输出队列
+		queueOrder.value.map(index => queue.value[index]).filter(Boolean)
+	)
+	const shuffleState = computed(() => isShuffle.value)
+	const loopModeState = computed(() => loopingMode.value)
+	
+	// 获取当前播放项
+	const currentTrack = computed(() => {
+		const actualIndex = queueOrder.value[currentPlaying.value]
+		return queue.value[actualIndex] || null
 	})
-	const shuffleCurrent = ref<boolean | undefined>(undefined)
-
-	// 预加载相关状态
-	const preloadedAudio = ref<Map<string, HTMLAudioElement>>(new Map())
-	const isPreloading = ref<boolean>(false)
-	const preloadProgress = ref<number>(0)
-
-	// 获取下一首歌的索引
-	const getNextIndex = computed(() => {
-		if (list.value.length === 0) return -1
-
-		if (playMode.value.repeat === 'single') {
-			return currentIndex.value
+	
+	/************
+		*	播放队列相关
+		***********/
+	// 使用新队列替换老队列
+	// 队列替换锁开启时启用确认，确认后重置该锁
+	async function replaceQueue(songs: Song[]) {
+		if (queueReplaceLock.value) {
+			if (!confirm("当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？")) { return }
+			// 重置队列替换锁
+			queueReplaceLock.value = false
 		}
 
-		if (playMode.value.shuffle && shuffleList.value.length > 0) {
-			// 当前在 shuffleList 中的位置
-			const currentShuffleIndex = currentIndex.value
-			if (currentShuffleIndex < shuffleList.value.length - 1) {
-				// 返回下一个位置对应的原始 list 索引
-				return shuffleList.value[currentShuffleIndex + 1]
-			} else if (playMode.value.repeat === 'all') {
-				// 返回第一个位置对应的原始 list 索引
-				return shuffleList.value[0]
-			}
-			return -1
-		}
+		let newQueue: QueueItem[] = []
 
-		if (currentIndex.value < list.value.length - 1) {
-			return currentIndex.value + 1
-		} else if (playMode.value.repeat === 'all') {
-			return 0
-		}
+		// 专辑信息缓存空间
+		let albums: { [key: string]: Album } = {}
 
-		return -1
-	})
-
-	// 预加载下一首歌
-	const preloadNext = async () => {
-		const nextIndex = getNextIndex.value
-		if (nextIndex === -1) {
-			return
-		}
-
-		// 获取下一首歌曲对象
-		// nextIndex 已经是原始 list 中的索引
-		const nextSong = list.value[nextIndex]
-
-		if (!nextSong || !nextSong.song) {
-			return
-		}
-
-		const songId = nextSong.song.cid
-
-		// 如果已经预加载过，跳过
-		if (preloadedAudio.value.has(songId)) {
-			return
-		}
-
-		// 检查是否有有效的音频源
-		if (!nextSong.song.sourceUrl) {
-			return
-		}
-
-		try {
-			isPreloading.value = true
-			preloadProgress.value = 0
-
-			// 在预加载前检查和刷新资源
-			console.log('[Store] 预加载前检查资源:', nextSong.song.name)
-			const updatedSong = await checkAndRefreshSongResource(
-				nextSong.song,
-				(updated) => {
-					// 更新播放队列中的歌曲信息
-					// nextIndex 已经是原始 list 中的索引
-					if (list.value[nextIndex]) {
-						list.value[nextIndex].song = updated
+		for (let i in songs) {		
+			// 写入新队列
+			newQueue[newQueue.length] = {
+				song: songs[i],
+				album: await (async () => {
+					if (albums[songs[i].albumCid ?? "0"]) return albums[songs[i].albumCid ?? "0"]
+					else {
+						const album = await apis.getAlbum(songs[i].albumCid ?? "0")
+						albums[songs[i].albumCid ?? "0"] = album
+						return album
 					}
-
-					// 如果歌曲在收藏夹中，也更新收藏夹
-					// 注意：这里不直接导入 favourites store 以避免循环依赖
-					// 改为触发一个事件或者在调用方处理
-					console.log('[Store] 预加载时需要更新收藏夹:', updated.name)
-				},
-			)
-
-			const audio = new Audio()
-			audio.preload = 'auto'
-			audio.crossOrigin = 'anonymous'
-
-			// 监听加载进度
-			audio.addEventListener('progress', () => {
-				if (audio.buffered.length > 0) {
-					const buffered = audio.buffered.end(0)
-					const total = audio.duration || 1
-					preloadProgress.value = (buffered / total) * 100
-				}
-			})
-
-			// 监听加载完成
-			audio.addEventListener('canplaythrough', () => {
-				preloadedAudio.value.set(songId, audio)
-				isPreloading.value = false
-				preloadProgress.value = 100
-				console.log('[Store] 预加载完成:', updatedSong.name)
-			})
-
-			// 监听加载错误
-			audio.addEventListener('error', (e) => {
-				console.error(`[Store] 预加载音频失败: ${updatedSong.name}`, e)
-				isPreloading.value = false
-				preloadProgress.value = 0
-			})
-
-			// 使用更新后的音频源
-			audio.src = updatedSong.sourceUrl!
-		} catch (error) {
-			console.error('[Store] 预加载过程出错:', error)
-			isPreloading.value = false
-		}
-	}
-
-	// 获取预加载的音频对象
-	const getPreloadedAudio = (songId: string): HTMLAudioElement | null => {
-		const audio = preloadedAudio.value.get(songId) || null
-		return audio
-	}
-
-	// 清理预加载的音频
-	const clearPreloadedAudio = (songId: string) => {
-		const audio = preloadedAudio.value.get(songId)
-		if (audio) {
-			audio.pause()
-			audio.src = ''
-			preloadedAudio.value.delete(songId)
-		}
-	}
-
-	// 清理所有预加载的音频
-	const clearAllPreloadedAudio = () => {
-		preloadedAudio.value.forEach((_audio, songId) => {
-			clearPreloadedAudio(songId)
-		})
-		preloadedAudio.value.clear()
-	}
-
-	// 限制预加载缓存大小（最多保留3首歌）
-	const limitPreloadCache = () => {
-		while (preloadedAudio.value.size > 3) {
-			const oldestKey = preloadedAudio.value.keys().next().value
-			if (oldestKey) {
-				clearPreloadedAudio(oldestKey)
-			} else {
-				break
+				})()
 			}
 		}
+
+		// 将新队列替换已有队列
+		queue.value = newQueue
+		
+		// 初始化播放顺序
+		queueOrder.value = Array.from({ length: newQueue.length }, (_, i) => i)
+		currentPlaying.value = 0
+		
+		// 关闭随机播放和循环（外部可在此方法执行完毕后再更新播放模式）
+		isShuffle.value = false
+		loopingMode.value = 'off'
 	}
 
-	// 调试函数：打印当前状态
-	const debugPreloadState = () => {
-		console.log('[Store] 预加载状态:', {
-			isPreloading: isPreloading.value,
-			progress: preloadProgress.value,
-			cacheSize: preloadedAudio.value.size,
-			cachedSongs: Array.from(preloadedAudio.value.keys()),
-			nextIndex: getNextIndex.value,
-		})
+	/************
+		* 播放模式相关
+		**********/
+	// 切换随机播放模式
+	const toggleShuffle = (turnTo?: boolean) => {
+		// 未指定随机状态时自动开关
+		const newShuffleState = turnTo ?? !isShuffle.value
+		
+		if (newShuffleState === isShuffle.value) return // 状态未改变
+		
+		/* if (newShuffleState) {
+			// 开启随机播放：保存当前顺序并打乱
+			const originalOrder = [...queueOrder.value]
+			const shuffled = [...queueOrder.value]
+			
+			// Fisher-Yates 洗牌算法
+			for (let i = shuffled.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+			}
+			
+			// 确保当前播放的歌曲位置不变（可选）
+			const currentSongIndex = queueOrder.value[currentPlaying.value]
+			const newCurrentPos = shuffled.indexOf(currentSongIndex)
+			if (newCurrentPos !== -1 && newCurrentPos !== currentPlaying.value) {
+				[shuffled[currentPlaying.value], shuffled[newCurrentPos]] = 
+					[shuffled[newCurrentPos], shuffled[currentPlaying.value]]
+			}
+			
+			// 保存原始顺序以便恢复
+			queue.value.forEach((_, index) => {
+				queue.value[index]._originalOrderIndex = originalOrder.indexOf(index)
+			})
+			
+			queueOrder.value = shuffled
+		} else {
+			// 关闭随机播放：恢复原始顺序
+			const restoredOrder = Array.from({ length: queue.value.length }, (_, i) => i)
+			
+			// 找到当前播放歌曲在原始顺序中的位置
+			const currentSongIndex = queueOrder.value[currentPlaying.value]
+			const newCurrentPos = restoredOrder.indexOf(currentSongIndex)
+			
+			queueOrder.value = restoredOrder
+			currentPlaying.value = newCurrentPos !== -1 ? newCurrentPos : 0
+		} */
+		
+		isShuffle.value = newShuffleState
+	}
+
+	// 切换循环播放模式
+	const toggleLoop = (mode?: 'single' | 'all' | 'off') => {
+		// 如果指定了循环模式
+		if (mode) return loopingMode.value = mode
+		
+		// 如果没有指定，那么按照「无 -> 列表循环 -> 单曲循环」的顺序轮换
+		switch (loopingMode.value) {
+		case 'off':
+			loopingMode.value = 'all'
+			break
+		case 'all':
+			loopingMode.value = 'single'
+			break
+		case 'single':
+			loopingMode.value = 'off'
+			break
+		}
 	}
 
 	return {
-		list,
-		currentIndex,
-		isPlaying,
-		queueReplaceLock,
-		isBuffering,
-		currentTime,
-		duration,
-		updatedCurrentTime,
-		visualizer,
-		shuffleList,
-		playMode,
-		shuffleCurrent,
-		// 预加载相关 - 确保所有函数都在返回对象中
-		preloadedAudio,
-		isPreloading,
-		preloadProgress,
-		getNextIndex,
-		preloadNext,
-		getPreloadedAudio,
-		clearPreloadedAudio,
-		clearAllPreloadedAudio,
-		limitPreloadCache,
-		debugPreloadState,
+		// 响应式状态（只读）
+		queue: queueState,
+		isShuffle: shuffleState,
+		loopMode: loopModeState,
+		currentTrack,
+		currentIndex: currentPlaying,
+		
+		// 修改方法
+		replaceQueue,
+		toggleShuffle,
+		toggleLoop
 	}
 })

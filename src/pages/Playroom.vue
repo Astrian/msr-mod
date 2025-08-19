@@ -176,12 +176,12 @@ function updateAudioVolume() {
 }
 
 function formatDetector() {
-	const format = playQueueStore.list[playQueueStore.currentIndex].song.sourceUrl?.split('.').pop()
+	/* const format = playQueueStore.list[playQueueStore.currentIndex].sourceUrl?.split('.').pop()
 	if (format === 'mp3') { return 'MP3' }
 	if (format === 'flac') { return 'FLAC' }
 	if (format === 'm4a') { return 'M4A' }
 	if (format === 'ape') { return 'APE' }
-	if (format === 'wav') { return 'WAV' }
+	if (format === 'wav') { return 'WAV' } */
 	return '未知格式'
 }
 
@@ -305,14 +305,11 @@ function makePlayQueueListDismiss() {
 }
 
 function getCurrentTrack() {
-	if (playQueueStore.list.length === 0) {
+	console.log(playQueueStore.queue)
+	if (playQueueStore.queue.length === 0) {
 		return null
 	}
-	if (playQueueStore.playMode.shuffle) {
-		return playQueueStore.list[playQueueStore.shuffleList[playQueueStore.currentIndex]]
-	} else {
-		return playQueueStore.list[playQueueStore.currentIndex]
-	}
+	return playQueueStore.currentTrack
 }
 
 function toggleMoreOptions() {
@@ -826,22 +823,22 @@ watch(() => playQueueStore.currentIndex, () => {
 				<div class="flex gap-2 mx-8 mb-4">
 					<button
 						class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center transition-all duration-200 hover:scale-105"
-						:class="playQueueStore.playMode.shuffle ? 'bg-[#ffffffaa] text-neutral-700' : 'text-white bg-neutral-800/80'"
+						:class="playQueueStore.isShuffle ? 'bg-[#ffffffaa] text-neutral-700' : 'text-white bg-neutral-800/80'"
 						@click="toggleShuffle">
 						<ShuffleIcon :size="4" />
 					</button>
 					<button
 						class="flex-1 h-9 border border-[#ffffff39] rounded-full text-center backdrop-blur-3xl flex justify-center items-center transition-all duration-200 hover:scale-105"
-						:class="playQueueStore.playMode.repeat === 'off' ? 'text-white bg-neutral-800/80' : 'bg-[#ffffffaa] text-neutral-700'"
+						:class="playQueueStore.loopMode === 'off' ? 'text-white bg-neutral-800/80' : 'bg-[#ffffffaa] text-neutral-700'"
 						@click="toggleRepeat">
-						<CycleTwoArrowsIcon :size="4" v-if="playQueueStore.playMode.repeat !== 'single'" />
+						<CycleTwoArrowsIcon :size="4" v-if="playQueueStore.loopMode !== 'single'" />
 						<CycleTwoArrowsWithNumOneIcon :size="4" v-else />
 					</button>
 				</div>
 
 				<hr class="border-[#ffffff39]" />
 
-				<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.playMode.shuffle">
+				<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.isShuffle">
 					<PlayQueueItem v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList"
 						:queueItem="playQueueStore.list[oriIndex]" :isCurrent="playQueueStore.currentIndex === shuffledIndex"
 						:key="playQueueStore.list[oriIndex].song.cid" :index="shuffledIndex" />

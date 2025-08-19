@@ -112,35 +112,19 @@ watch(() => props.albumCid, async () => {
 
 const playQueue = usePlayQueueStore()
 
-function playTheAlbum(from: number = 0) {
-	if (playQueue.queueReplaceLock) {
-		if (!confirm("当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？")) { return }
-		playQueue.queueReplaceLock = false
-	}
-
-	let newPlayQueue = []
-	for (const track of album.value?.songs ?? []) {
-		console.log(track)
-		newPlayQueue.push({
-			song: track,
-			album: album.value
-		})
-	}
-	playQueue.list = newPlayQueue
-	playQueue.currentIndex = from
-	playQueue.isPlaying = true
-	playQueue.isBuffering = true
+async function playTheAlbum(from: number = 0) {
+	await playQueue.replaceQueue(album.value?.songs ?? [])
 }
 
 function shuffle() {
-	playTheAlbum()
-	playQueue.shuffleCurrent = true
-	playQueue.playMode.shuffle = false
-	setTimeout(() => {
-		playQueue.playMode.shuffle = true
-		playQueue.isPlaying = true
-		playQueue.isBuffering = true
-	}, 100)
+//  playTheAlbum()
+// 	playQueue.shuffleCurrent = true
+// 	playQueue.playMode.shuffle = false
+// 	setTimeout(() => {
+// 		playQueue.playMode.shuffle = true
+// 		playQueue.isPlaying = true
+// 		playQueue.isBuffering = true
+// 	}, 100)
 }
 
 </script>
