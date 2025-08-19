@@ -20,7 +20,35 @@ watch(() => playQueue.queue, async () => {
 	resourcesUrl.value = newResourcesUrl
 })
 
-// 判断目前播放状态
+// 在播放曲目变动时，将元数据更新到浏览器和操作系统中
+watch(() => playQueue.currentTrack, async () => {
+	if (!playQueue.currentTrack) return
+	navigator.mediaSession.metadata = new MediaMetadata({
+		title: playQueue.currentTrack.song.name,
+		artist: artistsOrganize(playQueue.currentTrack.song.artists ?? []),
+		album: playQueue.currentTrack.album?.name,
+		artwork: [
+			{
+				src: playQueue.currentTrack.album?.coverUrl ?? '',
+				sizes: '500x500',
+				type: 'image/png',
+			},
+		],
+	})
+})
+
+// 优化音乐人字符串显示
+function artistsOrganize(list: string[]) {
+	if (list.length === 0) return '未知音乐人'
+
+	return list
+		.map((artist) => {
+			return artist
+		})
+		.join(' / ')
+}
+
+// 自动播放属性判断
 function isAutoPlay(cid: string) {
 	// 为了提前缓存播放队列中的歌曲，同时消除两首歌切换时的间隙，因此改用了新的方式来在网页上挂载音频
 	// 现在会将队列中每一首歌曲都挂载一个单独的 <audio> 并添加 preload="auto" 属性
