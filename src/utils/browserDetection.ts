@@ -9,18 +9,20 @@ import { debugUtils } from './debug'
  */
 export function isSafari(): boolean {
 	const ua = navigator.userAgent.toLowerCase()
-	
+
 	// 检测 Safari 浏览器（包括 iOS 和 macOS）
 	// Safari 的 User Agent 包含 'safari' 但不包含 'chrome' 或 'chromium'
-	const isSafariBrowser = ua.includes('safari') && 
-		!ua.includes('chrome') && 
+	const isSafariBrowser =
+		ua.includes('safari') &&
+		!ua.includes('chrome') &&
 		!ua.includes('chromium') &&
 		!ua.includes('android')
-	
+
 	// 额外检查：使用 Safari 特有的 API
-	const isSafariByFeature = 'safari' in window || 
+	const isSafariByFeature =
+		'safari' in window ||
 		/^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-	
+
 	return isSafariBrowser || isSafariByFeature
 }
 
@@ -29,7 +31,9 @@ export function isSafari(): boolean {
  * @returns {boolean} 如果是移动版 Safari 返回 true，否则返回 false
  */
 export function isMobileSafari(): boolean {
-	return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+	return (
+		/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+	)
 }
 
 /**
@@ -43,14 +47,16 @@ export function supportsWebAudioVisualization(): boolean {
 		debugUtils('Safari浏览器检测，音频可视化禁用')
 		return false
 	}
-	
+
 	// 检查基本的 Web Audio API 支持
-	const hasAudioContext = 'AudioContext' in window || 'webkitAudioContext' in window
-	const hasAnalyserNode = hasAudioContext && (
-		'AnalyserNode' in window || 
-		((window as any).AudioContext && 'createAnalyser' in (window as any).AudioContext.prototype)
-	)
-	
+	const hasAudioContext =
+		'AudioContext' in window || 'webkitAudioContext' in window
+	const hasAnalyserNode =
+		hasAudioContext &&
+		('AnalyserNode' in window ||
+			((window as any).AudioContext &&
+				'createAnalyser' in (window as any).AudioContext.prototype))
+
 	return hasAudioContext && hasAnalyserNode
 }
 
@@ -62,7 +68,7 @@ export function getBrowserInfo() {
 	const ua = navigator.userAgent
 	let browserName = 'Unknown'
 	let browserVersion = 'Unknown'
-	
+
 	if (isSafari()) {
 		browserName = 'Safari'
 		const versionMatch = ua.match(/Version\/(\d+\.\d+)/)
@@ -88,12 +94,12 @@ export function getBrowserInfo() {
 			browserVersion = versionMatch[1]
 		}
 	}
-	
+
 	return {
 		name: browserName,
 		version: browserVersion,
 		isSafari: isSafari(),
 		isMobileSafari: isMobileSafari(),
-		supportsAudioVisualization: supportsWebAudioVisualization()
+		supportsAudioVisualization: supportsWebAudioVisualization(),
 	}
 }

@@ -137,7 +137,7 @@ const props = defineProps<{
 // 滚动指示器相关计算
 const scrollIndicatorHeight = computed(() => {
 	if (parsedLyrics.value.length === 0) return 0
-	return Math.max(10, 100 / parsedLyrics.value.length * 5) // 显示大约5行的比例
+	return Math.max(10, (100 / parsedLyrics.value.length) * 5) // 显示大约5行的比例
 })
 
 const scrollIndicatorPosition = computed(() => {
@@ -145,7 +145,11 @@ const scrollIndicatorPosition = computed(() => {
 	const progress = currentLineIndex.value / (parsedLyrics.value.length - 1)
 	const containerHeight = lyricsContainer.value?.clientHeight || 400
 	const indicatorTrackHeight = containerHeight / 2 // 指示器轨道高度
-	return progress * (indicatorTrackHeight - (scrollIndicatorHeight.value / 100 * indicatorTrackHeight))
+	return (
+		progress *
+		(indicatorTrackHeight -
+			(scrollIndicatorHeight.value / 100) * indicatorTrackHeight)
+	)
 })
 
 // 设置行引用
@@ -156,15 +160,19 @@ function setLineRef(el: HTMLElement | null, index: number) {
 }
 
 // 歌词解析函数
-function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine | GapLine)[] {
-	if (!lrcText) return [
-		{
-			type: 'lyric',
-			time: 0,
-			text: '',
-			originalTime: '[00:00]'
-		}
-	]
+function parseLyrics(
+	lrcText: string,
+	minGapDuration: number = 5,
+): (LyricsLine | GapLine)[] {
+	if (!lrcText)
+		return [
+			{
+				type: 'lyric',
+				time: 0,
+				text: '',
+				originalTime: '[00:00]',
+			},
+		]
 
 	const lines = lrcText.split('\n')
 	const tempParsedLines: (LyricsLine | GapLine)[] = []
@@ -189,13 +197,13 @@ function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine |
 					type: 'lyric',
 					time: totalSeconds,
 					text: text,
-					originalTime: match[0]
+					originalTime: match[0],
 				})
 			} else {
 				tempParsedLines.push({
 					type: 'gap',
 					time: totalSeconds,
-					originalTime: match[0]
+					originalTime: match[0],
 				})
 			}
 		}
@@ -204,14 +212,18 @@ function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine |
 	tempParsedLines.sort((a, b) => a.time - b.time)
 
 	const finalLines: (LyricsLine | GapLine)[] = []
-	const lyricLines = tempParsedLines.filter(line => line.type === 'lyric') as LyricsLine[]
-	const gapLines = tempParsedLines.filter(line => line.type === 'gap') as GapLine[]
+	const lyricLines = tempParsedLines.filter(
+		(line) => line.type === 'lyric',
+	) as LyricsLine[]
+	const gapLines = tempParsedLines.filter(
+		(line) => line.type === 'gap',
+	) as GapLine[]
 
 	if (lyricLines.length === 0) return tempParsedLines
 
 	for (let i = 0; i < gapLines.length; i++) {
 		const gapLine = gapLines[i]
-		const nextLyricLine = lyricLines.find(lyric => lyric.time > gapLine.time)
+		const nextLyricLine = lyricLines.find((lyric) => lyric.time > gapLine.time)
 
 		if (nextLyricLine) {
 			const duration = nextLyricLine.time - gapLine.time
@@ -230,7 +242,7 @@ function parseLyrics(lrcText: string, minGapDuration: number = 5): (LyricsLine |
 		type: 'lyric',
 		time: 0,
 		text: '',
-		originalTime: '[00:00]'
+		originalTime: '[00:00]',
 	})
 	return sortedLines
 }
@@ -253,7 +265,12 @@ function findCurrentLineIndex(time: number): number {
 
 // 使用 GSAP 滚动到指定行
 function scrollToLine(lineIndex: number, smooth = true) {
-	if (!lyricsContainer.value || !lyricsWrapper.value || !lineRefs.value[lineIndex]) return
+	if (
+		!lyricsContainer.value ||
+		!lyricsWrapper.value ||
+		!lineRefs.value[lineIndex]
+	)
+		return
 
 	const container = lyricsContainer.value
 	const wrapper = lyricsWrapper.value
@@ -277,10 +294,10 @@ function scrollToLine(lineIndex: number, smooth = true) {
 		scrollTween = gsap.to(wrapper, {
 			y: targetY,
 			duration: 0.8,
-			ease: "power2.out",
+			ease: 'power2.out',
 			onComplete: () => {
 				scrollTween = null
-			}
+			},
 		})
 	} else {
 		gsap.set(wrapper, { y: targetY })
@@ -305,7 +322,7 @@ function highlightCurrentLine(lineIndex: number) {
 				scale: 1,
 				opacity: index < lineIndex ? 0.6 : 0.4,
 				duration: 0.3,
-				ease: "power2.out"
+				ease: 'power2.out',
 			})
 		}
 	})
@@ -315,10 +332,10 @@ function highlightCurrentLine(lineIndex: number) {
 		scale: 1.05,
 		opacity: 1,
 		duration: 0.2,
-		ease: "back.out(1.7)",
+		ease: 'back.out(1.7)',
 		onComplete: () => {
 			highlightTween = null
-		}
+		},
 	})
 }
 
@@ -335,7 +352,7 @@ function handleWheel(event: WheelEvent) {
 		scrollTween.kill()
 	}
 
-	const currentY = gsap.getProperty(lyricsWrapper.value, "y") as number
+	const currentY = gsap.getProperty(lyricsWrapper.value, 'y') as number
 	const newY = currentY - event.deltaY * 0.5
 
 	// 修正滚动范围计算
@@ -348,7 +365,7 @@ function handleWheel(event: WheelEvent) {
 	gsap.to(lyricsWrapper.value, {
 		y: limitedY,
 		duration: 0.1,
-		ease: "power2.out"
+		ease: 'power2.out',
 	})
 
 	if (userScrollTimeout) {
@@ -378,15 +395,16 @@ function handleLineClick(line: LyricsLine | GapLine, index: number) {
 
 	// 添加点击反馈动画
 	if (lineRefs.value[index]) {
-		gsap.fromTo(lineRefs.value[index],
+		gsap.fromTo(
+			lineRefs.value[index],
 			{ scale: 1 },
 			{
 				scale: 1.1,
 				duration: 0.1,
 				yoyo: true,
 				repeat: 1,
-				ease: "power2.inOut"
-			}
+				ease: 'power2.inOut',
+			},
 		)
 	}
 }
@@ -398,15 +416,16 @@ function toggleAutoScroll() {
 
 	// 按钮点击动画
 	if (controlPanel.value) {
-		gsap.fromTo(controlPanel.value.children[0],
+		gsap.fromTo(
+			controlPanel.value.children[0],
 			{ scale: 1 },
 			{
 				scale: 0.95,
 				duration: 0.1,
 				yoyo: true,
 				repeat: 1,
-				ease: "power2.inOut"
-			}
+				ease: 'power2.inOut',
+			},
 		)
 	}
 
@@ -429,7 +448,7 @@ function resetScroll() {
 	gsap.to(lyricsWrapper.value, {
 		y: 0,
 		duration: 0.3,
-		ease: "power2.out"
+		ease: 'power2.out',
 	})
 
 	autoScroll.value = true
@@ -437,15 +456,16 @@ function resetScroll() {
 
 	// 按钮点击动画
 	if (controlPanel.value) {
-		gsap.fromTo(controlPanel.value.children[1],
+		gsap.fromTo(
+			controlPanel.value.children[1],
 			{ scale: 1 },
 			{
 				scale: 0.95,
 				duration: 0.1,
 				yoyo: true,
 				repeat: 1,
-				ease: "power2.inOut"
-			}
+				ease: 'power2.inOut',
+			},
 		)
 	}
 
@@ -471,79 +491,87 @@ function getGapDotOpacities(line: GapLine) {
 	// 每个圆点的阈值
 	const thresholds = [1 / 4, 2 / 4, 3 / 4]
 	// 透明度从 0.3 到 1
-	return thresholds.map(t => progress >= t ? 1 : progress >= t - 1 / 3 ? 0.6 : 0.3)
+	return thresholds.map((t) =>
+		progress >= t ? 1 : progress >= t - 1 / 3 ? 0.6 : 0.3,
+	)
 }
 
 // 监听播放时间变化
-watch(() => playQueueStore.currentTime, (time) => {
-	const newIndex = findCurrentLineIndex(time)
+watch(
+	() => playQueueStore.currentTime,
+	(time) => {
+		const newIndex = findCurrentLineIndex(time)
 
-	if (newIndex !== currentLineIndex.value && newIndex >= 0) {
-		currentLineIndex.value = newIndex
+		if (newIndex !== currentLineIndex.value && newIndex >= 0) {
+			currentLineIndex.value = newIndex
 
-		// 高亮动画
-		highlightCurrentLine(newIndex)
+			// 高亮动画
+			highlightCurrentLine(newIndex)
 
-		// 自动滚动
-		if (autoScroll.value && !userScrolling.value) {
-			nextTick(() => {
-				scrollToLine(newIndex, true)
-			})
+			// 自动滚动
+			if (autoScroll.value && !userScrolling.value) {
+				nextTick(() => {
+					scrollToLine(newIndex, true)
+				})
+			}
 		}
-	}
-})
+	},
+)
 
 // 监听歌词源变化
-watch(() => props.lrcSrc, async (newSrc) => {
-	debugLyrics('加载新歌词', newSrc)
-	// 重置状态
-	currentLineIndex.value = -1
-	lineRefs.value = []
+watch(
+	() => props.lrcSrc,
+	async (newSrc) => {
+		debugLyrics('加载新歌词', newSrc)
+		// 重置状态
+		currentLineIndex.value = -1
+		lineRefs.value = []
 
-	// 停止所有动画
-	if (scrollTween) scrollTween.kill()
-	if (highlightTween) highlightTween.kill()
+		// 停止所有动画
+		if (scrollTween) scrollTween.kill()
+		if (highlightTween) highlightTween.kill()
 
-	if (newSrc) {
-		loading.value = true
+		if (newSrc) {
+			loading.value = true
 
-		// 加载动画
-		if (loadingIndicator.value) {
-			gsap.fromTo(loadingIndicator.value,
-				{ opacity: 0, scale: 0.8 },
-				{ opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.7)" }
-			)
-		}
+			// 加载动画
+			if (loadingIndicator.value) {
+				gsap.fromTo(
+					loadingIndicator.value,
+					{ opacity: 0, scale: 0.8 },
+					{ opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.7)' },
+				)
+			}
 
-		try {
-			const response = await axios.get(newSrc)
-			parsedLyrics.value = parseLyrics(response.data)
-			debugLyrics('歌词解析完成', parsedLyrics.value)
+			try {
+				const response = await axios.get(newSrc)
+				parsedLyrics.value = parseLyrics(response.data)
+				debugLyrics('歌词解析完成', parsedLyrics.value)
 
-			autoScroll.value = true
-			userScrolling.value = false
+				autoScroll.value = true
+				userScrolling.value = false
+
+				// 重置滚动位置
+				if (lyricsWrapper.value) {
+					gsap.set(lyricsWrapper.value, { y: 0 })
+				}
+			} catch (error) {
+				debugLyrics('歌词加载失败', error)
+				parsedLyrics.value = []
+			} finally {
+				loading.value = false
+			}
+		} else {
+			parsedLyrics.value = []
 
 			// 重置滚动位置
 			if (lyricsWrapper.value) {
 				gsap.set(lyricsWrapper.value, { y: 0 })
 			}
-
-		} catch (error) {
-			debugLyrics('歌词加载失败', error)
-			parsedLyrics.value = []
-		} finally {
-			loading.value = false
 		}
-	} else {
-		parsedLyrics.value = []
-
-		// 重置滚动位置
-		if (lyricsWrapper.value) {
-			gsap.set(lyricsWrapper.value, { y: 0 })
-		}
-	}
-}, { immediate: true })
-
+	},
+	{ immediate: true },
+)
 
 // 页面焦点处理函数变量声明
 let handleVisibilityChange: (() => void) | null = null
@@ -559,10 +587,14 @@ function setupPageFocusHandlers() {
 			// 页面重新获得焦点时恢复并重新同步
 			if (scrollTween && scrollTween.paused()) scrollTween.resume()
 			if (highlightTween && highlightTween.paused()) highlightTween.resume()
-			
+
 			// 重新同步歌词位置
 			nextTick(() => {
-				if (currentLineIndex.value >= 0 && autoScroll.value && !userScrolling.value) {
+				if (
+					currentLineIndex.value >= 0 &&
+					autoScroll.value &&
+					!userScrolling.value
+				) {
 					scrollToLine(currentLineIndex.value, false) // 不使用动画，直接定位
 				}
 			})
@@ -579,9 +611,10 @@ onMounted(() => {
 
 	// 控制面板入场动画
 	if (controlPanel.value) {
-		gsap.fromTo(controlPanel.value,
+		gsap.fromTo(
+			controlPanel.value,
 			{ opacity: 0, x: 20 },
-			{ opacity: 0, x: 0, duration: 0.2, ease: "power2.out", delay: 0.2 }
+			{ opacity: 0, x: 0, duration: 0.2, ease: 'power2.out', delay: 0.2 },
 		)
 	}
 
@@ -589,15 +622,16 @@ onMounted(() => {
 	nextTick(() => {
 		lineRefs.value.forEach((el, index) => {
 			if (el) {
-				gsap.fromTo(el,
+				gsap.fromTo(
+					el,
 					{ opacity: 0, y: 30 },
 					{
 						opacity: 1,
 						y: 0,
 						duration: 0.2,
-						ease: "power2.out",
-						delay: index * 0.1
-					}
+						ease: 'power2.out',
+						delay: index * 0.1,
+					},
 				)
 			}
 		})
@@ -609,7 +643,7 @@ onUnmounted(() => {
 	if (scrollTween) scrollTween.kill()
 	if (highlightTween) highlightTween.kill()
 	if (userScrollTimeout) clearTimeout(userScrollTimeout)
-	
+
 	// 清理页面焦点事件监听器
 	if (handleVisibilityChange) {
 		document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -621,7 +655,10 @@ defineExpose({
 	scrollToLine,
 	toggleAutoScroll,
 	resetScroll,
-	getCurrentLine: () => currentLineIndex.value >= 0 ? parsedLyrics.value[currentLineIndex.value] : null
+	getCurrentLine: () =>
+		currentLineIndex.value >= 0
+			? parsedLyrics.value[currentLineIndex.value]
+			: null,
 })
 </script>
 

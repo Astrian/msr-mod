@@ -17,10 +17,12 @@ const presentPreferencePanel = ref(false)
 const route = useRoute()
 const router = useRouter()
 
-watch(() => presentPreferencePanel, (value) => {
-	debug('偏好设置面板显示状态', value)
-})
-
+watch(
+	() => presentPreferencePanel,
+	(value) => {
+		debug('偏好设置面板显示状态', value)
+	},
+)
 </script>
 
 <template>

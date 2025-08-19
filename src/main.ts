@@ -12,18 +12,17 @@ import Playroom from './pages/Playroom.vue'
 import Library from './pages/Library.vue'
 
 const routes = [
-  { path: '/', component: HomePage },
-  { path: '/albums/:albumId', component: AlbumDetailView },
-  { path: '/playroom', component: Playroom },
-  { path: '/library', component: Library }
+	{ path: '/', component: HomePage },
+	{ path: '/albums/:albumId', component: AlbumDetailView },
+	{ path: '/playroom', component: Playroom },
+	{ path: '/library', component: Library },
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes
+	history: createWebHashHistory(),
+	routes,
 })
 
 const pinia = createPinia()
 
 createApp(App).use(router).use(pinia).use(ToastPlugin).mount('#app')
-

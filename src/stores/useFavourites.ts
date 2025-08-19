@@ -1,5 +1,5 @@
-import { defineStore } from "pinia"
-import { ref, watch, computed } from "vue"
+import { defineStore } from 'pinia'
+import { ref, watch, computed } from 'vue'
 import { debugStore } from '../utils/debug'
 
 // 声明全局类型
@@ -22,7 +22,11 @@ export const useFavourites = defineStore('favourites', () => {
 	const detectAvailableAPIs = () => {
 		// 检查原生 chrome API
 		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+			if (
+				typeof chrome !== 'undefined' &&
+				chrome.storage &&
+				chrome.storage.local
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -32,7 +36,11 @@ export const useFavourites = defineStore('favourites', () => {
 
 		// 检查 window.chrome
 		try {
-			if (window.chrome && window.chrome.storage && window.chrome.storage.local) {
+			if (
+				window.chrome &&
+				window.chrome.storage &&
+				window.chrome.storage.local
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -132,50 +140,62 @@ export const useFavourites = defineStore('favourites', () => {
 	const normalizeFavourites = (data: any[]): QueueItem[] => {
 		if (!Array.isArray(data)) return []
 
-		return data.map(item => {
-			if (!item || !item.song) return null
+		return data
+			.map((item) => {
+				if (!item || !item.song) return null
 
-			// 规范化 Song 对象
-			const song: Song = {
-				cid: item.song.cid || '',
-				name: item.song.name || '',
-				albumCid: item.song.albumCid,
-				sourceUrl: item.song.sourceUrl,
-				lyricUrl: item.song.lyricUrl,
-				mvUrl: item.song.mvUrl,
-				mvCoverUrl: item.song.mvCoverUrl,
-				// 确保 artistes 和 artists 是数组
-				artistes: Array.isArray(item.song.artistes) ? item.song.artistes :
-					typeof item.song.artistes === 'object' ? Object.values(item.song.artistes) :
-						[],
-				artists: Array.isArray(item.song.artists) ? item.song.artists :
-					typeof item.song.artists === 'object' ? Object.values(item.song.artists) :
-						[]
-			}
+				// 规范化 Song 对象
+				const song: Song = {
+					cid: item.song.cid || '',
+					name: item.song.name || '',
+					albumCid: item.song.albumCid,
+					sourceUrl: item.song.sourceUrl,
+					lyricUrl: item.song.lyricUrl,
+					mvUrl: item.song.mvUrl,
+					mvCoverUrl: item.song.mvCoverUrl,
+					// 确保 artistes 和 artists 是数组
+					artistes: Array.isArray(item.song.artistes)
+						? item.song.artistes
+						: typeof item.song.artistes === 'object'
+							? Object.values(item.song.artistes)
+							: [],
+					artists: Array.isArray(item.song.artists)
+						? item.song.artists
+						: typeof item.song.artists === 'object'
+							? Object.values(item.song.artists)
+							: [],
+				}
 
-			// 规范化 Album 对象（如果存在）
-			const album = item.album ? {
-				cid: item.album.cid || '',
-				name: item.album.name || '',
-				intro: item.album.intro,
-				belong: item.album.belong,
-				coverUrl: item.album.coverUrl || '',
-				coverDeUrl: item.album.coverDeUrl,
-				artistes: Array.isArray(item.album.artistes) ? item.album.artistes :
-					typeof item.album.artistes === 'object' ? Object.values(item.album.artistes) :
-						[],
-				songs: item.album.songs
-			} : undefined
+				// 规范化 Album 对象（如果存在）
+				const album = item.album
+					? {
+							cid: item.album.cid || '',
+							name: item.album.name || '',
+							intro: item.album.intro,
+							belong: item.album.belong,
+							coverUrl: item.album.coverUrl || '',
+							coverDeUrl: item.album.coverDeUrl,
+							artistes: Array.isArray(item.album.artistes)
+								? item.album.artistes
+								: typeof item.album.artistes === 'object'
+									? Object.values(item.album.artistes)
+									: [],
+							songs: item.album.songs,
+						}
+					: undefined
 
-			return { song, album }
-		}).filter(Boolean) as QueueItem[]
+				return { song, album }
+			})
+			.filter(Boolean) as QueueItem[]
 	}
 
 	// 获取收藏列表
 	const getFavourites = async () => {
 		const result = await getStoredValue('favourites', defaultFavourites)
 		// 确保返回的是数组并进行数据规范化
-		const normalizedResult = Array.isArray(result) ? normalizeFavourites(result) : defaultFavourites
+		const normalizedResult = Array.isArray(result)
+			? normalizeFavourites(result)
+			: defaultFavourites
 		return normalizedResult
 	}
 
@@ -188,7 +208,7 @@ export const useFavourites = defineStore('favourites', () => {
 
 	// 检查歌曲是否已收藏
 	const isFavourite = (songCid: string): boolean => {
-		return favourites.value.some(item => item.song.cid === songCid)
+		return favourites.value.some((item) => item.song.cid === songCid)
 	}
 
 	// 添加到收藏
@@ -209,7 +229,9 @@ export const useFavourites = defineStore('favourites', () => {
 
 	// 从收藏中移除
 	const removeFromFavourites = async (songCid: string) => {
-		const index = favourites.value.findIndex(item => item.song.cid === songCid)
+		const index = favourites.value.findIndex(
+			(item) => item.song.cid === songCid,
+		)
 		if (index !== -1) {
 			const removedItem = favourites.value.splice(index, 1)[0]
 			if (isLoaded.value) {
@@ -266,29 +288,38 @@ export const useFavourites = defineStore('favourites', () => {
 
 	// 监听变化并保存（防抖处理）
 	let saveTimeout: NodeJS.Timeout | null = null
-	watch(favourites, async () => {
-		if (isLoaded.value) {
-			// 清除之前的定时器
-			if (saveTimeout) {
-				clearTimeout(saveTimeout)
-			}
-			// 设置新的定时器，防抖保存
-			saveTimeout = setTimeout(async () => {
-				try {
-					await saveFavourites()
-				} catch (error) {
-					// Silent fail
+	watch(
+		favourites,
+		async () => {
+			if (isLoaded.value) {
+				// 清除之前的定时器
+				if (saveTimeout) {
+					clearTimeout(saveTimeout)
 				}
-			}, 300)
-		}
-	}, { deep: true })
+				// 设置新的定时器，防抖保存
+				saveTimeout = setTimeout(async () => {
+					try {
+						await saveFavourites()
+					} catch (error) {
+						// Silent fail
+					}
+				}, 300)
+			}
+		},
+		{ deep: true },
+	)
 
 	// 更新收藏列表中的歌曲信息
 	const updateSongInFavourites = async (songCid: string, updatedSong: Song) => {
-		const index = favourites.value.findIndex(item => item.song.cid === songCid)
+		const index = favourites.value.findIndex(
+			(item) => item.song.cid === songCid,
+		)
 		if (index !== -1) {
 			// 更新歌曲信息，保持其他属性不变
-			favourites.value[index].song = { ...favourites.value[index].song, ...updatedSong }
+			favourites.value[index].song = {
+				...favourites.value[index].song,
+				...updatedSong,
+			}
 			if (isLoaded.value) {
 				try {
 					await saveFavourites()
@@ -318,7 +349,6 @@ export const useFavourites = defineStore('favourites', () => {
 		clearFavourites,
 		getStoredValue,
 		setStoredValue,
-		updateSongInFavourites
+		updateSongInFavourites,
 	}
 })
-

@@ -2,7 +2,7 @@
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { artistsOrganize } from '../utils'
 import gsap from 'gsap'
-import { Draggable } from "gsap/Draggable"
+import { Draggable } from 'gsap/Draggable'
 import { onMounted, onUnmounted, nextTick } from 'vue'
 import { useTemplateRef } from 'vue'
 import { ref, watch } from 'vue'
@@ -69,7 +69,7 @@ onMounted(async () => {
 			const containerWidth = progressBarContainer.value?.clientWidth || 0
 			const newTime = (thumbPosition / containerWidth) * playQueueStore.duration
 			playQueueStore.updatedCurrentTime = newTime
-		}
+		},
 	})
 
 	// 等待DOM完全渲染后再初始化拖拽
@@ -91,17 +91,24 @@ onMounted(async () => {
 
 function timeFormatter(time: number) {
 	const timeInSeconds = Math.floor(time)
-	if (timeInSeconds < 0) { return '-:--' }
+	if (timeInSeconds < 0) {
+		return '-:--'
+	}
 	const minutes = Math.floor(timeInSeconds / 60)
 	const seconds = Math.floor(timeInSeconds % 60)
-	if (Number.isNaN(minutes) || Number.isNaN(seconds)) { return '-:--' }
+	if (Number.isNaN(minutes) || Number.isNaN(seconds)) {
+		return '-:--'
+	}
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
 // 监听播放进度，更新进度条
-watch(() => playQueueStore.currentTime, () => {
-	thumbUpdate()
-})
+watch(
+	() => playQueueStore.currentTime,
+	() => {
+		thumbUpdate()
+	},
+)
 
 function thumbUpdate() {
 	const progress = playQueueStore.currentTime / playQueueStore.duration
@@ -153,7 +160,10 @@ function createVolumeDraggable() {
 			const containerWidth = volumeSliderContainer.value?.clientWidth || 0
 			const thumbWidth = volumeSliderThumb.value?.clientWidth || 0
 			// 确保音量值在0-1之间
-			const newVolume = Math.max(0, Math.min(1, thumbPosition / (containerWidth - thumbWidth)))
+			const newVolume = Math.max(
+				0,
+				Math.min(1, thumbPosition / (containerWidth - thumbWidth)),
+			)
 			volume.value = newVolume
 			updateAudioVolume()
 			// 保存音量到localStorage
@@ -162,7 +172,7 @@ function createVolumeDraggable() {
 		onDragEnd: () => {
 			// 拖拽结束时也保存一次
 			localStorage.setItem('audioVolume', volume.value.toString())
-		}
+		},
 	})
 
 	debugPlayroom('音量滑块拖拽创建成功')
@@ -208,19 +218,25 @@ function playPrevious() {
 
 function setupEntranceAnimations() {
 	if (controllerRef.value) {
-		gsap.fromTo(controllerRef.value.children,
+		gsap.fromTo(
+			controllerRef.value.children,
 			{ opacity: 0, y: 30, scale: 0.95 },
 			{
-				opacity: 1, y: 0, scale: 1,
-				duration: 0.6, ease: "power2.out", stagger: 0.1
-			}
+				opacity: 1,
+				y: 0,
+				scale: 1,
+				duration: 0.6,
+				ease: 'power2.out',
+				stagger: 0.1,
+			},
 		)
 	}
 
 	if (lyricsSection.value) {
-		gsap.fromTo(lyricsSection.value,
+		gsap.fromTo(
+			lyricsSection.value,
 			{ opacity: 0, x: 50 },
-			{ opacity: 1, x: 0, duration: 0.8, ease: "power2.out", delay: 0.3 }
+			{ opacity: 1, x: 0, duration: 0.8, ease: 'power2.out', delay: 0.3 },
 		)
 	}
 }
@@ -228,11 +244,14 @@ function setupEntranceAnimations() {
 function handlePlayPause() {
 	if (playButton.value) {
 		gsap.to(playButton.value, {
-			scale: 0.9, duration: 0.1, yoyo: true, repeat: 1,
-			ease: "power2.inOut",
+			scale: 0.9,
+			duration: 0.1,
+			yoyo: true,
+			repeat: 1,
+			ease: 'power2.inOut',
 			onComplete: () => {
 				playQueueStore.isPlaying = !playQueueStore.isPlaying
-			}
+			},
 		})
 	} else {
 		playQueueStore.isPlaying = !playQueueStore.isPlaying
@@ -246,9 +265,15 @@ function toggleShuffle() {
 
 function toggleRepeat() {
 	switch (playQueueStore.playMode.repeat) {
-		case 'off': playQueueStore.playMode.repeat = 'all'; break
-		case 'all': playQueueStore.playMode.repeat = 'single'; break
-		case 'single': playQueueStore.playMode.repeat = 'off'; break
+		case 'off':
+			playQueueStore.playMode.repeat = 'all'
+			break
+		case 'all':
+			playQueueStore.playMode.repeat = 'single'
+			break
+		case 'single':
+			playQueueStore.playMode.repeat = 'off'
+			break
 	}
 }
 
@@ -260,15 +285,26 @@ function makePlayQueueListPresent() {
 
 		const tl = gsap.timeline()
 		tl.to(playQueueDialogContainer.value, {
-			backgroundColor: '#17171780', duration: 0.3, ease: 'power2.out'
-		}).to(playQueueDialog.value, {
-			x: 0, duration: 0.4, ease: 'power3.out'
-		}, '<0.1')
+			backgroundColor: '#17171780',
+			duration: 0.3,
+			ease: 'power2.out',
+		}).to(
+			playQueueDialog.value,
+			{
+				x: 0,
+				duration: 0.4,
+				ease: 'power3.out',
+			},
+			'<0.1',
+		)
 
 		if (playQueueDialog.value.children.length > 0) {
-			tl.fromTo(playQueueDialog.value.children,
+			tl.fromTo(
+				playQueueDialog.value.children,
 				{ opacity: 0, x: -20 },
-				{ opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05 }, '<0.2')
+				{ opacity: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05 },
+				'<0.2',
+			)
 		}
 	})
 }
@@ -286,23 +322,40 @@ function makePlayQueueListDismiss() {
 				gsap.set(playQueueDialog.value, { x: -384 })
 			}
 			if (playQueueDialogContainer.value) {
-				gsap.set(playQueueDialogContainer.value, { backgroundColor: 'transparent' })
+				gsap.set(playQueueDialogContainer.value, {
+					backgroundColor: 'transparent',
+				})
 			}
-		}
+		},
 	})
 
 	if (playQueueDialog.value.children.length > 0) {
 		tl.to(playQueueDialog.value.children, {
-			opacity: 0, x: -20, duration: 0.2, ease: 'power2.in', stagger: 0.03
+			opacity: 0,
+			x: -20,
+			duration: 0.2,
+			ease: 'power2.in',
+			stagger: 0.03,
 		})
 	}
 
-	tl.to(playQueueDialog.value, {
-		x: -384, duration: 0.3, ease: 'power2.in'
-	}, playQueueDialog.value.children.length > 0 ? '<0.1' : '0')
-		.to(playQueueDialogContainer.value, {
-			backgroundColor: 'transparent', duration: 0.2, ease: 'power2.in'
-		}, '<')
+	tl.to(
+		playQueueDialog.value,
+		{
+			x: -384,
+			duration: 0.3,
+			ease: 'power2.in',
+		},
+		playQueueDialog.value.children.length > 0 ? '<0.1' : '0',
+	).to(
+		playQueueDialogContainer.value,
+		{
+			backgroundColor: 'transparent',
+			duration: 0.2,
+			ease: 'power2.in',
+		},
+		'<',
+	)
 }
 
 function getCurrentTrack() {
@@ -319,15 +372,23 @@ function toggleMoreOptions() {
 		nextTick(() => {
 			if (moreOptionsDialog.value) {
 				const tl = gsap.timeline()
-				tl.fromTo(moreOptionsDialog.value,
+				tl.fromTo(
+					moreOptionsDialog.value,
 					{ opacity: 0, scale: 0.9, y: 10 },
-					{ opacity: 1, scale: 1, y: 0, duration: 0.2, ease: "power2.out" }
+					{ opacity: 1, scale: 1, y: 0, duration: 0.2, ease: 'power2.out' },
 				)
 				if (moreOptionsDialog.value.children[0]?.children) {
-					tl.fromTo(moreOptionsDialog.value.children[0].children,
+					tl.fromTo(
+						moreOptionsDialog.value.children[0].children,
 						{ opacity: 0, x: -10 },
-						{ opacity: 1, x: 0, duration: 0.15, ease: "power2.out", stagger: 0.05 },
-						"<0.1"
+						{
+							opacity: 1,
+							x: 0,
+							duration: 0.15,
+							ease: 'power2.out',
+							stagger: 0.05,
+						},
+						'<0.1',
 					)
 				}
 			}
@@ -337,16 +398,21 @@ function toggleMoreOptions() {
 			const tl = gsap.timeline({
 				onComplete: () => {
 					showMoreOptions.value = false
-				}
+				},
 			})
 			if (moreOptionsDialog.value.children[0]?.children) {
-				tl.to(moreOptionsDialog.value.children[0].children,
-					{ opacity: 0, x: -10, duration: 0.1, ease: "power2.in", stagger: 0.02 }
-				)
+				tl.to(moreOptionsDialog.value.children[0].children, {
+					opacity: 0,
+					x: -10,
+					duration: 0.1,
+					ease: 'power2.in',
+					stagger: 0.02,
+				})
 			}
-			tl.to(moreOptionsDialog.value,
-				{ opacity: 0, scale: 0.9, y: 10, duration: 0.15, ease: "power2.in" },
-				moreOptionsDialog.value.children[0]?.children ? "<0.05" : "0"
+			tl.to(
+				moreOptionsDialog.value,
+				{ opacity: 0, scale: 0.9, y: 10, duration: 0.15, ease: 'power2.in' },
+				moreOptionsDialog.value.children[0]?.children ? '<0.05' : '0',
 			)
 		} else {
 			showMoreOptions.value = false
@@ -354,71 +420,90 @@ function toggleMoreOptions() {
 	}
 }
 
-watch(() => [preferences.presentLyrics, getCurrentTrack()?.song.lyricUrl], (newValue, oldValue) => {
-	if (!getCurrentTrack()) { return }
-
-	const [showLyrics, hasLyricUrl] = newValue
-	const [prevShowLyrics, _prevHasLyricUrl] = oldValue || [false, null]
-
-	// Show lyrics when both conditions are met
-	if (showLyrics && hasLyricUrl) {
-		presentLyrics.value = true
-		nextTick(() => {
-			const tl = gsap.timeline()
-			tl.from(controllerRef.value, {
-				marginRight: '-40rem',
-			}).fromTo(lyricsSection.value,
-				{ opacity: 0, x: 50, scale: 0.95 },
-				{ opacity: 1, x: 0, scale: 1, duration: 0.5, ease: "power2.out" },
-				"-=0.3"
-			)
-		})
-	}
-	// Hide lyrics with different animations based on reason
-	else if (presentLyrics.value) {
-		let animationConfig
-
-		// If lyrics were toggled off
-		if (prevShowLyrics && !showLyrics) {
-			animationConfig = {
-				opacity: 0, x: -50, scale: 0.95,
-				duration: 0.3, ease: "power2.in"
-			}
-		}
-		// If no lyrics available (song changed)
-		else if (!hasLyricUrl) {
-			animationConfig = {
-				opacity: 0, y: -20, scale: 0.98,
-				duration: 0.3, ease: "power1.in"
-			}
-		}
-		// Default animation
-		else {
-			animationConfig = {
-				opacity: 0, x: -50,
-				duration: 0.3, ease: "power2.in"
-			}
+watch(
+	() => [preferences.presentLyrics, getCurrentTrack()?.song.lyricUrl],
+	(newValue, oldValue) => {
+		if (!getCurrentTrack()) {
+			return
 		}
 
-		const tl = gsap.timeline({
-			onComplete: () => {
-				presentLyrics.value = false
-			}
-		})
+		const [showLyrics, hasLyricUrl] = newValue
+		const [prevShowLyrics, _prevHasLyricUrl] = oldValue || [false, null]
 
-		tl.to(controllerRef.value, {
-			marginLeft: '44rem',
-			duration: 0.3, ease: "power2.out"
-		})
-			.to(lyricsSection.value, animationConfig, '<')
-			.set(lyricsSection.value, {
-				opacity: 1, x: 0, y: 0, scale: 1 // Reset for next time
+		// Show lyrics when both conditions are met
+		if (showLyrics && hasLyricUrl) {
+			presentLyrics.value = true
+			nextTick(() => {
+				const tl = gsap.timeline()
+				tl.from(controllerRef.value, {
+					marginRight: '-40rem',
+				}).fromTo(
+					lyricsSection.value,
+					{ opacity: 0, x: 50, scale: 0.95 },
+					{ opacity: 1, x: 0, scale: 1, duration: 0.5, ease: 'power2.out' },
+					'-=0.3',
+				)
 			})
-			.set(controllerRef.value, {
-				marginLeft: '0rem' // Reset for next time
+		}
+		// Hide lyrics with different animations based on reason
+		else if (presentLyrics.value) {
+			let animationConfig
+
+			// If lyrics were toggled off
+			if (prevShowLyrics && !showLyrics) {
+				animationConfig = {
+					opacity: 0,
+					x: -50,
+					scale: 0.95,
+					duration: 0.3,
+					ease: 'power2.in',
+				}
+			}
+			// If no lyrics available (song changed)
+			else if (!hasLyricUrl) {
+				animationConfig = {
+					opacity: 0,
+					y: -20,
+					scale: 0.98,
+					duration: 0.3,
+					ease: 'power1.in',
+				}
+			}
+			// Default animation
+			else {
+				animationConfig = {
+					opacity: 0,
+					x: -50,
+					duration: 0.3,
+					ease: 'power2.in',
+				}
+			}
+
+			const tl = gsap.timeline({
+				onComplete: () => {
+					presentLyrics.value = false
+				},
 			})
-	}
-}, { immediate: true })
+
+			tl.to(controllerRef.value, {
+				marginLeft: '44rem',
+				duration: 0.3,
+				ease: 'power2.out',
+			})
+				.to(lyricsSection.value, animationConfig, '<')
+				.set(lyricsSection.value, {
+					opacity: 1,
+					x: 0,
+					y: 0,
+					scale: 1, // Reset for next time
+				})
+				.set(controllerRef.value, {
+					marginLeft: '0rem', // Reset for next time
+				})
+		}
+	},
+	{ immediate: true },
+)
 
 // 页面焦点处理函数变量声明
 let handleVisibilityChange: (() => void) | null = null
@@ -464,36 +549,41 @@ function setupPageFocusHandlers() {
 // 重新同步歌词状态
 function resyncLyricsState() {
 	const currentTrack = getCurrentTrack()
-	if (!currentTrack) { return }
+	if (!currentTrack) {
+		return
+	}
 
 	debugPlayroom('重新同步歌词状态')
 
 	// 重置动画状态
 	if (controllerRef.value) {
-		gsap.set(controllerRef.value, { 
-			marginLeft: '0rem', 
-			marginRight: '0rem' 
+		gsap.set(controllerRef.value, {
+			marginLeft: '0rem',
+			marginRight: '0rem',
 		})
 	}
 
 	if (lyricsSection.value) {
-		gsap.set(lyricsSection.value, { 
-			opacity: 1, 
-			x: 0, 
-			y: 0, 
-			scale: 1 
+		gsap.set(lyricsSection.value, {
+			opacity: 1,
+			x: 0,
+			y: 0,
+			scale: 1,
 		})
 	}
 
 	// 检查当前歌词显示状态应该是什么
-	const shouldShowLyrics = preferences.presentLyrics && currentTrack.song.lyricUrl ? true : false
+	const shouldShowLyrics =
+		preferences.presentLyrics && currentTrack.song.lyricUrl ? true : false
 
 	if (shouldShowLyrics !== presentLyrics.value) {
-		debugPlayroom(`歌词状态不一致，重新设置: ${presentLyrics.value} -> ${shouldShowLyrics}`)
-		
+		debugPlayroom(
+			`歌词状态不一致，重新设置: ${presentLyrics.value} -> ${shouldShowLyrics}`,
+		)
+
 		// 直接设置状态，不触发动画
 		presentLyrics.value = shouldShowLyrics
-		
+
 		// 如果需要显示歌词，重新执行显示动画
 		if (shouldShowLyrics) {
 			nextTick(() => {
@@ -501,11 +591,12 @@ function resyncLyricsState() {
 				tl.from(controllerRef.value, {
 					marginRight: '-40rem',
 					duration: 0.4,
-					ease: "power2.out"
-				}).fromTo(lyricsSection.value,
+					ease: 'power2.out',
+				}).fromTo(
+					lyricsSection.value,
 					{ opacity: 0, x: 50, scale: 0.95 },
-					{ opacity: 1, x: 0, scale: 1, duration: 0.5, ease: "power2.out" },
-					"-=0.2"
+					{ opacity: 1, x: 0, scale: 1, duration: 0.5, ease: 'power2.out' },
+					'-=0.2',
 				)
 			})
 		}
@@ -513,21 +604,29 @@ function resyncLyricsState() {
 }
 
 // New: Watch for track changes and animate
-watch(() => playQueueStore.currentIndex, () => {
-	if (albumCover.value) {
-		gsap.to(albumCover.value, {
-			scale: 0.95, opacity: 0.7, duration: 0.2,
-			ease: "power2.inOut", yoyo: true, repeat: 1
-		})
-	}
+watch(
+	() => playQueueStore.currentIndex,
+	() => {
+		if (albumCover.value) {
+			gsap.to(albumCover.value, {
+				scale: 0.95,
+				opacity: 0.7,
+				duration: 0.2,
+				ease: 'power2.inOut',
+				yoyo: true,
+				repeat: 1,
+			})
+		}
 
-	if (songInfo.value) {
-		gsap.fromTo(songInfo.value,
-			{ opacity: 0, y: 10 },
-			{ opacity: 1, y: 0, duration: 0.4, ease: "power2.out", delay: 0.3 }
-		)
-	}
-})
+		if (songInfo.value) {
+			gsap.fromTo(
+				songInfo.value,
+				{ opacity: 0, y: 10 },
+				{ opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', delay: 0.3 },
+			)
+		}
+	},
+)
 </script>
 
 <template>

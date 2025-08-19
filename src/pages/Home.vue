@@ -6,7 +6,7 @@ import AlbumDetailDialog from '../components/AlbumDetailDialog.vue'
 const albums = ref([] as AlbumList)
 
 const presentAlbumDetailDialog = ref(false)
-const presentedAlbum = ref("")
+const presentedAlbum = ref('')
 
 onMounted(async () => {
 	const res = await apis.getAlbums()

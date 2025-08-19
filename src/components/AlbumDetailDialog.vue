@@ -29,7 +29,8 @@ const closeButton = ref<HTMLElement>()
 
 // Animation functions
 const animateIn = async () => {
-	if (!dialogBackdrop.value || !dialogContent.value || !closeButton.value) return
+	if (!dialogBackdrop.value || !dialogContent.value || !closeButton.value)
+		return
 
 	// Set initial states
 	gsap.set(dialogBackdrop.value, { opacity: 0 })
@@ -42,74 +43,99 @@ const animateIn = async () => {
 	tl.to(dialogBackdrop.value, {
 		opacity: 1,
 		duration: 0.3,
-		ease: "power2.out"
+		ease: 'power2.out',
 	})
-		.to(dialogContent.value, {
-			y: 0,
-			opacity: 1,
-			scale: 1,
-			duration: 0.4,
-			ease: "power3.out"
-		}, "-=0.1")
-		.to(closeButton.value, {
-			scale: 1,
-			rotation: 0,
-			duration: 0.3,
-			ease: "back.out(1.7)"
-		}, "-=0.2")
+		.to(
+			dialogContent.value,
+			{
+				y: 0,
+				opacity: 1,
+				scale: 1,
+				duration: 0.4,
+				ease: 'power3.out',
+			},
+			'-=0.1',
+		)
+		.to(
+			closeButton.value,
+			{
+				scale: 1,
+				rotation: 0,
+				duration: 0.3,
+				ease: 'back.out(1.7)',
+			},
+			'-=0.2',
+		)
 }
 
 const animateOut = () => {
-	if (!dialogBackdrop.value || !dialogContent.value || !closeButton.value) return
+	if (!dialogBackdrop.value || !dialogContent.value || !closeButton.value)
+		return
 
 	const tl = gsap.timeline({
-		onComplete: () => emit('dismiss')
+		onComplete: () => emit('dismiss'),
 	})
 
 	tl.to(closeButton.value, {
 		scale: 0,
 		rotation: 180,
 		duration: 0.2,
-		ease: "power2.in"
+		ease: 'power2.in',
 	})
-		.to(dialogContent.value, {
-			y: 30,
-			opacity: 0,
-			scale: 0.95,
-			duration: 0.3,
-			ease: "power2.in"
-		}, "-=0.1")
-		.to(dialogBackdrop.value, {
-			opacity: 0,
-			duration: 0.2,
-			ease: "power2.in"
-		}, "-=0.1")
+		.to(
+			dialogContent.value,
+			{
+				y: 30,
+				opacity: 0,
+				scale: 0.95,
+				duration: 0.3,
+				ease: 'power2.in',
+			},
+			'-=0.1',
+		)
+		.to(
+			dialogBackdrop.value,
+			{
+				opacity: 0,
+				duration: 0.2,
+				ease: 'power2.in',
+			},
+			'-=0.1',
+		)
 }
 
 const handleClose = () => {
 	animateOut()
 }
 
-watch(() => props.present, async (newVal) => {
-	if (newVal) {
-		await nextTick()
-		animateIn()
-	}
-})
-
-watch(() => props.albumCid, async () => {
-	debugUI('专辑详情对话框加载', props.albumCid)
-	album.value = undefined // Reset album when cid changes
-	try {
-		let res = await apis.getAlbum(props.albumCid)
-		for (const track in res.songs) {
-			res.songs[parseInt(track)] = await apis.getSong(res.songs[parseInt(track)].cid)
+watch(
+	() => props.present,
+	async (newVal) => {
+		if (newVal) {
+			await nextTick()
+			animateIn()
 		}
-		album.value = res
-	} catch (error) {
-		debugUI('专辑详情加载失败', error)
-	}
-})
+	},
+)
+
+watch(
+	() => props.albumCid,
+	async () => {
+		debugUI('专辑详情对话框加载', props.albumCid)
+		album.value = undefined // Reset album when cid changes
+		try {
+			let res = await apis.getAlbum(props.albumCid)
+			for (const track in res.songs) {
+				res.songs[parseInt(track)] = await apis.getSong(
+					res.songs[parseInt(track)].cid,
+				)
+			}
+			album.value = res
+		} catch (error) {
+			debugUI('专辑详情加载失败', error)
+		}
+	},
+)
 
 const playQueue = usePlayQueueStore()
 
@@ -118,16 +144,15 @@ async function playTheAlbum(from: number = 0) {
 }
 
 function shuffle() {
-//  playTheAlbum()
-// 	playQueue.shuffleCurrent = true
-// 	playQueue.playMode.shuffle = false
-// 	setTimeout(() => {
-// 		playQueue.playMode.shuffle = true
-// 		playQueue.isPlaying = true
-// 		playQueue.isBuffering = true
-// 	}, 100)
+	//  playTheAlbum()
+	// 	playQueue.shuffleCurrent = true
+	// 	playQueue.playMode.shuffle = false
+	// 	setTimeout(() => {
+	// 		playQueue.playMode.shuffle = true
+	// 		playQueue.isPlaying = true
+	// 		playQueue.isBuffering = true
+	// 	}, 100)
 }
-
 </script>
 
 <template>

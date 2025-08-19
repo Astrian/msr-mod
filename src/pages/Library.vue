@@ -15,10 +15,18 @@ const playQueueStore = usePlayQueueStore()
 const currentList = ref<'favourites' | number>('favourites')
 
 function playTheList(list: 'favourites' | number, playFrom: number = 0) {
-	if (playFrom < 0 || playFrom >= favourites.favouritesCount) { playFrom = 0 }
+	if (playFrom < 0 || playFrom >= favourites.favouritesCount) {
+		playFrom = 0
+	}
 
 	if (usePlayQueueStore().queueReplaceLock) {
-		if (!confirm("当前操作会将你的播放队列清空、放入这张歌单所有曲目，并从头播放。继续吗？")) { return }
+		if (
+			!confirm(
+				'当前操作会将你的播放队列清空、放入这张歌单所有曲目，并从头播放。继续吗？',
+			)
+		) {
+			return
+		}
 		usePlayQueueStore().queueReplaceLock = false
 	}
 	playQueueStore.list = []
@@ -26,9 +34,9 @@ function playTheList(list: 'favourites' | number, playFrom: number = 0) {
 	if (list === 'favourites') {
 		if (favourites.favouritesCount === 0) return
 
-		let newPlayQueue = favourites.favourites.map(item => ({
+		let newPlayQueue = favourites.favourites.map((item) => ({
 			song: item.song,
-			album: item.album
+			album: item.album,
 		}))
 		playQueueStore.list = newPlayQueue.slice().reverse()
 		playQueueStore.currentIndex = playFrom
@@ -50,7 +58,6 @@ function shuffle(list: 'favourites' | number) {
 		playQueueStore.isBuffering = true
 	}, 100)
 }
-
 </script>
 
 <template>

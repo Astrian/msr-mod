@@ -59,7 +59,9 @@ function moveUp() {
 }
 
 function moveDown() {
-	const listLength = playQueueStore.playMode.shuffle ? playQueueStore.shuffleList.length : playQueueStore.list.length
+	const listLength = playQueueStore.playMode.shuffle
+		? playQueueStore.shuffleList.length
+		: playQueueStore.list.length
 	if (props.index === listLength - 1) return
 
 	playQueueStore.queueReplaceLock = true
@@ -109,7 +111,10 @@ function removeItem() {
 			playQueueStore.currentIndex--
 		} else if (props.index === playQueueStore.currentIndex) {
 			if (queue.length > 0) {
-				playQueueStore.currentIndex = Math.min(playQueueStore.currentIndex, queue.length - 1)
+				playQueueStore.currentIndex = Math.min(
+					playQueueStore.currentIndex,
+					queue.length - 1,
+				)
 			} else {
 				playQueueStore.currentIndex = 0
 			}
@@ -140,7 +145,10 @@ function removeItem() {
 			playQueueStore.currentIndex--
 		} else if (props.index === playQueueStore.currentIndex) {
 			if (queue.length > 0) {
-				playQueueStore.currentIndex = Math.min(playQueueStore.currentIndex, queue.length - 1)
+				playQueueStore.currentIndex = Math.min(
+					playQueueStore.currentIndex,
+					queue.length - 1,
+				)
 			} else {
 				playQueueStore.currentIndex = 0
 			}

@@ -22,7 +22,9 @@ onMounted(async () => {
 	try {
 		let res = await apis.getAlbum(albumId as string)
 		for (const track in res.songs) {
-			res.songs[parseInt(track)] = await apis.getSong(res.songs[parseInt(track)].cid)
+			res.songs[parseInt(track)] = await apis.getSong(
+				res.songs[parseInt(track)].cid,
+			)
 		}
 		album.value = res
 		debugUI('专辑详情加载完成', res)
@@ -33,7 +35,13 @@ onMounted(async () => {
 
 function playTheAlbum(from: number = 0) {
 	if (playQueue.queueReplaceLock) {
-		if (!confirm("当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？")) { return }
+		if (
+			!confirm(
+				'当前操作会将你的播放队列清空、放入这张专辑所有曲目，并从头播放。继续吗？',
+			)
+		) {
+			return
+		}
 		playQueue.queueReplaceLock = false
 	}
 
@@ -42,7 +50,7 @@ function playTheAlbum(from: number = 0) {
 		debugUI('添加歌曲到播放队列', track)
 		newPlayQueue.push({
 			song: track,
-			album: album.value
+			album: album.value,
 		})
 	}
 	playQueue.playMode.shuffle = false

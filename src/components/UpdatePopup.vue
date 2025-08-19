@@ -21,7 +21,7 @@ onMounted(async () => {
 	if (!updatePopupStore.isLoaded) {
 		await updatePopupStore.initializeUpdatePopup()
 	}
-	
+
 	// 检查是否需要显示更新弹窗
 	const shouldShow = await updatePopupStore.shouldShowUpdatePopup()
 	showPopup.value = shouldShow

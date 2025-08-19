@@ -5,26 +5,26 @@ type SongList = {
 }
 
 type Song = {
-  cid: string
-  name: string
-  albumCid?: string
-  mvUrl?: string | null
-  mvCoverUrl?: string | null
+	cid: string
+	name: string
+	albumCid?: string
+	mvUrl?: string | null
+	mvCoverUrl?: string | null
 	sourceUrl?: string | null
 	lyricUrl?: string | null
-  artistes?: string[]
-  artists?: string[]
+	artistes?: string[]
+	artists?: string[]
 }
 
 type Album = {
-  cid: string
-  name: string
-  intro?: string
-  belong?: string
-  coverUrl: string
-  coverDeUrl?: string
-  artistes: string[]
-  songs?: Song[]
+	cid: string
+	name: string
+	intro?: string
+	belong?: string
+	coverUrl: string
+	coverDeUrl?: string
+	artistes: string[]
+	songs?: Song[]
 }
 
 type AlbumList = Album[]
@@ -36,22 +36,22 @@ interface ApiResponse {
 }
 
 interface QueueItem {
-  song: Song
-  album?: Album
-  sourceUrl?: string
-  lyricUrl?: string | null
+	song: Song
+	album?: Album
+	sourceUrl?: string
+	lyricUrl?: string | null
 }
 
 interface LyricsLine {
-  type: 'lyric'
-  time: number
-  text: string
-  originalTime: string
+	type: 'lyric'
+	time: number
+	text: string
+	originalTime: string
 }
 
 interface GapLine {
-  type: 'gap'
-  time: number
-  originalTime: string
-  duration?: number // 添加间隔持续时间
+	type: 'gap'
+	time: number
+	originalTime: string
+	duration?: number // 添加间隔持续时间
 }

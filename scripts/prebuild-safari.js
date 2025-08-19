@@ -1,55 +1,59 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // 处理 manifest.json for Safari
 function processManifest() {
-  const manifestPath = path.join(__dirname, '../public/manifest.json');
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+	const manifestPath = path.join(__dirname, '../public/manifest.json')
+	const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
 
-  // 移除本地调试相关的配置
-  if (manifest.host_permissions) {
-    manifest.host_permissions = manifest.host_permissions.filter(
-      permission => !permission.includes('localhost')
-    );
-  }
+	// 移除本地调试相关的配置
+	if (manifest.host_permissions) {
+		manifest.host_permissions = manifest.host_permissions.filter(
+			(permission) => !permission.includes('localhost'),
+		)
+	}
 
-  if (manifest.content_security_policy && manifest.content_security_policy.extension_pages) {
-    // 移除 CSP 中的本地开发相关配置
-    manifest.content_security_policy.extension_pages = manifest.content_security_policy.extension_pages
-      .replace(/script-src 'self' http:\/\/localhost:5173;\s*/g, '')
-      .replace(/\s*http:\/\/localhost:5173\s*/g, ' ')
-      .replace(/\s*ws:\/\/localhost:5173\s*/g, ' ')
-      .replace(/;\s+/g, '; ') // 标准化分号后的空格
-      .replace(/\s+/g, ' ') // 合并多个空格为一个
-      .trim();
-  }
+	if (
+		manifest.content_security_policy &&
+		manifest.content_security_policy.extension_pages
+	) {
+		// 移除 CSP 中的本地开发相关配置
+		manifest.content_security_policy.extension_pages =
+			manifest.content_security_policy.extension_pages
+				.replace(/script-src 'self' http:\/\/localhost:5173;\s*/g, '')
+				.replace(/\s*http:\/\/localhost:5173\s*/g, ' ')
+				.replace(/\s*ws:\/\/localhost:5173\s*/g, ' ')
+				.replace(/;\s+/g, '; ') // 标准化分号后的空格
+				.replace(/\s+/g, ' ') // 合并多个空格为一个
+				.trim()
+	}
 
-  // Safari 特殊处理：添加 appShell.html 到 content scripts 匹配
-  if (manifest.content_scripts && manifest.content_scripts[0]) {
-    // 添加 appShell.html 的匹配规则
-    const existingMatches = manifest.content_scripts[0].matches;
-    if (!existingMatches.includes("https://monster-siren.hypergryph.com/")) {
-      existingMatches.push("https://monster-siren.hypergryph.com/");
-    }
-  }
+	// Safari 特殊处理：添加 appShell.html 到 content scripts 匹配
+	if (manifest.content_scripts && manifest.content_scripts[0]) {
+		// 添加 appShell.html 的匹配规则
+		const existingMatches = manifest.content_scripts[0].matches
+		if (!existingMatches.includes('https://monster-siren.hypergryph.com/')) {
+			existingMatches.push('https://monster-siren.hypergryph.com/')
+		}
+	}
 
-  // Safari 特殊处理：使用 background.page 而不是 service_worker
-  if (manifest.background && manifest.background.service_worker) {
-    // Safari 扩展在 Manifest V3 中必须使用 persistent: false
-    // 但为了调试，我们暂时设为 true 来确保页面加载
-    manifest.background = {
-      page: "background.html",
-      persistent: true
-    };
-  }
+	// Safari 特殊处理：使用 background.page 而不是 service_worker
+	if (manifest.background && manifest.background.service_worker) {
+		// Safari 扩展在 Manifest V3 中必须使用 persistent: false
+		// 但为了调试，我们暂时设为 true 来确保页面加载
+		manifest.background = {
+			page: 'background.html',
+			persistent: true,
+		}
+	}
 
-  // 创建 background.html 文件用于 Safari
-  const backgroundHtmlPath = path.join(__dirname, '../public/background.html');
-  const backgroundHtmlContent = `<!DOCTYPE html>
+	// 创建 background.html 文件用于 Safari
+	const backgroundHtmlPath = path.join(__dirname, '../public/background.html')
+	const backgroundHtmlContent = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -102,19 +106,19 @@ function processManifest() {
     log('=== After background.js script tag ===');
   </script>
 </body>
-</html>`;
-  fs.writeFileSync(backgroundHtmlPath, backgroundHtmlContent);
+</html>`
+	fs.writeFileSync(backgroundHtmlPath, backgroundHtmlContent)
 
-  // 创建 Safari 兼容的 background.js
-  const backgroundJsPath = path.join(__dirname, '../public/background.js');
-  let backgroundJsContent = fs.readFileSync(backgroundJsPath, 'utf8');
-  
-  // 检查是否已经添加过 Safari 代码，避免重复
-  if (backgroundJsContent.includes('=== Safari background.js starting ===')) {
-    console.log('Safari background.js already processed, skipping...');
-  } else {
-    // 在开头添加 Safari 调试信息（只添加一次）
-    const safariDebugCode = `
+	// 创建 Safari 兼容的 background.js
+	const backgroundJsPath = path.join(__dirname, '../public/background.js')
+	let backgroundJsContent = fs.readFileSync(backgroundJsPath, 'utf8')
+
+	// 检查是否已经添加过 Safari 代码，避免重复
+	if (backgroundJsContent.includes('=== Safari background.js starting ===')) {
+		console.log('Safari background.js already processed, skipping...')
+	} else {
+		// 在开头添加 Safari 调试信息（只添加一次）
+		const safariDebugCode = `
 console.log("=== Safari background.js starting ===");
 console.log("Available APIs:", {
   chrome: typeof chrome,
@@ -168,40 +172,42 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
   });
 }
 
-`;
-    
-    // 替换 Safari 的重定向 URL 监听
-    backgroundJsContent = backgroundJsContent.replace(
-      /{ urls: \['https:\/\/monster-siren\.hypergryph\.com\/api\/fontset', 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json'\] }/g,
-      "{ urls: ['https://monster-siren.hypergryph.com/api/fontset', 'https://monster-siren.hypergryph.com/manifest.json', 'https://monster-siren.hypergryph.com/'] }"
-    );
-    
-    // 替换 Safari 的重定向判断逻辑
-    backgroundJsContent = backgroundJsContent.replace(
-      /details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json'/g,
-      "(details.url === 'https://monster-siren.hypergryph.com/manifest.json' || details.url === 'https://monster-siren.hypergryph.com/')"
-    );
-    
-    // 清理可能的重复条件
-    backgroundJsContent = backgroundJsContent.replace(
-      /\(\(details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json' \|\| details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/'\) \|\| details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/'\)/g,
-      "(details.url === 'https://monster-siren.hypergryph.com/manifest.json' || details.url === 'https://monster-siren.hypergryph.com/')"
-    );
-    
-    backgroundJsContent = safariDebugCode + backgroundJsContent;
-  }
-  fs.writeFileSync(backgroundJsPath, backgroundJsContent);
-  console.log('✅ Safari-compatible background.js created');
+`
 
-  // 创建 Safari 专用的 content.js
-  const contentJsPath = path.join(__dirname, '../public/content.js');
-  
-  // 检查是否已经处理过 content.js
-  const existingContentJs = fs.existsSync(contentJsPath) ? fs.readFileSync(contentJsPath, 'utf8') : '';
-  if (existingContentJs.includes('checkRedirectPreference')) {
-    console.log('Safari content.js already processed, skipping...');
-  } else {
-    const contentJsContent = `
+		// 替换 Safari 的重定向 URL 监听
+		backgroundJsContent = backgroundJsContent.replace(
+			/{ urls: \['https:\/\/monster-siren\.hypergryph\.com\/api\/fontset', 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json'\] }/g,
+			"{ urls: ['https://monster-siren.hypergryph.com/api/fontset', 'https://monster-siren.hypergryph.com/manifest.json', 'https://monster-siren.hypergryph.com/'] }",
+		)
+
+		// 替换 Safari 的重定向判断逻辑
+		backgroundJsContent = backgroundJsContent.replace(
+			/details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json'/g,
+			"(details.url === 'https://monster-siren.hypergryph.com/manifest.json' || details.url === 'https://monster-siren.hypergryph.com/')",
+		)
+
+		// 清理可能的重复条件
+		backgroundJsContent = backgroundJsContent.replace(
+			/\(\(details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/manifest\.json' \|\| details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/'\) \|\| details\.url === 'https:\/\/monster-siren\.hypergryph\.com\/'\)/g,
+			"(details.url === 'https://monster-siren.hypergryph.com/manifest.json' || details.url === 'https://monster-siren.hypergryph.com/')",
+		)
+
+		backgroundJsContent = safariDebugCode + backgroundJsContent
+	}
+	fs.writeFileSync(backgroundJsPath, backgroundJsContent)
+	console.log('✅ Safari-compatible background.js created')
+
+	// 创建 Safari 专用的 content.js
+	const contentJsPath = path.join(__dirname, '../public/content.js')
+
+	// 检查是否已经处理过 content.js
+	const existingContentJs = fs.existsSync(contentJsPath)
+		? fs.readFileSync(contentJsPath, 'utf8')
+		: ''
+	if (existingContentJs.includes('checkRedirectPreference')) {
+		console.log('Safari content.js already processed, skipping...')
+	} else {
+		const contentJsContent = `
 // Safari 扩展 content script for redirect
 console.log('MSR Mod content script loaded on:', window.location.href);
 
@@ -307,53 +313,53 @@ async function main() {
 main().catch(error => {
   console.error('Error in main function:', error);
 });
-`;
-    
-    fs.writeFileSync(contentJsPath, contentJsContent);
-  }
-  console.log('✅ Safari-compatible content.js created');
+`
 
-  // Safari 可能需要额外的权限
-  if (!manifest.permissions.includes('activeTab')) {
-    manifest.permissions.push('activeTab');
-  }
+		fs.writeFileSync(contentJsPath, contentJsContent)
+	}
+	console.log('✅ Safari-compatible content.js created')
 
-  // 添加 Safari 特有配置
-  manifest.browser_specific_settings = {
-    safari: {
-      minimum_version: "14.0"
-    }
-  };
+	// Safari 可能需要额外的权限
+	if (!manifest.permissions.includes('activeTab')) {
+		manifest.permissions.push('activeTab')
+	}
 
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  console.log('✅ Safari Manifest.json processed');
-  console.log('✅ Background.html created for Safari');
+	// 添加 Safari 特有配置
+	manifest.browser_specific_settings = {
+		safari: {
+			minimum_version: '14.0',
+		},
+	}
+
+	fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
+	console.log('✅ Safari Manifest.json processed')
+	console.log('✅ Background.html created for Safari')
 }
 
 // 处理 index.html
 function processIndexHtml() {
-  const indexPath = path.join(__dirname, '../index.html');
-  let content = fs.readFileSync(indexPath, 'utf8');
+	const indexPath = path.join(__dirname, '../index.html')
+	let content = fs.readFileSync(indexPath, 'utf8')
 
-  // 替换脚本地址
-  content = content.replace(
-    /src="[^"]*\/src\/main\.ts"/g,
-    'src="./src/main.ts"'
-  );
+	// 替换脚本地址
+	content = content.replace(
+		/src="[^"]*\/src\/main\.ts"/g,
+		'src="./src/main.ts"',
+	)
 
-  // 移除 crossorigin 属性
-  content = content.replace(/\s+crossorigin/g, '');
+	// 移除 crossorigin 属性
+	content = content.replace(/\s+crossorigin/g, '')
 
-  fs.writeFileSync(indexPath, content);
-  console.log('✅ Index.html processed for Safari');
+	fs.writeFileSync(indexPath, content)
+	console.log('✅ Index.html processed for Safari')
 }
 
 // 执行处理
 try {
-  processManifest();
-  processIndexHtml();
-  console.log('🎉 Safari build preparation completed!');
+	processManifest()
+	processIndexHtml()
+	console.log('🎉 Safari build preparation completed!')
 } catch (error) {
-  console.error('❌ Error during Safari build preparation:', error);
-  process.exit(1);
+	console.error('❌ Error during Safari build preparation:', error)
+	process.exit(1)
 }

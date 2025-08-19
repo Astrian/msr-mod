@@ -1,5 +1,5 @@
-import { defineStore } from "pinia"
-import { ref } from "vue"
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { debugStore } from '../utils/debug'
 
 // 声明全局类型
@@ -27,7 +27,11 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 	const detectAvailableAPIs = () => {
 		// 检查原生 chrome API
 		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+			if (
+				typeof chrome !== 'undefined' &&
+				chrome.storage &&
+				chrome.storage.sync
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -37,7 +41,11 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 
 		// 检查 window.chrome
 		try {
-			if (window.chrome && window.chrome.storage && window.chrome.storage.sync) {
+			if (
+				window.chrome &&
+				window.chrome.storage &&
+				window.chrome.storage.sync
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -137,14 +145,17 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 	const shouldShowUpdatePopup = async (): Promise<boolean> => {
 		try {
 			const currentVersion = getCurrentVersion()
-			
+
 			// 如果无法获取当前版本，不显示弹窗
 			if (currentVersion === 'unknown') {
 				return false
 			}
 
 			// 获取上次显示弹窗的版本号
-			const lastShownVersion = await getStoredValue('lastUpdatePopupVersion', '')
+			const lastShownVersion = await getStoredValue(
+				'lastUpdatePopupVersion',
+				'',
+			)
 
 			// 如果版本号不同，需要显示弹窗并更新存储的版本号
 			if (lastShownVersion !== currentVersion) {
@@ -200,6 +211,6 @@ export const useUpdatePopup = defineStore('updatePopup', () => {
 		getLastShownVersion,
 		initializeUpdatePopup,
 		getStoredValue,
-		setStoredValue
+		setStoredValue,
 	}
 })

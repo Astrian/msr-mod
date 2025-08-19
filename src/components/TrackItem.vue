@@ -11,10 +11,10 @@ import StarEmptyIcon from '../assets/icons/starempty.vue'
 import StarFilledIcon from '../assets/icons/starfilled.vue'
 
 const props = defineProps<{
-	album?: Album,
-	track: Song,
-	index: number,
-	playfrom: (index: number) => void,
+	album?: Album
+	track: Song
+	index: number
+	playfrom: (index: number) => void
 }>()
 
 const hover = ref(false)
@@ -25,7 +25,7 @@ const favourites = useFavourites()
 
 function appendToQueue() {
 	debugUI('添加歌曲到队列')
-	let queue = playQueueStore.list
+	const queue = playQueueStore.list
 	queue.push({
 		song: props.track,
 		album: props.album,

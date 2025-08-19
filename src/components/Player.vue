@@ -8,7 +8,11 @@ import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import PlayIcon from '../assets/icons/play.vue'
 import PauseIcon from '../assets/icons/pause.vue'
-import { audioVisualizer, checkAndRefreshSongResource, supportsWebAudioVisualization } from '../utils'
+import {
+	audioVisualizer,
+	checkAndRefreshSongResource,
+	supportsWebAudioVisualization,
+} from '../utils'
 
 const playQueueStore = usePlayQueueStore()
 const favourites = useFavourites()
@@ -285,12 +289,12 @@ if (isAudioVisualizationSupported) {
 		trebleBoost: 1.4,
 		threshold: 0,
 	})
-	
+
 	barHeights = visualizer.barHeights
 	connectAudio = visualizer.connectAudio
 	isAnalyzing = visualizer.isAnalyzing
 	error = visualizer.error
-	
+
 	debugPlayer('audioVisualizer 返回值:', {
 		barHeights: barHeights.value,
 		isAnalyzing: isAnalyzing.value,
@@ -346,7 +350,11 @@ watch(
 watch(
 	() => player.value,
 	(audioElement) => {
-		if (audioElement && playQueueStore.list.length > 0 && isAudioVisualizationSupported) {
+		if (
+			audioElement &&
+			playQueueStore.list.length > 0 &&
+			isAudioVisualizationSupported
+		) {
 			connectAudio(audioElement)
 		}
 	},

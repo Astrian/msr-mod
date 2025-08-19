@@ -1,5 +1,5 @@
-import { defineStore } from "pinia"
-import { ref, watch } from "vue"
+import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
 
 // 声明全局类型
 declare global {
@@ -20,14 +20,18 @@ export const usePreferences = defineStore('preferences', () => {
 	const defaultPreferences = {
 		displayTimeLeft: false,
 		presentLyrics: false,
-		autoRedirect: true
+		autoRedirect: true,
 	}
 
 	// 检测可用的 API
 	const detectAvailableAPIs = () => {
 		// 检查原生 chrome API
 		try {
-			if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+			if (
+				typeof chrome !== 'undefined' &&
+				chrome.storage &&
+				chrome.storage.sync
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -37,7 +41,11 @@ export const usePreferences = defineStore('preferences', () => {
 
 		// 检查 window.chrome
 		try {
-			if (window.chrome && window.chrome.storage && window.chrome.storage.sync) {
+			if (
+				window.chrome &&
+				window.chrome.storage &&
+				window.chrome.storage.sync
+			) {
 				storageType.value = 'chrome'
 				return 'chrome'
 			}
@@ -143,7 +151,7 @@ export const usePreferences = defineStore('preferences', () => {
 		const preferences = {
 			displayTimeLeft: displayTimeLeft.value,
 			presentLyrics: presentLyrics.value,
-			autoRedirect: autoRedirect.value
+			autoRedirect: autoRedirect.value,
 		}
 		await setStoredValue('preferences', preferences)
 	}
@@ -188,6 +196,6 @@ export const usePreferences = defineStore('preferences', () => {
 		getStoredValue,
 		setStoredValue,
 		getPreferences,
-		savePreferences
+		savePreferences,
 	}
 })

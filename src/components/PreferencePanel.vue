@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 import XIcon from '../assets/icons/x.vue'
 import { usePreferences } from '../stores/usePreferences'
 import { computed } from 'vue'
