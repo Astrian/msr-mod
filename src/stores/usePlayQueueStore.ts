@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import apis from '../apis'
 
 export const usePlayQueueStore = defineStore('queue', () => {
 	// 内部状态
 	const queue = ref<QueueItem[]>([])
-	const isShuffle = ref<boolean>(false)
+	const isShuffle = ref(false)
 	const loopingMode = ref<'single' | 'all' | 'off'>('off')
-	const queueReplaceLock = ref<boolean>(false)
-	const currentPlaying = ref<number>(0) // 当前播放指针，指针在 queueOrder 中寻址（无论是否开启了随机播放）
+	const queueReplaceLock = ref(false)
+	const currentPlaying = ref(0) // 当前播放指针，指针在 queueOrder 中寻址（无论是否开启了随机播放）
 	const queueOrder = ref<number[]>([]) // 播放队列顺序
+	const isPlaying = ref(false)
 
 	// 暴露给外部的响应式只读引用
 	const queueState = computed(() =>
@@ -26,13 +26,16 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		const actualIndex = queueOrder.value[currentPlaying.value]
 		return queue.value[actualIndex] || null
 	})
+	
+	// 获取当前是否正在播放
+	const playingState = computed(() => isPlaying.value)
 
 	/************
 	 *	播放队列相关
 	 ***********/
 	// 使用新队列替换老队列
 	// 队列替换锁开启时启用确认，确认后重置该锁
-	async function replaceQueue(songs: Song[]) {
+	async function replaceQueue(newQueue: QueueItem[]) {
 		if (queueReplaceLock.value) {
 			if (
 				!confirm(
@@ -43,27 +46,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 			}
 			// 重置队列替换锁
 			queueReplaceLock.value = false
-		}
-
-		let newQueue: QueueItem[] = []
-
-		// 专辑信息缓存空间
-		let albums: { [key: string]: Album } = {}
-
-		for (let i in songs) {
-			// 写入新队列
-			newQueue[newQueue.length] = {
-				song: songs[i],
-				album: await (async () => {
-					if (albums[songs[i].albumCid ?? '0'])
-						return albums[songs[i].albumCid ?? '0']
-					else {
-						const album = await apis.getAlbum(songs[i].albumCid ?? '0')
-						albums[songs[i].albumCid ?? '0'] = album
-						return album
-					}
-				})(),
-			}
 		}
 
 		// 将新队列替换已有队列
@@ -78,6 +60,17 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		loopingMode.value = 'off'
 	}
 
+	/***********
+	 * 播放控制相关
+	 *
+	 **********/
+	// 控制播放
+	const togglePlay = (turnTo?: boolean) => {
+		const newPlayState = turnTo ?? !isPlaying.value
+		if (newPlayState === isPlaying.value) return
+		isPlaying.value = newPlayState
+	}
+
 	/************
 	 * 播放模式相关
 	 **********/
@@ -88,6 +81,7 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 		if (newShuffleState === isShuffle.value) return // 状态未改变
 
+		// TODO: 进行洗牌
 		/* if (newShuffleState) {
 			// 开启随机播放：保存当前顺序并打乱
 			const originalOrder = [...queueOrder.value]
@@ -154,10 +148,12 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		loopMode: loopModeState,
 		currentTrack,
 		currentIndex: currentPlaying,
+		isPlaying: playingState,
 
 		// 修改方法
 		replaceQueue,
 		toggleShuffle,
 		toggleLoop,
+		togglePlay
 	}
 })

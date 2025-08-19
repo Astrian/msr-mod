@@ -140,7 +140,15 @@ watch(
 const playQueue = usePlayQueueStore()
 
 async function playTheAlbum(from: number = 0) {
-	await playQueue.replaceQueue(album.value?.songs ?? [])
+	let newQueue = []
+	for (const track of album.value?.songs ?? []) {
+		newQueue.push({
+			song: track,
+			album: album.value
+		})
+	}
+	await playQueue.replaceQueue(newQueue)
+	await playQueue.togglePlay(true)
 }
 
 function shuffle() {
