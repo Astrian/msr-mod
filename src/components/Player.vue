@@ -7,6 +7,7 @@ import apis from '../apis'
 const playQueue = usePlayQueueStore()
 
 const resourcesUrl = ref<{ [key: string]: string }>({})
+const audioRefs = ref<{ [key: string]: HTMLAudioElement }>({}) // audio 元素的引用
 
 // 监听播放列表变化
 watch(() => playQueue.queue, async () => {
@@ -20,9 +21,10 @@ watch(() => playQueue.queue, async () => {
 	resourcesUrl.value = newResourcesUrl
 })
 
-// 在播放曲目变动时，将元数据更新到浏览器和操作系统中
-watch(() => playQueue.currentTrack, async () => {
+watch(() => playQueue.currentTrack, async (newTrack, oldTrack) => {
 	if (!playQueue.currentTrack) return
+
+	// 更新元数据
 	navigator.mediaSession.metadata = new MediaMetadata({
 		title: playQueue.currentTrack.song.name,
 		artist: artistsOrganize(playQueue.currentTrack.song.artists ?? []),
@@ -35,6 +37,30 @@ watch(() => playQueue.currentTrack, async () => {
 			},
 		],
 	})
+	navigator.mediaSession.setActionHandler('previoustrack', () => {})
+	navigator.mediaSession.setActionHandler('nexttrack', playQueue.skipToNext)
+
+	// 如果目前歌曲变动时正在播放，则激活对应的 audio 组件，并将播放时间进度重置为零
+	if (!playQueue.isPlaying) return
+	debugPlayer("正在播放，变更至下一首歌")
+	if (oldTrack) {
+		const oldAudio = getAudioElement(oldTrack.song.cid)
+		if (oldAudio && !oldAudio.paused) {
+			oldAudio.pause()
+		}
+	}
+
+	const newAudio = getAudioElement(newTrack.song.cid)
+	if (newAudio) {
+		try {
+			await newAudio.play()
+			debugPlayer(`开始播放: audio-${newTrack.song.cid}`)
+		} catch (error) {
+			console.error(`播放失败: audio-${newTrack.song.cid}`, error)
+		}
+	} else {
+		console.warn(`找不到音频元素: audio-${newTrack.song.cid}`)
+	}
 })
 
 // 优化音乐人字符串显示
@@ -65,6 +91,32 @@ function isAutoPlay(cid: string) {
 
 	return true	
 }
+
+// 获取 audio 元素的 ref
+function getAudioElement(cid: string): HTMLAudioElement | null {
+	debugPlayer('Getting audio element for:', cid, audioRefs.value)
+	return audioRefs.value[cid] || null
+}
+
+// audio 元素结束播放事件
+function endOfPlay() {
+	debugPlayer("结束播放")
+	if (playQueue.loopingMode !== "single") {
+		const next = playQueue.queue[playQueue.currentIndex + 1]
+		debugPlayer(next.song.cid)
+		debugPlayer(audioRefs.value[next.song.cid])
+		audioRefs.value[next.song.cid].play()
+	}
+}
+
+function setAudioRef(cid: string, el: HTMLAudioElement | null) {
+	if (el) {
+		audioRefs.value[cid] = el
+		debugPlayer(`Audio element for ${cid} registered`, el)
+	} else {
+		delete audioRefs.value[cid]
+	}
+}
 </script>
 
 <template>
@@ -74,9 +126,12 @@ function isAutoPlay(cid: string) {
 				v-if="resourcesUrl[track.song.cid]" 
 				:src="resourcesUrl[track.song.cid]" 
 				preload="auto" 
-				:ref="`audio-${track.song.cid}`"
+				:ref="el => setAudioRef(track.song.cid, el as HTMLAudioElement)"
 				:autoplay="isAutoPlay(track.song.cid)"
+				@ended="endOfPlay"
+				@timeupdate=""
 			/>
+				{{track.song.cid}}
 		</div>
 	</div>
 </template>

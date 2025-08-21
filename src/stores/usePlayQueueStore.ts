@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { debugStore } from '../utils/debug'
 
 export const usePlayQueueStore = defineStore('queue', () => {
 	// 内部状态
@@ -10,6 +11,7 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	const currentPlaying = ref(0) // 当前播放指针，指针在 queueOrder 中寻址（无论是否开启了随机播放）
 	const queueOrder = ref<number[]>([]) // 播放队列顺序
 	const isPlaying = ref(false)
+	const playProgress = ref(0) // 当前曲目的播放时间指针
 
 	// 暴露给外部的响应式只读引用
 	const queueState = computed(() =>
@@ -26,6 +28,9 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		const actualIndex = queueOrder.value[currentPlaying.value]
 		return queue.value[actualIndex] || null
 	})
+	
+	// 获取当前播放时间
+	const playProgressState = computed(() => playProgress.value)
 	
 	// 获取当前是否正在播放
 	const playingState = computed(() => isPlaying.value)
@@ -62,7 +67,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 	/***********
 	 * 播放控制相关
-	 *
 	 **********/
 	// 控制播放
 	const togglePlay = (turnTo?: boolean) => {
@@ -70,6 +74,33 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		if (newPlayState === isPlaying.value) return
 		isPlaying.value = newPlayState
 	}
+
+	// 跳转至队列的某首歌曲
+	const toggleQueuePlay = (turnTo: number) => {
+		if (turnTo < 0 || turnTo >= queue.value.length) return
+		currentPlaying.value = turnTo
+	}
+
+	// 跳至下一首（通常为用户点按下一首按钮）
+	const skipToNext = () => {
+		currentPlaying.value = currentPlaying.value + 1
+	}
+
+	// 继续播放接下来的曲目
+	// 通常为当前曲目播放完毕，需要通过循环模式判断应该重置进度或队列指针 +1
+	const continueToNext = () => {
+		debugStore(loopingMode.value)
+		// TODO: 需要留意 progress seeking 相关
+		if (loopingMode.value === 'single') playProgress.value = 0
+		else currentPlaying.value = currentPlaying.value + 1
+	}
+
+	// 回报播放进度
+	const reportPlayProgress = (progress: number) => {
+		debugStore(`进度更新回报: ${progress}`)
+		playProgress.value = progress
+	}
+
 
 	/************
 	 * 播放模式相关
@@ -81,7 +112,7 @@ export const usePlayQueueStore = defineStore('queue', () => {
 
 		if (newShuffleState === isShuffle.value) return // 状态未改变
 
-		// TODO: 进行洗牌
+		// TODO: 进行洗牌（以下代码是 AI 写的，需要人工复查）
 		/* if (newShuffleState) {
 			// 开启随机播放：保存当前顺序并打乱
 			const originalOrder = [...queueOrder.value]
@@ -149,11 +180,16 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		currentTrack,
 		currentIndex: currentPlaying,
 		isPlaying: playingState,
+		playProgress: playProgressState,
 
 		// 修改方法
 		replaceQueue,
 		toggleShuffle,
 		toggleLoop,
-		togglePlay
+		togglePlay,
+		toggleQueuePlay,
+		skipToNext,
+		continueToNext,
+		reportPlayProgress
 	}
 })
