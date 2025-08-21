@@ -28,10 +28,10 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		const actualIndex = queueOrder.value[currentPlaying.value]
 		return queue.value[actualIndex] || null
 	})
-	
+
 	// 获取当前播放时间
 	const playProgressState = computed(() => playProgress.value)
-	
+
 	// 获取当前是否正在播放
 	const playingState = computed(() => isPlaying.value)
 
@@ -100,7 +100,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		debugStore(`进度更新回报: ${progress}`)
 		playProgress.value = progress
 	}
-
 
 	/************
 	 * 播放模式相关
@@ -190,6 +189,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		toggleQueuePlay,
 		skipToNext,
 		continueToNext,
-		reportPlayProgress
+		reportPlayProgress,
 	}
 })

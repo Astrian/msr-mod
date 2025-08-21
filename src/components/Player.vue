@@ -10,58 +10,64 @@ const resourcesUrl = ref<{ [key: string]: string }>({})
 const audioRefs = ref<{ [key: string]: HTMLAudioElement }>({}) // audio 元素的引用
 
 // 监听播放列表变化
-watch(() => playQueue.queue, async () => {
-	debugPlayer(playQueue.queue)
-	let newResourcesUrl: { [key: string]: string } = {}
-	for (const track of playQueue.queue) {
-		const res = await apis.getSong(track.song.cid)
-		newResourcesUrl[track.song.cid] = track.song.sourceUrl
-	}
-	debugPlayer(newResourcesUrl)
-	resourcesUrl.value = newResourcesUrl
-})
-
-watch(() => playQueue.currentTrack, async (newTrack, oldTrack) => {
-	if (!playQueue.currentTrack) return
-
-	// 更新元数据
-	navigator.mediaSession.metadata = new MediaMetadata({
-		title: playQueue.currentTrack.song.name,
-		artist: artistsOrganize(playQueue.currentTrack.song.artists ?? []),
-		album: playQueue.currentTrack.album?.name,
-		artwork: [
-			{
-				src: playQueue.currentTrack.album?.coverUrl ?? '',
-				sizes: '500x500',
-				type: 'image/png',
-			},
-		],
-	})
-	navigator.mediaSession.setActionHandler('previoustrack', () => {})
-	navigator.mediaSession.setActionHandler('nexttrack', playQueue.skipToNext)
-
-	// 如果目前歌曲变动时正在播放，则激活对应的 audio 组件，并将播放时间进度重置为零
-	if (!playQueue.isPlaying) return
-	debugPlayer("正在播放，变更至下一首歌")
-	if (oldTrack) {
-		const oldAudio = getAudioElement(oldTrack.song.cid)
-		if (oldAudio && !oldAudio.paused) {
-			oldAudio.pause()
+watch(
+	() => playQueue.queue,
+	async () => {
+		debugPlayer(playQueue.queue)
+		let newResourcesUrl: { [key: string]: string } = {}
+		for (const track of playQueue.queue) {
+			const res = await apis.getSong(track.song.cid)
+			newResourcesUrl[track.song.cid] = track.song.sourceUrl
 		}
-	}
+		debugPlayer(newResourcesUrl)
+		resourcesUrl.value = newResourcesUrl
+	},
+)
 
-	const newAudio = getAudioElement(newTrack.song.cid)
-	if (newAudio) {
-		try {
-			await newAudio.play()
-			debugPlayer(`开始播放: audio-${newTrack.song.cid}`)
-		} catch (error) {
-			console.error(`播放失败: audio-${newTrack.song.cid}`, error)
+watch(
+	() => playQueue.currentTrack,
+	async (newTrack, oldTrack) => {
+		if (!playQueue.currentTrack) return
+
+		// 更新元数据
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title: playQueue.currentTrack.song.name,
+			artist: artistsOrganize(playQueue.currentTrack.song.artists ?? []),
+			album: playQueue.currentTrack.album?.name,
+			artwork: [
+				{
+					src: playQueue.currentTrack.album?.coverUrl ?? '',
+					sizes: '500x500',
+					type: 'image/png',
+				},
+			],
+		})
+		navigator.mediaSession.setActionHandler('previoustrack', () => {})
+		navigator.mediaSession.setActionHandler('nexttrack', playQueue.skipToNext)
+
+		// 如果目前歌曲变动时正在播放，则激活对应的 audio 组件，并将播放时间进度重置为零
+		if (!playQueue.isPlaying) return
+		debugPlayer('正在播放，变更至下一首歌')
+		if (oldTrack) {
+			const oldAudio = getAudioElement(oldTrack.song.cid)
+			if (oldAudio && !oldAudio.paused) {
+				oldAudio.pause()
+			}
 		}
-	} else {
-		console.warn(`找不到音频元素: audio-${newTrack.song.cid}`)
-	}
-})
+
+		const newAudio = getAudioElement(newTrack.song.cid)
+		if (newAudio) {
+			try {
+				await newAudio.play()
+				debugPlayer(`开始播放: audio-${newTrack.song.cid}`)
+			} catch (error) {
+				console.error(`播放失败: audio-${newTrack.song.cid}`, error)
+			}
+		} else {
+			console.warn(`找不到音频元素: audio-${newTrack.song.cid}`)
+		}
+	},
+)
 
 // 优化音乐人字符串显示
 function artistsOrganize(list: string[]) {
@@ -89,7 +95,7 @@ function isAutoPlay(cid: string) {
 	// 再判断是否是目前曲目
 	if (playQueue.currentTrack.song.cid !== cid) return false
 
-	return true	
+	return true
 }
 
 // 获取 audio 元素的 ref
@@ -100,8 +106,8 @@ function getAudioElement(cid: string): HTMLAudioElement | null {
 
 // audio 元素结束播放事件
 function endOfPlay() {
-	debugPlayer("结束播放")
-	if (playQueue.loopingMode !== "single") {
+	debugPlayer('结束播放')
+	if (playQueue.loopingMode !== 'single') {
 		const next = playQueue.queue[playQueue.currentIndex + 1]
 		debugPlayer(next.song.cid)
 		debugPlayer(audioRefs.value[next.song.cid])

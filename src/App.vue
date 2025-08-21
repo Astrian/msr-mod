@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from 'vue-router'
 import MiniPlayer from './components/MiniPlayer.vue'
 import PreferencePanel from './components/PreferencePanel.vue'
-import Player from './components/Player.vue'
+import PlayerWebAudio from './components/PlayerWebAudio.vue'
 import { ref } from 'vue'
 
 import LeftArrowIcon from './assets/icons/leftarrow.vue'
@@ -71,7 +71,7 @@ watch(
 							<SearchIcon :size="4" />
 						</button> -->
 
-						<Player />
+						<PlayerWebAudio />
 
 
 						<MiniPlayer />

@@ -144,7 +144,7 @@ async function playTheAlbum(from: number = 0) {
 	for (const track of album.value?.songs ?? []) {
 		newQueue.push({
 			song: track,
-			album: album.value
+			album: album.value,
 		})
 	}
 	await playQueue.replaceQueue(newQueue)
