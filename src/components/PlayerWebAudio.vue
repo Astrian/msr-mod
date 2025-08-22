@@ -13,10 +13,16 @@ class WebAudioPlayer {
 	context: AudioContext
 	audioBuffer: { [key: string]: AudioBuffer}
 	dummyAudio: HTMLAudioElement
+	currentTrackStartTime: number
+	currentSource: AudioBufferSourceNode | null
+	nextSource: AudioBufferSourceNode | null
 
 	constructor() {
 		this.context = new window.AudioContext()
 		this.audioBuffer = {}
+		this.currentTrackStartTime = 0
+		this.currentSource = null
+		this.nextSource = null
 		
 		// 创建一个隐藏的 HTML Audio 元素来帮助同步媒体会话状态
 		this.dummyAudio = new Audio()
@@ -87,6 +93,7 @@ class WebAudioPlayer {
 		}
 	}
 
+	// 缓存歌曲
 	async loadResourceAndPlay() {
 		try {
 			debugPlayer("从播放器实例内部获取播放项目：")
@@ -107,13 +114,17 @@ class WebAudioPlayer {
 				this.audioBuffer[track.song.cid] = audioBuffer
 			}
 
-			if (playQueue.currentTrack){
+			if (playQueue.currentTrack) {
 				await loadBuffer(playQueue.currentTrack)
 				this.play()
 			}
 
-			if (playQueue.nextTrack)
+			if (playQueue.nextTrack) {
 				await loadBuffer(playQueue.nextTrack)
+				this.preloadNextTrack()
+			} else {
+				this.nextSource = null
+			}
 
 			if (playQueue.previousTrack)
 				await loadBuffer(playQueue.previousTrack)
@@ -125,12 +136,29 @@ class WebAudioPlayer {
 	}
 
 	// 从头播放
-	async play() {
+	play() {
 		debugPlayer("开始播放")
-		const source = this.context.createBufferSource()
-		source.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
-		source.connect(this.context.destination)
-		source.start()
+		this.currentSource = this.context.createBufferSource()
+		this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
+		this.currentSource.connect(this.context.destination)
+		this.currentSource.start()
+		if (!playQueue.nextTrack) return
+		// 开始预先准备无缝播放下一首
+		// 获取下一首歌接入的时间点
+		this.currentTrackStartTime = this.context.currentTime
+	}
+
+	// 预加载下一首歌
+	preloadNextTrack() {
+		this.nextSource = null
+		const nextTrackStartTime = this.currentTrackStartTime + this.audioBuffer[playQueue.currentTrack.song.cid].duration
+		debugPlayer(`下一首歌将在 ${nextTrackStartTime} 时间点接入`)
+
+		this.nextSource = this.context.createBufferSource()
+		this.nextSource.buffer = this.audioBuffer[playQueue.nextTrack.song.cid]
+		this.nextSource.connect(this.context.destination)
+
+		this.nextSource.start(nextTrackStartTime)
 	}
 
 	pause() {}
