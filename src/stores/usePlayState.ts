@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { debugStore } from '../utils/debug'
-import artistsOrganize from '../utils/artistsOrganize'
 
 export const usePlayState = defineStore('playState', () => {
 	// 播放状态
@@ -9,11 +8,10 @@ export const usePlayState = defineStore('playState', () => {
 	const playProgress = ref(0) // 播放进度
 	const currentTrackDuration = ref(0) // 曲目总时长
 	const currentTrack = ref<QueueItem | null>(null) // 当前播放的曲目
-	const mediaSessionInitialized = ref(false)
 	const actualPlaying = ref(false) // 实际音频的播放与暂停
 
 	// 外显播放状态方法
-	const playingState = computed(() => isPlaying.value)
+	const playingState = computed(() => isPlaying.value || actualPlaying.value) // 其中有一个为 true 时回报为 true
 	const playProgressState = computed(() => playProgress.value)
 	const trackDurationState = computed(() => currentTrackDuration.value)
 	const actualPlayingState = computed(() => actualPlaying.value)
