@@ -11,7 +11,7 @@ export const usePlayState = defineStore('playState', () => {
 	const actualPlaying = ref(false) // 实际音频的播放与暂停
 
 	// 外显播放状态方法
-	const playingState = computed(() => isPlaying.value || actualPlaying.value) // 其中有一个为 true 时回报为 true
+	const playingState = computed(() => isPlaying.value)
 	const playProgressState = computed(() => playProgress.value)
 	const trackDurationState = computed(() => currentTrackDuration.value)
 	const actualPlayingState = computed(() => actualPlaying.value)
@@ -64,6 +64,7 @@ export const usePlayState = defineStore('playState', () => {
 	// 回报 Web Audio API 正在播放
 	const reportActualPlaying = (playing: boolean) => {
 		actualPlaying.value = playing
+		if (playing) isPlaying.value = true
 	}
 
 	return {
