@@ -16,6 +16,7 @@ class WebAudioPlayer {
 	currentTrackStartTime: number
 	currentSource: AudioBufferSourceNode | null
 	nextSource: AudioBufferSourceNode | null
+	reportInterval: ReturnType<typeof setTimeout> | null
 
 	constructor() {
 		this.context = new window.AudioContext()
@@ -23,6 +24,7 @@ class WebAudioPlayer {
 		this.currentTrackStartTime = 0
 		this.currentSource = null
 		this.nextSource = null
+		this.reportInterval = null
 		
 		// 创建一个隐藏的 HTML Audio 元素来帮助同步媒体会话状态
 		this.dummyAudio = new Audio()
@@ -93,7 +95,7 @@ class WebAudioPlayer {
 		}
 	}
 
-	// 缓存歌曲
+	// 缓存歌曲并播放
 	async loadResourceAndPlay() {
 		try {
 			debugPlayer("从播放器实例内部获取播放项目：")
@@ -103,6 +105,9 @@ class WebAudioPlayer {
 
 			if (playQueue.queue.length === 0) {
 				// TODO: 如果当前正在播放，则可能需要停止播放
+				playState.reportPlayProgress(0)
+				playState.reportActualPlaying(false)
+				this.currentSource?.stop()
 			}
 
 			// 将音频 buffer 加载到缓存空间
@@ -121,7 +126,7 @@ class WebAudioPlayer {
 
 			if (playQueue.nextTrack) {
 				await loadBuffer(playQueue.nextTrack)
-				this.preloadNextTrack()
+				if (playState.isPlaying) this.scheduleNextTrack()
 			} else {
 				this.nextSource = null
 			}
@@ -135,23 +140,28 @@ class WebAudioPlayer {
 		}
 	}
 
-	// 从头播放
+	// 播放
 	play() {
+		if (!playQueue.currentTrack) return 
 		debugPlayer("开始播放")
+		if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
 		this.currentSource = this.context.createBufferSource()
 		this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
 		this.currentSource.connect(this.context.destination)
-		this.currentSource.start()
-		if (!playQueue.nextTrack) return
+		this.currentSource.start(this.context.currentTime, playState.playProgress)
+		this.reportProgress()
 		// 开始预先准备无缝播放下一首
 		// 获取下一首歌接入的时间点
-		this.currentTrackStartTime = this.context.currentTime
+		this.currentTrackStartTime = this.context.currentTime - playState.playProgress
+		if (this.audioBuffer[playQueue.nextTrack.song.cid]) this.scheduleNextTrack()
 	}
 
-	// 预加载下一首歌
-	preloadNextTrack() {
+	// 安排下一首歌
+	scheduleNextTrack() {
+		if (!playQueue.nextTrack) return
 		this.nextSource = null
-		const nextTrackStartTime = this.currentTrackStartTime + this.audioBuffer[playQueue.currentTrack.song.cid].duration
+		const nextTrackStartTime = this.currentTrackStartTime
+		 + this.audioBuffer[playQueue.currentTrack.song.cid].duration
 		debugPlayer(`下一首歌将在 ${nextTrackStartTime} 时间点接入`)
 
 		this.nextSource = this.context.createBufferSource()
@@ -161,9 +171,26 @@ class WebAudioPlayer {
 		this.nextSource.start(nextTrackStartTime)
 	}
 
-	pause() {}
+	// 开始回报播放进度
+	reportProgress() {
+		this.reportInterval = setInterval(() => {
+			const progress = this.context.currentTime - this.currentTrackStartTime
+			playState.reportPlayProgress(progress)
+			playState.reportCurrentTrackDuration(this.audioBuffer[playQueue.currentTrack.song.cid].duration)
+		}, 100)
+	}
 
-	resume() {}
+	// 停止回报
+	stopReportProgress() {
+		this.reportInterval = null
+	}
+
+	pause() {
+		debugPlayer("尝试暂停播放")
+		debugPlayer(this.currentSource)
+		this.currentSource?.stop()
+		this.nextSource?.stop()
+	}
 
 	stop() {
 		
@@ -200,6 +227,16 @@ onMounted(() => {
 watch(() => playQueue.currentTrack, () => {
 	debugPlayer(`检测到当前播放曲目更新`)
 	playerInstance.value?.loadResourceAndPlay()
+})
+
+watch(() => playState.isPlaying, () => {
+	if (!playState.isPlaying) {
+		// 触发暂停
+		playerInstance.value?.pause()
+	} else {
+		// 恢复音频
+		playerInstance.value?.play()
+	}
 })
 </script>
 

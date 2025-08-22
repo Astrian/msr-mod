@@ -126,6 +126,7 @@ watch(
 		album.value = undefined // Reset album when cid changes
 		try {
 			let res = await apis.getAlbum(props.albumCid)
+			debugUI(res.cid)
 			for (const track in res.songs) {
 				res.songs[parseInt(track)] = await apis.getSong(
 					res.songs[parseInt(track)].cid,

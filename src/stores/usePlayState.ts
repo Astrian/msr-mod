@@ -5,16 +5,18 @@ import artistsOrganize from '../utils/artistsOrganize'
 
 export const usePlayState = defineStore('playState', () => {
 	// 播放状态
-	const isPlaying = ref(false)
+	const isPlaying = ref(false) // 用户控制的播放与暂停
 	const playProgress = ref(0) // 播放进度
 	const currentTrackDuration = ref(0) // 曲目总时长
 	const currentTrack = ref<QueueItem | null>(null) // 当前播放的曲目
 	const mediaSessionInitialized = ref(false)
+	const actualPlaying = ref(false) // 实际音频的播放与暂停
 
 	// 外显播放状态方法
 	const playingState = computed(() => isPlaying.value)
 	const playProgressState = computed(() => playProgress.value)
 	const trackDurationState = computed(() => currentTrackDuration.value)
+	const actualPlayingState = computed(() => actualPlaying.value)
 
 	// 回报目前播放进度百分比
 	const playProgressPercent = computed(() => {
@@ -40,13 +42,11 @@ export const usePlayState = defineStore('playState', () => {
 
 	// 回报播放位置
 	const reportPlayProgress = (progress: number) => {
-		debugStore(`播放位置回报: ${progress}`)
 		playProgress.value = progress
 	}
 
-	// 回报曲目进度
-	const setCurrentTrackDuration = (duration: number) => {
-		debugStore(`曲目进度回报: ${duration}`)
+	// 回报曲目长度
+	const reportCurrentTrackDuration = (duration: number) => {
 		currentTrackDuration.value = duration
 	}
 
@@ -61,6 +61,11 @@ export const usePlayState = defineStore('playState', () => {
 		const clampedTime = Math.max(0, Math.min(time, currentTrackDuration.value))
 		debugStore(`进度条跳转: ${clampedTime}`)
 		playProgress.value = clampedTime
+	}
+
+	// 回报 Web Audio API 正在播放
+	const reportActualPlaying = (playing: boolean) => {
+		actualPlaying.value = playing
 	}
 
 	/***********
@@ -184,13 +189,15 @@ export const usePlayState = defineStore('playState', () => {
 		playProgressPercent,
 		remainingTime,
 		currentTrack: computed(() => currentTrack.value),
+		actualPlaying: actualPlayingState,
 
 		// 修改方法
 		togglePlay,
 		reportPlayProgress,
-		setCurrentTrackDuration,
+		reportCurrentTrackDuration,
 		resetProgress,
 		seekTo,
+		reportActualPlaying,
 
 		// 媒体会话方法
 		setCurrentTrack,

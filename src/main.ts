@@ -10,12 +10,14 @@ import HomePage from './pages/Home.vue'
 import AlbumDetailView from './pages/AlbumDetail.vue'
 import Playroom from './pages/Playroom.vue'
 import Library from './pages/Library.vue'
+import Debug from './pages/Debug.vue'
 
 const routes = [
 	{ path: '/', component: HomePage },
 	{ path: '/albums/:albumId', component: AlbumDetailView },
 	{ path: '/playroom', component: Playroom },
 	{ path: '/library', component: Library },
+	{ path: '/debug', component: Debug}
 ]
 
 const router = createRouter({
