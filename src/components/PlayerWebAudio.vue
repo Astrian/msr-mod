@@ -145,25 +145,38 @@ class WebAudioPlayer {
 	play() {
 		if (!playQueue.currentTrack) return 
 		
-		if (!playState.actualPlaying) {
-			// 如果实际正在播放，那么跳过音轨初始化阶段
-			debugPlayer("开始播放")
-			navigator.mediaSession.playbackState = 'playing'
-			if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
-			this.currentSource = this.context.createBufferSource()
-			this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
-			this.currentSource.connect(this.context.destination)
-			this.currentSource.start(this.context.currentTime, playState.playProgress)
-			playState.reportActualPlaying(true)
-			this.reportProgress()
+		// 检查是否已经有音频在播放，避免重复播放
+		if (this.currentSource && playState.actualPlaying) {
+			debugPlayer("已经在播放中，跳过")
+			return
 		}
+		
+		debugPlayer("开始播放")
+		if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
+		
+		// 启动 dummyAudio 来向浏览器报告播放状态
+		this.dummyAudio.currentTime = 0
+		this.dummyAudio.play().catch(e => console.warn('DummyAudio play failed:', e))
+		
+		// 更新媒体会话状态
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.playbackState = 'playing'
+		}
+		
+		this.currentSource = this.context.createBufferSource()
+		this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
+		this.currentSource.connect(this.context.destination)
+		this.currentSource.start(this.context.currentTime, playState.playProgress)
+		playState.reportActualPlaying(true)
+		this.reportProgress()
+		
 		// 开始预先准备无缝播放下一首
 		// 获取下一首歌接入的时间点
 		this.currentTrackStartTime = this.context.currentTime - playState.playProgress
 		if (playQueue.nextTrack && this.audioBuffer[playQueue.nextTrack.song.cid]) this.scheduleNextTrack()
 
 		// 写入当前曲目播放完成后的钩子
-		if (this.currentSource) this.currentSource.onended = () => {
+		this.currentSource.onended = () => {
 			debugPlayer("当前歌曲播放结束")
 			if (!!this.reportInterval) {
 				// 页面依然正在回报播放进度，因此为歌曲自然结束
@@ -226,12 +239,24 @@ class WebAudioPlayer {
 	}
 
 	pause() {
-		navigator.mediaSession.playbackState = 'paused'
 		debugPlayer("尝试暂停播放")
 		debugPlayer(this.currentSource)
+		
+		// 暂停 dummyAudio
+		this.dummyAudio.pause()
+		
+		// 更新媒体会话状态
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.playbackState = 'paused'
+		}
+		
 		this.currentSource?.stop()
 		this.nextSource?.stop()
-		this.nextSource = null 
+		
+		// 清理资源引用
+		this.currentSource = null
+		this.nextSource = null
+		
 		playState.reportActualPlaying(false)
 		this.stopReportProgress()
 	}
@@ -244,6 +269,10 @@ class WebAudioPlayer {
 		// 2. 检查是否还有下一首
 		if (!this.nextSource) {
 			// 播放结束
+			this.dummyAudio.pause()
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.playbackState = 'none'
+			}
 			playState.reportActualPlaying(false)
 			playState.togglePlay(false)
 			return
@@ -276,18 +305,30 @@ onMounted(() => {
 	playerInstance.value = new WebAudioPlayer()
 })
 
-watch(() => playQueue.currentTrack, () => {
+// 监听当前曲目变化，只在需要时加载和播放
+watch(() => playQueue.currentTrack, (newTrack, oldTrack) => {
 	debugPlayer(`检测到当前播放曲目更新`)
-	navigator.mediaSession.playbackState = playState.isPlaying ? 'playing' : 'paused'
-	navigator.mediaSession.metadata = new MediaMetadata({
-    title: playQueue.currentTrack.song.name,
-    artist: artistsOrganize(playQueue.currentTrack.song.artistes ?? []),
-    album: playQueue.currentTrack.album?.name,
-    artwork: [
-      { src: playQueue.currentTrack.album?.coverUrl ?? "",   sizes: '500x500',   type: 'image/png' },
-    ]
-  })
-	playerInstance.value?.loadResourceAndPlay()
+	
+	if (newTrack) {
+		// 更新媒体会话元数据
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.playbackState = playState.isPlaying ? 'playing' : 'paused'
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: newTrack.song.name,
+				artist: artistsOrganize(newTrack.song.artistes ?? []),
+				album: newTrack.album?.name,
+				artwork: [
+					{ src: newTrack.album?.coverUrl ?? "",   sizes: '500x500',   type: 'image/png' },
+				]
+			})
+		}
+		
+		// 如果是自然切歌（onTrackEnded 触发的），不需要重新播放
+		// 只有在用户主动切歌或首次播放时才调用 loadResourceAndPlay
+		if (!playState.actualPlaying || !oldTrack) {
+			playerInstance.value?.loadResourceAndPlay()
+		}
+	}
 })
 
 watch(() => playState.isPlaying, () => {
