@@ -31,5 +31,6 @@ async function pauseOrResume() {
 		<button class="bg-white/20 px-2 py-1" @click="playTheList">开始播放</button>
 		<div>当前播放队列里有 {{ playQueue.queue.length }} 首歌</div>
 		<button class="bg-white/20 px-2 py-1" @click="pauseOrResume">播放/暂停</button>
+		<div>播放进度：{{ Math.floor(playState.playProgress) }} / {{ Math.floor(playState.trackDuration) }}</div>
 	</div>
 </template>

@@ -90,7 +90,7 @@ class WebAudioPlayer {
 			})
 			navigator.mediaSession.setActionHandler('stop', () => {
 				console.log('Media session: stop requested')
-				this.stop()
+				
 			})
 		}
 	}
@@ -111,29 +111,20 @@ class WebAudioPlayer {
 				this.nextSource?.stop()
 			}
 
-			// 将音频 buffer 加载到缓存空间
-			const loadBuffer = async (track: QueueItem) => {
-				if (this.audioBuffer[track.song.cid]) return // 已经缓存了，直接跳
-				const response = await fetch(track.sourceUrl ?? "")
-				const arrayBuffer = await response.arrayBuffer()
-				const audioBuffer = await this.context.decodeAudioData(arrayBuffer)
-				this.audioBuffer[track.song.cid] = audioBuffer
-			}
-
 			if (playQueue.currentTrack) {
-				await loadBuffer(playQueue.currentTrack)
+				await this.loadBuffer(playQueue.currentTrack)
 				this.play()
 			}
 
 			if (playQueue.nextTrack) {
-				await loadBuffer(playQueue.nextTrack)
+				await this.loadBuffer(playQueue.nextTrack)
 				if (playState.isPlaying) this.scheduleNextTrack()
 			} else {
 				this.nextSource = null
 			}
 
 			if (playQueue.previousTrack)
-				await loadBuffer(playQueue.previousTrack)
+				await this.loadBuffer(playQueue.previousTrack)
 
 			debugPlayer("缓存完成")
 		} catch (error) {
@@ -141,25 +132,56 @@ class WebAudioPlayer {
 		}
 	}
 
+	// 将音频 buffer 加载到缓存空间
+	loadBuffer = async (track: QueueItem) => {
+		if (this.audioBuffer[track.song.cid]) return // 已经缓存了，直接跳
+		const response = await fetch(track.sourceUrl ?? "")
+		const arrayBuffer = await response.arrayBuffer()
+		const audioBuffer = await this.context.decodeAudioData(arrayBuffer)
+		this.audioBuffer[track.song.cid] = audioBuffer
+	}
+
 	// 播放
 	play() {
 		if (!playQueue.currentTrack) return 
-		debugPlayer("开始播放")
-		if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
-		this.currentSource = this.context.createBufferSource()
-		this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
-		this.currentSource.connect(this.context.destination)
-		this.currentSource.start(this.context.currentTime, playState.playProgress)
-		playState.reportActualPlaying(true)
-		this.reportProgress()
+		
+		if (!playState.actualPlaying) {
+			// 如果实际正在播放，那么跳过音轨初始化阶段
+			debugPlayer("开始播放")
+			if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
+			this.currentSource = this.context.createBufferSource()
+			this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
+			this.currentSource.connect(this.context.destination)
+			this.currentSource.start(this.context.currentTime, playState.playProgress)
+			playState.reportActualPlaying(true)
+			this.reportProgress()
+		}
 		// 开始预先准备无缝播放下一首
 		// 获取下一首歌接入的时间点
 		this.currentTrackStartTime = this.context.currentTime - playState.playProgress
-		if (this.audioBuffer[playQueue.nextTrack.song.cid]) this.scheduleNextTrack()
+		if (playQueue.nextTrack && this.audioBuffer[playQueue.nextTrack.song.cid]) this.scheduleNextTrack()
+
+		// 写入当前曲目播放完成后的钩子
+		if (this.currentSource) this.currentSource.onended = () => {
+			debugPlayer("当前歌曲播放结束")
+			if (!!this.reportInterval) {
+				// 页面依然正在回报播放进度，因此为歌曲自然结束
+				debugPlayer("歌曲自然结束")
+				this.onTrackEnded()
+			} else {
+				debugPlayer("用户暂停")
+			}
+		}
 	}
 
 	// 安排下一首歌
 	scheduleNextTrack() {
+		if (this.nextSource !== null) {
+			debugPlayer("下一首已经调度，跳过重复调度")
+			return
+		}
+
+		// TODO: 处理不同循环逻辑
 		if (!playQueue.nextTrack) return
 		this.nextSource = null
 		const nextTrackStartTime = this.currentTrackStartTime
@@ -184,7 +206,9 @@ class WebAudioPlayer {
 
 	// 停止回报
 	stopReportProgress() {
+		if (this.reportInterval) clearInterval(this.reportInterval)
 		this.reportInterval = null
+		debugPlayer(this.reportInterval)
 	}
 
 	pause() {
@@ -192,33 +216,43 @@ class WebAudioPlayer {
 		debugPlayer(this.currentSource)
 		this.currentSource?.stop()
 		this.nextSource?.stop()
+		this.nextSource = null 
 		playState.reportActualPlaying(false)
+		this.stopReportProgress()
 	}
 
-	stop() {
-		
-	}
+	async onTrackEnded() {
+		// 1. 清理当前状态
+		this.stopReportProgress()
+		playState.reportPlayProgress(0)
 
-	togglePlay() {
-		
-	}
+		// 2. 检查是否还有下一首
+		if (!this.nextSource) {
+			// 播放结束
+			playState.reportActualPlaying(false)
+			playState.togglePlay(false)
+			return
+		}
 
-	getCurrentTime() {
+		// 3. 切换到下一首
+		playQueue.continueToNext()
+		this.currentSource = this.nextSource
+		this.nextSource = null
 		
-	}
+		// 4. 重新计算时间轴并启动进度报告
+		this.currentTrackStartTime = this.context.currentTime
+		this.reportProgress()
 
-	updateMediaSessionState() {
-		
-	}
-
-	// 定期更新播放位置
-	startPositionUpdates() {
-		
-	}
-
-	// 清理资源
-	destroy() {
-		
+		// 5. 处理下下首
+		if (playQueue.nextTrack) {
+			debugPlayer("处理下下一首歌")
+			if (this.audioBuffer[playQueue.nextTrack.song.cid]) {
+				this.scheduleNextTrack()
+			} else {
+				await this.loadBuffer(playQueue.nextTrack)
+				if (playState.actualPlaying) this.scheduleNextTrack()
+			}
+		}
 	}
 }
 

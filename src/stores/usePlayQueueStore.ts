@@ -102,16 +102,10 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		currentPlaying.value = turnTo
 	}
 
-	// 跳至下一首（通常为用户点按下一首按钮）
-	const skipToNext = () => {
-		currentPlaying.value = currentPlaying.value + 1
-	}
-
 	// 继续播放接下来的曲目
 	// 通常为当前曲目播放完毕，需要通过循环模式判断应该重置进度或队列指针 +1
 	const continueToNext = () => {
 		debugStore(loopingMode.value)
-		// 注意：单曲循环时的进度重置需要在播放状态管理中处理
 		if (loopingMode.value !== 'single') {
 			currentPlaying.value = currentPlaying.value + 1
 		}
@@ -202,7 +196,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		toggleShuffle,
 		toggleLoop,
 		toggleQueuePlay,
-		skipToNext,
 		continueToNext,
 	}
 })
