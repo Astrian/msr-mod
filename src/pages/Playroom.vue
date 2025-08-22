@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
+import { usePlayState } from '../stores/usePlayState'
 import { artistsOrganize } from '../utils'
 import gsap from 'gsap'
 import { Draggable } from 'gsap/Draggable'
@@ -32,6 +33,7 @@ import MuscialNoteSparklingIcon from '../assets/icons/musicalnotesparkling.vue'
 import CastEmptyIcon from '../assets/icons/castempty.vue'
 
 const playQueueStore = usePlayQueueStore()
+const playState = usePlayState()
 const preferences = usePreferences()
 const favourites = useFavourites()
 
@@ -67,8 +69,8 @@ onMounted(async () => {
 		onDrag: function () {
 			const thumbPosition = this.x
 			const containerWidth = progressBarContainer.value?.clientWidth || 0
-			const newTime = (thumbPosition / containerWidth) * playQueueStore.duration
-			playQueueStore.updatedCurrentTime = newTime
+			// const newTime = (thumbPosition / containerWidth) * playQueueStore.duration
+			// playState.reportPlayProgress
 		},
 	})
 
@@ -104,14 +106,14 @@ function timeFormatter(time: number) {
 
 // 监听播放进度，更新进度条
 watch(
-	() => playQueueStore.currentTime,
+	() => playState.playProgress,
 	() => {
 		thumbUpdate()
 	},
 )
 
 function thumbUpdate() {
-	const progress = playQueueStore.currentTime / playQueueStore.duration
+	const progress = playState.playProgressPercent
 	const containerWidth = progressBarContainer.value?.clientWidth || 0
 	const thumbWidth = progressBarThumb.value?.clientWidth || 0
 	const newPosition = (containerWidth - thumbWidth) * progress
@@ -187,33 +189,33 @@ function updateAudioVolume() {
 }
 
 function formatDetector() {
-	/* const format = playQueueStore.list[playQueueStore.currentIndex].sourceUrl?.split('.').pop()
+	const format = playQueueStore.currentTrack.sourceUrl?.split('.').pop()
 	if (format === 'mp3') { return 'MP3' }
 	if (format === 'flac') { return 'FLAC' }
 	if (format === 'm4a') { return 'M4A' }
 	if (format === 'ape') { return 'APE' }
-	if (format === 'wav') { return 'WAV' } */
+	if (format === 'wav') { return 'WAV' }
 	return '未知格式'
 }
 
 function playNext() {
-	if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
-		debugPlayroom('到达播放队列末尾，暂停')
-		playQueueStore.currentIndex = 0
-		playQueueStore.isPlaying = false
-	} else {
-		playQueueStore.currentIndex++
-		playQueueStore.isPlaying = true
-	}
+	// if (playQueueStore.currentIndex === playQueueStore.list.length - 1) {
+	// 	debugPlayroom('到达播放队列末尾，暂停')
+	// 	playQueueStore.currentIndex = 0
+	// 	playQueueStore.isPlaying = false
+	// } else {
+	// 	playQueueStore.currentIndex++
+	// 	playQueueStore.isPlaying = true
+	// }
 }
 
 function playPrevious() {
-	if (playQueueStore.currentTime < 5 && playQueueStore.currentIndex > 0) {
-		playQueueStore.currentIndex--
-		playQueueStore.isPlaying = true
-	} else {
-		playQueueStore.updatedCurrentTime = 0
-	}
+	// if (playQueueStore.currentTime < 5 && playQueueStore.currentIndex > 0) {
+	// 	playQueueStore.currentIndex--
+	// 	playQueueStore.isPlaying = true
+	// } else {
+	// 	playQueueStore.updatedCurrentTime = 0
+	// }
 }
 
 function setupEntranceAnimations() {
@@ -250,31 +252,31 @@ function handlePlayPause() {
 			repeat: 1,
 			ease: 'power2.inOut',
 			onComplete: () => {
-				playQueueStore.isPlaying = !playQueueStore.isPlaying
+				playState.togglePlay()
 			},
 		})
 	} else {
-		playQueueStore.isPlaying = !playQueueStore.isPlaying
+		playState.togglePlay()
 	}
 }
 
 function toggleShuffle() {
-	playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
-	playQueueStore.shuffleCurrent = false
+	// playQueueStore.playMode.shuffle = !playQueueStore.playMode.shuffle
+	// playQueueStore.shuffleCurrent = false
 }
 
 function toggleRepeat() {
-	switch (playQueueStore.playMode.repeat) {
-		case 'off':
-			playQueueStore.playMode.repeat = 'all'
-			break
-		case 'all':
-			playQueueStore.playMode.repeat = 'single'
-			break
-		case 'single':
-			playQueueStore.playMode.repeat = 'off'
-			break
-	}
+	// switch (playQueueStore.playMode.repeat) {
+	// 	case 'off':
+	// 		playQueueStore.playMode.repeat = 'all'
+	// 		break
+	// 	case 'all':
+	// 		playQueueStore.playMode.repeat = 'single'
+	// 		break
+	// 	case 'single':
+	// 		playQueueStore.playMode.repeat = 'off'
+	// 		break
+	// }
 }
 
 function makePlayQueueListPresent() {
@@ -648,7 +650,7 @@ watch(
 					<div ref="albumCover" class="relative">
 						<img :src="getCurrentTrack()?.album?.coverUrl" class="rounded-2xl shadow-2xl border border-white/20 w-96 h-96
 							transition-transform duration-300
-							" :class="playQueueStore.isPlaying ? 'scale-100' : 'scale-85'" />
+							" :class="playState.actualPlaying ? 'scale-100' : 'scale-85'" />
 					</div>
 
 					<!-- Song info with enhanced styling -->
@@ -704,9 +706,9 @@ watch(
 							<!-- ...existing time display code... -->
 							<div class="font-medium flex-1 text-left text-xs relative">
 								<span
-									class="text-black blur-lg absolute top-0 text-xs">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+									class="text-black blur-lg absolute top-0 text-xs">{{ timeFormatter(Math.floor(playState.playProgress)) }}</span>
 								<span
-									class="text-white/90 absolute top-0">{{ timeFormatter(Math.floor(playQueueStore.currentTime)) }}</span>
+									class="text-white/90 absolute top-0">{{ timeFormatter(Math.floor(playState.playProgress)) }}</span>
 							</div>
 							<div class="text-xs text-center relative flex-1">
 								<span class="text-black blur-lg absolute top-0">{{ formatDetector() }}</span>
@@ -718,8 +720,8 @@ watch(
 									class="text-white/90 text-xs font-medium text-right relative transition-colors duration-200 hover:text-white"
 									@click="preferences.displayTimeLeft = !preferences.displayTimeLeft">
 									<span
-										class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
-									<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playQueueStore.duration) - Math.floor(playQueueStore.currentTime) : playQueueStore.duration)}` }}</span>
+										class="text-black blur-lg absolute top-0">{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playState.trackDuration) - Math.floor(playState.playProgress) : playState.trackDuration)}` }}</span>
+									<span>{{ `${preferences.displayTimeLeft ? '-' : ''}${timeFormatter(preferences.displayTimeLeft ? Math.floor(playState.trackDuration) - Math.floor(playState.playProgress) : playState.trackDuration)}` }}</span>
 								</button>
 							</div>
 						</div>
@@ -781,8 +783,8 @@ watch(
 								class="text-white flex-1 h-10 flex justify-center items-center rounded-lg hover:bg-white/25 transition-all duration-200"
 								@click="handlePlayPause" ref="playButton">
 								<!-- ...existing play/pause icon code... -->
-								<div v-if="playQueueStore.isPlaying">
-									<div v-if="playQueueStore.isBuffering" class="w-6 h-6 relative">
+								<div v-if="playState.isPlaying">
+									<div v-if="false" class="w-6 h-6 relative"> <!-- 原本是检测缓冲状态的 -->
 										<span class="text-black/80 blur-lg absolute top-0 left-0">
 											<LoadingIndicator :size="6" />
 										</span>
@@ -939,13 +941,13 @@ watch(
 				<hr class="border-[#ffffff39]" />
 
 				<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-if="playQueueStore.isShuffle">
-					<PlayQueueItem v-for="(oriIndex, shuffledIndex) in playQueueStore.shuffleList"
-						:queueItem="playQueueStore.list[oriIndex]" :isCurrent="playQueueStore.currentIndex === shuffledIndex"
-						:key="playQueueStore.list[oriIndex].song.cid" :index="shuffledIndex" />
+					<!--PlayQueueItem v-for="(oriIndex, shuffledIndex) in playQueueStore.isShuffle"
+						:queueItem="playQueueStore.queue[oriIndex]" :isCurrent="playQueueStore.currentIndex === shuffledIndex"
+						:key="playQueueStore.queue[oriIndex].song.cid" :index="shuffledIndex" /-->
 				</div>
 				<div class="flex-auto h-0 overflow-y-auto px-4 flex flex-col gap-2" v-else>
 					<PlayQueueItem :queueItem="track" :isCurrent="playQueueStore.currentIndex === index"
-						v-for="(track, index) in playQueueStore.list" :index="index" :key="track.song.cid" />
+						v-for="(track, index) in playQueueStore.queue" :index="index" :key="track.song.cid" />
 				</div>
 			</div>
 		</dialog>

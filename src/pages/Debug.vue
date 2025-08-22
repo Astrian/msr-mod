@@ -18,7 +18,6 @@ async function playTheList() {
 		}
 	}
 	playQueue.replaceQueue(newQueue)
-	playState.togglePlay(true)
 }
 
 async function pauseOrResume() {
