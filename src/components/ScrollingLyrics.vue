@@ -90,6 +90,7 @@ import { onMounted, ref, watch, nextTick, computed, onUnmounted } from 'vue'
 import axios from 'axios'
 import gsap from 'gsap'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
+import { usePlayState } from '../stores/usePlayState'
 import { debugLyrics } from '../utils/debug'
 
 // 类型定义
@@ -108,6 +109,7 @@ interface GapLine {
 }
 
 const playQueueStore = usePlayQueueStore()
+const playState = usePlayState()
 
 // 响应式数据
 const parsedLyrics = ref<(LyricsLine | GapLine)[]>([])
@@ -482,7 +484,7 @@ function getGapDotOpacities(line: GapLine) {
 	const duration = line.duration ?? 0
 	if (duration <= 0) return [0.3, 0.3, 0.3]
 	// 当前播放时间
-	const now = playQueueStore.currentTime
+	const now = playState.playProgress
 	// gap 起止时间
 	const start = line.time
 	// 计算进度
@@ -498,7 +500,7 @@ function getGapDotOpacities(line: GapLine) {
 
 // 监听播放时间变化
 watch(
-	() => playQueueStore.currentTime,
+	() => playState.playProgress,
 	(time) => {
 		const newIndex = findCurrentLineIndex(time)
 
