@@ -150,8 +150,8 @@ async function playTheAlbum(from: number = 0) {
 			album: album.value,
 		})
 	}
-	await playQueue.replaceQueue(newQueue)
-	await playState.togglePlay(true)
+	playQueue.replaceQueue(newQueue)
+	playState.togglePlay(true)
 }
 
 function shuffle() {

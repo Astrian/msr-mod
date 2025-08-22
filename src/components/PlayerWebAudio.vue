@@ -17,6 +17,7 @@ class WebAudioPlayer {
 	currentSource: AudioBufferSourceNode | null
 	nextSource: AudioBufferSourceNode | null
 	reportInterval: ReturnType<typeof setTimeout> | null
+	isInternalTrackChange: boolean
 
 	constructor() {
 		this.context = new window.AudioContext()
@@ -25,6 +26,7 @@ class WebAudioPlayer {
 		this.currentSource = null
 		this.nextSource = null
 		this.reportInterval = null
+		this.isInternalTrackChange = false
 		
 		// 创建一个隐藏的 HTML Audio 元素来帮助同步媒体会话状态
 		this.dummyAudio = new Audio()
@@ -146,8 +148,8 @@ class WebAudioPlayer {
 		if (!playQueue.currentTrack) return 
 		
 		// 检查是否已经有音频在播放，避免重复播放
-		if (this.currentSource && playState.actualPlaying) {
-			debugPlayer("已经在播放中，跳过")
+		if (this.currentSource && this.reportInterval) {
+			debugPlayer("已经在播放中，跳过重复播放")
 			return
 		}
 		
@@ -278,16 +280,32 @@ class WebAudioPlayer {
 			return
 		}
 
-		// 3. 切换到下一首
+		// 3. 标记为内部切歌，避免 watch 重复触发
+		this.isInternalTrackChange = true
+		
+		// 4. 切换到下一首
 		playQueue.continueToNext()
 		this.currentSource = this.nextSource
 		this.nextSource = null
 		
-		// 4. 重新计算时间轴并启动进度报告
+		// 5. 重新计算时间轴并启动进度报告
 		this.currentTrackStartTime = this.context.currentTime
 		this.reportProgress()
+		
+		// 6. 为新的当前播放源设置 onended 处理程序
+		if (this.currentSource) {
+			this.currentSource.onended = () => {
+				debugPlayer("当前歌曲播放结束")
+				if (!!this.reportInterval) {
+					debugPlayer("歌曲自然结束")
+					this.onTrackEnded()
+				} else {
+					debugPlayer("用户暂停")
+				}
+			}
+		}
 
-		// 5. 处理下下首
+		// 7. 处理下下首
 		if (playQueue.nextTrack) {
 			debugPlayer("处理下下一首歌")
 			if (this.audioBuffer[playQueue.nextTrack.song.cid]) {
@@ -297,6 +315,11 @@ class WebAudioPlayer {
 				if (playState.actualPlaying) this.scheduleNextTrack()
 			}
 		}
+		
+		// 8. 重置标记
+		setTimeout(() => {
+			this.isInternalTrackChange = false
+		}, 100)
 	}
 }
 
@@ -315,7 +338,7 @@ watch(() => playQueue.currentTrack, (newTrack, oldTrack) => {
 			navigator.mediaSession.playbackState = playState.isPlaying ? 'playing' : 'paused'
 			navigator.mediaSession.metadata = new MediaMetadata({
 				title: newTrack.song.name,
-				artist: artistsOrganize(newTrack.song.artistes ?? []),
+				artist: artistsOrganize(newTrack.song.artistes ?? newTrack.song.artists ?? []),
 				album: newTrack.album?.name,
 				artwork: [
 					{ src: newTrack.album?.coverUrl ?? "",   sizes: '500x500',   type: 'image/png' },
@@ -323,9 +346,9 @@ watch(() => playQueue.currentTrack, (newTrack, oldTrack) => {
 			})
 		}
 		
-		// 如果是自然切歌（onTrackEnded 触发的），不需要重新播放
+		// 如果是内部切歌（onTrackEnded 触发的），不需要重新播放
 		// 只有在用户主动切歌或首次播放时才调用 loadResourceAndPlay
-		if (!playState.actualPlaying || !oldTrack) {
+		if (!playerInstance.value?.isInternalTrackChange) {
 			playerInstance.value?.loadResourceAndPlay()
 		}
 	}
@@ -338,6 +361,18 @@ watch(() => playState.isPlaying, () => {
 	} else {
 		// 恢复音频
 		playerInstance.value?.play()
+	}
+})
+
+watch(() => playQueue.queue, () => {
+	debugPlayer("检测到播放列表更新")
+	// 如果新列表是空的，那么代表用户选择彻底换一个新的播放列表进行播放
+	if (playQueue.queue.length === 0) {
+		debugPlayer("触发暂停播放")
+		// 此时需要暂停播放
+		playerInstance.value?.pause()
+		playState.togglePlay(false)
+		playState.reportPlayProgress(0)
 	}
 })
 </script>
