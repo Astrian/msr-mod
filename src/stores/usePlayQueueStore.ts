@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { debugStore } from '../utils/debug'
+import apis from '../apis'
 
 export const usePlayQueueStore = defineStore('queue', () => {
 	// 内部状态
@@ -10,8 +11,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	const queueReplaceLock = ref(false)
 	const currentPlaying = ref(0) // 当前播放指针，指针在 queueOrder 中寻址（无论是否开启了随机播放）
 	const queueOrder = ref<number[]>([]) // 播放队列顺序
-	const isPlaying = ref(false)
-	const playProgress = ref(0) // 当前曲目的播放时间指针
 
 	// 暴露给外部的响应式只读引用
 	const queueState = computed(() =>
@@ -29,18 +28,27 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		return queue.value[actualIndex] || null
 	})
 
-	// 获取当前播放时间
-	const playProgressState = computed(() => playProgress.value)
+	// 获取上一曲目
+	const previousTrack = computed(() => {
+		const actualIndex = queueOrder.value[currentPlaying.value - 1]
+		return queue.value[actualIndex] || null
+	})
 
-	// 获取当前是否正在播放
-	const playingState = computed(() => isPlaying.value)
+	// 获取下一曲目
+	const nextTrack = computed(() => {
+		const actualIndex = queueOrder.value[currentPlaying.value + 1]
+		return queue.value[actualIndex] || null
+	})
 
 	/************
 	 *	播放队列相关
 	 ***********/
 	// 使用新队列替换老队列
 	// 队列替换锁开启时启用确认，确认后重置该锁
-	async function replaceQueue(newQueue: QueueItem[]) {
+	async function replaceQueue(newQueue: {
+		song: Song,
+		album?: Album
+	}[]) {
 		if (queueReplaceLock.value) {
 			if (
 				!confirm(
@@ -53,12 +61,31 @@ export const usePlayQueueStore = defineStore('queue', () => {
 			queueReplaceLock.value = false
 		}
 
-		// 将新队列替换已有队列
-		queue.value = newQueue
-
-		// 初始化播放顺序
-		queueOrder.value = Array.from({ length: newQueue.length }, (_, i) => i)
+		// 以空队列向外部监听器回报队列已被修改
+		queue.value = []
+		queueOrder.value = []
 		currentPlaying.value = 0
+
+		// 获取最新资源地址
+		let newQueueWithUrl: QueueItem[] = []
+
+		for (const track of newQueue) {
+			const res = await apis.getSong(track.song.cid)
+			newQueueWithUrl[newQueueWithUrl.length] = {
+				song: track.song,
+				album: track.album,
+				sourceUrl: res.sourceUrl ?? "",
+				lyricUrl: res.lyricUrl
+			}
+		}
+
+		debugStore(newQueueWithUrl)
+
+		// 将新队列替换已有队列
+		queue.value = newQueueWithUrl
+
+		// 正式初始化播放顺序
+		queueOrder.value = Array.from({ length: newQueue.length }, (_, i) => i)
 
 		// 关闭随机播放和循环（外部可在此方法执行完毕后再更新播放模式）
 		isShuffle.value = false
@@ -68,12 +95,6 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	/***********
 	 * 播放控制相关
 	 **********/
-	// 控制播放
-	const togglePlay = (turnTo?: boolean) => {
-		const newPlayState = turnTo ?? !isPlaying.value
-		if (newPlayState === isPlaying.value) return
-		isPlaying.value = newPlayState
-	}
 
 	// 跳转至队列的某首歌曲
 	const toggleQueuePlay = (turnTo: number) => {
@@ -90,15 +111,10 @@ export const usePlayQueueStore = defineStore('queue', () => {
 	// 通常为当前曲目播放完毕，需要通过循环模式判断应该重置进度或队列指针 +1
 	const continueToNext = () => {
 		debugStore(loopingMode.value)
-		// TODO: 需要留意 progress seeking 相关
-		if (loopingMode.value === 'single') playProgress.value = 0
-		else currentPlaying.value = currentPlaying.value + 1
-	}
-
-	// 回报播放进度
-	const reportPlayProgress = (progress: number) => {
-		debugStore(`进度更新回报: ${progress}`)
-		playProgress.value = progress
+		// 注意：单曲循环时的进度重置需要在播放状态管理中处理
+		if (loopingMode.value !== 'single') {
+			currentPlaying.value = currentPlaying.value + 1
+		}
 	}
 
 	/************
@@ -178,17 +194,15 @@ export const usePlayQueueStore = defineStore('queue', () => {
 		loopMode: loopModeState,
 		currentTrack,
 		currentIndex: currentPlaying,
-		isPlaying: playingState,
-		playProgress: playProgressState,
+		previousTrack,
+		nextTrack,
 
 		// 修改方法
 		replaceQueue,
 		toggleShuffle,
 		toggleLoop,
-		togglePlay,
 		toggleQueuePlay,
 		skipToNext,
 		continueToNext,
-		reportPlayProgress,
 	}
 })

@@ -9,6 +9,7 @@ import { gsap } from 'gsap'
 import apis from '../apis'
 import { artistsOrganize } from '../utils'
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
+import { usePlayState } from '../stores/usePlayState'
 import TrackItem from './TrackItem.vue'
 import LoadingIndicator from '../assets/icons/loadingindicator.vue'
 import { debugUI } from '../utils/debug'
@@ -138,6 +139,7 @@ watch(
 )
 
 const playQueue = usePlayQueueStore()
+const playState = usePlayState()
 
 async function playTheAlbum(from: number = 0) {
 	let newQueue = []
@@ -148,7 +150,7 @@ async function playTheAlbum(from: number = 0) {
 		})
 	}
 	await playQueue.replaceQueue(newQueue)
-	await playQueue.togglePlay(true)
+	await playState.togglePlay(true)
 }
 
 function shuffle() {

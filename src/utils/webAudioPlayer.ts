@@ -1,415 +1,298 @@
-interface AudioTrack {
-	url: string
-	buffer: AudioBuffer | null
-	source: AudioBufferSourceNode | null
-	gainNode: GainNode | null
+class SimpleAudioPlayer {
+	context: AudioContext
+	currentSource: AudioBufferSourceNode | null
+	audioBuffer: AudioBuffer | null
+	playing: boolean
+	startTime: number
+	pauseTime: number
 	duration: number
-	metadata?: any
-}
-
-interface PlaybackState {
-	isPlaying: boolean
-	currentIndex: number
-	pausedAt: number
-	pausedOffset: number
-}
-
-export class WebAudioGaplessPlayer {
-	private context: AudioContext
-	private masterGain: GainNode
-	private tracks: AudioTrack[] = []
-	private state: PlaybackState = {
-		isPlaying: false,
-		currentIndex: 0,
-		pausedAt: 0,
-		pausedOffset: 0,
-	}
-	private bufferCache: Map<string, AudioBuffer> = new Map()
-	private onTrackEndCallbacks: ((index: number) => void)[] = []
-	private onTrackStartCallbacks: ((index: number) => void)[] = []
-	private preloadAhead = 2
-	private maxCacheSize = 5
+	dummyAudio: HTMLAudioElement
 
 	constructor() {
-		this.context = new (
-			window.AudioContext || (window as any).webkitAudioContext
-		)()
-		this.masterGain = this.context.createGain()
-		this.masterGain.connect(this.context.destination)
+		this.context = new window.AudioContext()
+		this.currentSource = null
+		this.audioBuffer = null
+		this.playing = false
+		this.startTime = 0
+		this.pauseTime = 0
+		this.duration = 0
+		
+		// 创建一个隐藏的 HTML Audio 元素来帮助同步媒体会话状态
+		this.dummyAudio = new Audio()
+		this.dummyAudio.style.display = 'none'
+		this.dummyAudio.loop = true
+		this.dummyAudio.volume = 0.001 // 极小音量
+		// 使用一个很短的静音音频文件，或者生成一个
+		this.createSilentAudioBlob()
+		
+		document.body.appendChild(this.dummyAudio)
+		
+		this.initMediaSession()
 	}
 
-	/**
-	 * Load and decode audio from URL
-	 */
-	private async loadAudio(url: string): Promise<AudioBuffer> {
-		if (this.bufferCache.has(url)) {
-			return this.bufferCache.get(url)!
+	createSilentAudioBlob() {
+		// 创建一个1秒的静音WAV文件
+		const sampleRate = 44100
+		const channels = 1
+		const length = sampleRate * 1 // 1秒
+		
+		const arrayBuffer = new ArrayBuffer(44 + length * 2)
+		const view = new DataView(arrayBuffer)
+		
+		// WAV 文件头
+		const writeString = (offset: number, string: string) => {
+			for (let i = 0; i < string.length; i++) {
+				view.setUint8(offset + i, string.charCodeAt(i))
+			}
 		}
+		
+		writeString(0, 'RIFF')
+		view.setUint32(4, 36 + length * 2, true)
+		writeString(8, 'WAVE')
+		writeString(12, 'fmt ')
+		view.setUint32(16, 16, true)
+		view.setUint16(20, 1, true)
+		view.setUint16(22, channels, true)
+		view.setUint32(24, sampleRate, true)
+		view.setUint32(28, sampleRate * 2, true)
+		view.setUint16(32, 2, true)
+		view.setUint16(34, 16, true)
+		writeString(36, 'data')
+		view.setUint32(40, length * 2, true)
+		
+		// 静音数据（全零）
+		for (let i = 0; i < length; i++) {
+			view.setInt16(44 + i * 2, 0, true)
+		}
+		
+		const blob = new Blob([arrayBuffer], { type: 'audio/wav' })
+		this.dummyAudio.src = URL.createObjectURL(blob)
+	}
 
+	initMediaSession() {
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.setActionHandler('play', () => {
+				console.log('Media session: play requested')
+				this.play()
+			})
+			navigator.mediaSession.setActionHandler('pause', () => {
+				console.log('Media session: pause requested')
+				this.pause()
+			})
+			navigator.mediaSession.setActionHandler('stop', () => {
+				console.log('Media session: stop requested')
+				this.stop()
+			})
+		}
+	}
+
+	async loadResource() {
 		try {
-			const response = await fetch(url)
-			if (!response.ok) {
-				throw new Error(`Failed to fetch audio: ${response.status}`)
+			// 如果已经加载过，直接播放
+			if (this.audioBuffer) {
+				this.play()
+				return
 			}
 
+			// 加载音频
+			const response = await fetch(
+				'https://s3-us-west-2.amazonaws.com/s.cdpn.io/858/outfoxing.mp3'
+			)
 			const arrayBuffer = await response.arrayBuffer()
-			const audioBuffer = await this.context.decodeAudioData(arrayBuffer)
+			this.audioBuffer = await this.context.decodeAudioData(arrayBuffer)
+			this.duration = this.audioBuffer.duration
 
-			this.bufferCache.set(url, audioBuffer)
-			this.cleanupCache()
-
-			return audioBuffer
-		} catch (error) {
-			console.error('Failed to load audio:', error)
-			throw error
-		}
-	}
-
-	/**
-	 * Clean up cache
-	 */
-	private cleanupCache(): void {
-		if (this.bufferCache.size <= this.maxCacheSize) return
-
-		const currentUrls = new Set(
-			this.tracks
-				.slice(
-					Math.max(0, this.state.currentIndex - 1),
-					this.state.currentIndex + this.preloadAhead + 1,
-				)
-				.map((t) => t.url),
-		)
-
-		for (const [url] of this.bufferCache) {
-			if (!currentUrls.has(url) && this.bufferCache.size > this.maxCacheSize) {
-				this.bufferCache.delete(url)
+			// 设置媒体元数据
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.metadata = new MediaMetadata({
+					title: 'Outfoxing the Fox',
+					artist: 'Kevin MacLeod',
+					album: 'YouTube Audio Library',
+				})
 			}
-		}
-	}
 
-	/**
-	 * Add a track to the queue
-	 */
-	async addTrack(url: string, metadata?: any): Promise<number> {
-		const track: AudioTrack = {
-			url,
-			buffer: null,
-			source: null,
-			gainNode: null,
-			duration: 0,
-			metadata,
-		}
-
-		this.tracks.push(track)
-		const index = this.tracks.length - 1
-
-		// Preload if within range
-		if (this.shouldPreload(index)) {
-			await this.preloadTrack(index)
-		}
-
-		return index
-	}
-
-	/**
-	 * Check if a track should be preloaded
-	 */
-	private shouldPreload(index: number): boolean {
-		const distance = index - this.state.currentIndex
-		return distance >= 0 && distance <= this.preloadAhead
-	}
-
-	/**
-	 * Preload a track
-	 */
-	private async preloadTrack(index: number): Promise<void> {
-		const track = this.tracks[index]
-		if (!track || track.buffer) return
-
-		try {
-			track.buffer = await this.loadAudio(track.url)
-			track.duration = track.buffer.duration
+			// 开始播放
+			this.play()
 		} catch (error) {
-			console.error(`Failed to preload track ${index}:`, error)
+			console.error('播放失败:', error)
 		}
 	}
 
-	/**
-	 * Stop current track if playing
-	 */
-	private stopCurrentTrack(): void {
-		const currentTrack = this.tracks[this.state.currentIndex]
-		if (currentTrack?.source) {
-			try {
-				currentTrack.source.stop()
-			} catch (e) {
-				// Source might have already ended
-			}
-			currentTrack.source = null
-			currentTrack.gainNode = null
+	async play() {
+		if (!this.audioBuffer) {
+			this.loadResource()
+			return
 		}
-	}
 
-	/**
-	 * Play a specific track
-	 */
-	async playTrack(index: number): Promise<void> {
-		if (index < 0 || index >= this.tracks.length) return
+		if (this.playing) {
+			console.log('Already playing, ignoring play request')
+			return
+		}
 
-		// Stop any currently playing track
-		this.stopCurrentTrack()
+		console.log('Starting playback from position:', this.pauseTime)
 
-		// Resume context if suspended
+		// 恢复 AudioContext（如果被暂停）
 		if (this.context.state === 'suspended') {
 			await this.context.resume()
 		}
 
-		// Ensure track is loaded
-		await this.preloadTrack(index)
+		// 开始播放隐藏的 audio 元素
+		try {
+			await this.dummyAudio.play()
+		} catch (e) {
+			console.log('Dummy audio play failed (expected):', e)
+		}
 
-		const track = this.tracks[index]
-		if (!track?.buffer) {
-			console.error(`Track ${index} not loaded`)
+		// 创建新的源节点
+		this.currentSource = this.context.createBufferSource()
+		this.currentSource.buffer = this.audioBuffer
+		this.currentSource.connect(this.context.destination)
+
+		// 从暂停位置开始播放
+		const offset = this.pauseTime
+		this.currentSource.start(0, offset)
+		
+		this.startTime = this.context.currentTime - offset
+		this.playing = true
+
+		// 播放结束处理 - 只在自然结束时触发
+		this.currentSource.onended = () => {
+			console.log('Audio naturally ended')
+			// 检查是否真的播放到了结尾
+			const currentTime = this.getCurrentTime()
+			if (currentTime >= this.duration - 0.1) { // 允许小误差
+				console.log('Natural end of track')
+				this.stop()
+			} else {
+				console.log('Audio ended prematurely (likely paused), current time:', currentTime)
+				// 这是由于暂停导致的结束，不做任何处理
+			}
+		}
+
+		// 更新媒体会话状态
+		this.updateMediaSessionState()
+	}
+
+	pause() {
+		console.log('Pause requested, current state - playing:', this.playing, 'hasSource:', !!this.currentSource)
+		
+		// 暂停隐藏的 audio 元素
+		this.dummyAudio.pause()
+		
+		if (!this.playing) {
+			console.log('Already paused, but updating media session state')
+			// 即使已经暂停，也要确保媒体会话状态正确
+			this.updateMediaSessionState()
 			return
 		}
 
-		// Update state
-		this.state.currentIndex = index
-		this.state.isPlaying = true
-		this.state.pausedOffset = 0
-
-		// Create audio nodes
-		const source = this.context.createBufferSource()
-		source.buffer = track.buffer
-
-		const gainNode = this.context.createGain()
-		source.connect(gainNode)
-		gainNode.connect(this.masterGain)
-
-		// Set up callbacks
-		source.onended = () => {
-			this.handleTrackEnded(index)
+		if (!this.currentSource) {
+			console.log('No current source, but updating media session state')
+			this.updateMediaSessionState()
+			return
 		}
 
-		// Store references
-		track.source = source
-		track.gainNode = gainNode
+		console.log('Pausing playback at position:', this.getCurrentTime())
 
-		// Start playing immediately
-		source.start(this.context.currentTime)
+		// 计算当前播放位置
+		this.pauseTime = this.getCurrentTime()
+		
+		// 移除 onended 事件处理器，避免干扰
+		this.currentSource.onended = null
+		
+		// 停止当前源
+		this.currentSource.stop()
+		this.currentSource = null
+		this.playing = false
 
-		// Notify track started
-		this.onTrackStartCallbacks.forEach((cb) => cb(index))
+		// 更新媒体会话状态
+		this.updateMediaSessionState()
+	}
 
-		// Preload next tracks
-		for (let i = 1; i <= this.preloadAhead; i++) {
-			const nextIndex = index + i
-			if (nextIndex < this.tracks.length) {
-				this.preloadTrack(nextIndex).catch(console.error)
+	stop() {
+		console.log('Stopping playback')
+		
+		// 停止隐藏的 audio 元素
+		this.dummyAudio.pause()
+		this.dummyAudio.currentTime = 0
+		
+		if (this.currentSource) {
+			this.currentSource.stop()
+			this.currentSource = null
+		}
+		
+		this.playing = false
+		this.pauseTime = 0
+		this.startTime = 0
+
+		// 更新媒体会话状态
+		this.updateMediaSessionState()
+	}
+
+	togglePlay() {
+		if (this.playing) {
+			this.pause()
+		} else {
+			this.play()
+		}
+	}
+
+	getCurrentTime(): number {
+		if (this.playing && this.currentSource) {
+			return Math.min(this.context.currentTime - this.startTime, this.duration)
+		}
+		return this.pauseTime
+	}
+
+	updateMediaSessionState() {
+		if ('mediaSession' in navigator) {
+			let state = 'none'
+			if (this.playing) {
+				state = 'playing'
+			} else if (this.audioBuffer) {
+				// 只要有音频缓冲区就应该是暂停状态
+				state = 'paused'
+			}
+			
+			console.log('Updating media session state to:', state, '(playing:', this.playing, ', hasBuffer:', !!this.audioBuffer, ')')
+			
+			// 强制设置状态
+			try {
+				navigator.mediaSession.playbackState = state as any
+				
+				// 更新位置信息
+				if ('setPositionState' in navigator.mediaSession && this.duration > 0) {
+					navigator.mediaSession.setPositionState({
+						duration: this.duration,
+						playbackRate: 1.0,
+						position: this.getCurrentTime()
+					})
+				}
+			} catch (error) {
+				console.error('Error updating media session:', error)
 			}
 		}
 	}
 
-	/**
-	 * Handle track ended event
-	 */
-	private handleTrackEnded(index: number): void {
-		const track = this.tracks[index]
-		if (track) {
-			track.source = null
-			track.gainNode = null
-		}
-
-		// Only notify if this is still the current track
-		if (index === this.state.currentIndex) {
-			this.onTrackEndCallbacks.forEach((cb) => cb(index))
-		}
-	}
-
-	/**
-	 * Start playing from a specific index
-	 */
-	async play(startIndex = 0): Promise<void> {
-		await this.playTrack(startIndex)
-	}
-
-	/**
-	 * Play next track
-	 */
-	async playNext(): Promise<void> {
-		const nextIndex = this.state.currentIndex + 1
-		if (nextIndex < this.tracks.length) {
-			await this.playTrack(nextIndex)
-		}
-	}
-
-	/**
-	 * Pause playback
-	 */
-	pause(): void {
-		if (!this.state.isPlaying) return
-
-		this.state.pausedAt = this.context.currentTime
-		this.state.isPlaying = false
-
-		// Calculate paused offset
-		const position = this.getCurrentPosition()
-		if (position) {
-			this.state.pausedOffset = position.trackTime
-		}
-
-		// Stop current track
-		this.stopCurrentTrack()
-
-		// Suspend context to save resources
-		this.context.suspend()
-	}
-
-	/**
-	 * Resume playback
-	 */
-	async resume(): Promise<void> {
-		if (this.state.isPlaying) return
-
-		await this.context.resume()
-
-		const currentTrack = this.tracks[this.state.currentIndex]
-		if (!currentTrack?.buffer) return
-
-		this.state.isPlaying = true
-
-		// Create new source for resume
-		const source = this.context.createBufferSource()
-		source.buffer = currentTrack.buffer
-
-		const gainNode = this.context.createGain()
-		source.connect(gainNode)
-		gainNode.connect(this.masterGain)
-
-		// Calculate remaining duration
-		const remainingDuration = currentTrack.duration - this.state.pausedOffset
-
-		// Resume from offset
-		source.start(this.context.currentTime, this.state.pausedOffset, remainingDuration)
-
-		source.onended = () => this.handleTrackEnded(this.state.currentIndex)
-
-		// Store references
-		currentTrack.source = source
-		currentTrack.gainNode = gainNode
-
-		this.state.pausedOffset = 0
-	}
-
-	/**
-	 * Stop playback
-	 */
-	stop(): void {
-		this.pause()
-		this.state.currentIndex = 0
-		this.state.pausedOffset = 0
-	}
-
-	/**
-	 * Seek to a specific track
-	 */
-	async seekToTrack(index: number): Promise<void> {
-		if (index < 0 || index >= this.tracks.length) return
-		await this.playTrack(index)
-	}
-
-	/**
-	 * Get current playback position
-	 */
-	getCurrentPosition(): {
-		trackIndex: number
-		trackTime: number
-		totalTime: number
-	} | null {
-		if (!this.state.isPlaying) {
-			return {
-				trackIndex: this.state.currentIndex,
-				trackTime: this.state.pausedOffset,
-				totalTime: 0,
+	// 定期更新播放位置
+	startPositionUpdates() {
+		setInterval(() => {
+			if (this.audioBuffer) {
+				this.updateMediaSessionState()
 			}
-		}
-
-		const currentTrack = this.tracks[this.state.currentIndex]
-		if (!currentTrack?.source) return null
-
-		// Estimate current time (not perfectly accurate but good enough)
-		const elapsed = this.context.currentTime - (this.state.pausedAt || 0)
-		const trackTime = Math.min(elapsed + this.state.pausedOffset, currentTrack.duration)
-
-		return {
-			trackIndex: this.state.currentIndex,
-			trackTime,
-			totalTime: trackTime,
-		}
+		}, 1000)
 	}
 
-	/**
-	 * Set volume (0.0 to 1.0)
-	 */
-	setVolume(volume: number): void {
-		this.masterGain.gain.value = Math.max(0, Math.min(1, volume))
-	}
-
-	/**
-	 * Get volume
-	 */
-	getVolume(): number {
-		return this.masterGain.gain.value
-	}
-
-	/**
-	 * Clear all tracks
-	 */
-	clearQueue(): void {
+	// 清理资源
+	destroy() {
 		this.stop()
-		this.tracks = []
-		this.bufferCache.clear()
-	}
-
-	/**
-	 * Register callback for track end event
-	 */
-	onTrackEnd(callback: (index: number) => void): void {
-		this.onTrackEndCallbacks.push(callback)
-	}
-
-	/**
-	 * Register callback for track start event
-	 */
-	onTrackStart(callback: (index: number) => void): void {
-		this.onTrackStartCallbacks.push(callback)
-	}
-
-	/**
-	 * Get audio context
-	 */
-	getContext(): AudioContext {
-		return this.context
-	}
-
-	/**
-	 * Get master gain node
-	 */
-	getMasterGain(): GainNode {
-		return this.masterGain
-	}
-
-	/**
-	 * Destroy the player
-	 */
-	destroy(): void {
-		this.stop()
-		this.clearQueue()
-		this.onTrackEndCallbacks = []
-		this.onTrackStartCallbacks = []
-
+		if (this.dummyAudio) {
+			document.body.removeChild(this.dummyAudio)
+		}
 		if (this.context.state !== 'closed') {
 			this.context.close()
 		}
 	}
 }
+
+export default SimpleWebAudioPlayer
