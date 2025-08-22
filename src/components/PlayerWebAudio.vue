@@ -108,6 +108,7 @@ class WebAudioPlayer {
 				playState.reportPlayProgress(0)
 				playState.reportActualPlaying(false)
 				this.currentSource?.stop()
+				this.nextSource?.stop()
 			}
 
 			// 将音频 buffer 加载到缓存空间
@@ -149,6 +150,7 @@ class WebAudioPlayer {
 		this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
 		this.currentSource.connect(this.context.destination)
 		this.currentSource.start(this.context.currentTime, playState.playProgress)
+		playState.reportActualPlaying(true)
 		this.reportProgress()
 		// 开始预先准备无缝播放下一首
 		// 获取下一首歌接入的时间点
@@ -190,6 +192,7 @@ class WebAudioPlayer {
 		debugPlayer(this.currentSource)
 		this.currentSource?.stop()
 		this.nextSource?.stop()
+		playState.reportActualPlaying(false)
 	}
 
 	stop() {
