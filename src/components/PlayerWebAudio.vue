@@ -2,7 +2,7 @@
 import { usePlayQueueStore } from '../stores/usePlayQueueStore'
 import { usePlayState } from '../stores/usePlayState'
 import { debugPlayer } from '../utils/debug'
-import { watch, ref, onMounted, onUnmounted } from 'vue'
+import { watch, ref, onMounted } from 'vue'
 import artistsOrganize from '../utils/artistsOrganize'
 
 const playQueue = usePlayQueueStore()
@@ -82,11 +82,11 @@ class WebAudioPlayer {
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => {
 				console.log('Media session: play requested')
-				this.play()
+				playState.togglePlay(true)
 			})
 			navigator.mediaSession.setActionHandler('pause', () => {
 				console.log('Media session: pause requested')
-				this.pause()
+				playState.togglePlay(false)
 			})
 			navigator.mediaSession.setActionHandler('stop', () => {
 				console.log('Media session: stop requested')
@@ -148,6 +148,7 @@ class WebAudioPlayer {
 		if (!playState.actualPlaying) {
 			// 如果实际正在播放，那么跳过音轨初始化阶段
 			debugPlayer("开始播放")
+			navigator.mediaSession.playbackState = 'playing'
 			if (playState.playProgress !== 0) debugPlayer(`已经有所进度！${playState.playProgress}`)
 			this.currentSource = this.context.createBufferSource()
 			this.currentSource.buffer = this.audioBuffer[playQueue.currentTrack.song.cid]
@@ -201,6 +202,19 @@ class WebAudioPlayer {
 			const progress = this.context.currentTime - this.currentTrackStartTime
 			playState.reportPlayProgress(progress)
 			playState.reportCurrentTrackDuration(this.audioBuffer[playQueue.currentTrack.song.cid].duration)
+			
+			// 向浏览器回报
+			if (('mediaSession' in navigator) && ('setPositionState' in navigator.mediaSession)) {
+			try {
+				navigator.mediaSession.setPositionState({
+					duration: this.audioBuffer[playQueue.currentTrack.song.cid].duration || 0,
+					playbackRate: 1.0,
+					position: progress,
+				})
+			} catch (error) {
+				debugPlayer('媒体会话位置更新失败:', error)
+			}
+		}
 		}, 100)
 	}
 
@@ -212,6 +226,7 @@ class WebAudioPlayer {
 	}
 
 	pause() {
+		navigator.mediaSession.playbackState = 'paused'
 		debugPlayer("尝试暂停播放")
 		debugPlayer(this.currentSource)
 		this.currentSource?.stop()
@@ -263,6 +278,15 @@ onMounted(() => {
 
 watch(() => playQueue.currentTrack, () => {
 	debugPlayer(`检测到当前播放曲目更新`)
+	navigator.mediaSession.playbackState = playState.isPlaying ? 'playing' : 'paused'
+	navigator.mediaSession.metadata = new MediaMetadata({
+    title: playQueue.currentTrack.song.name,
+    artist: artistsOrganize(playQueue.currentTrack.song.artistes ?? []),
+    album: playQueue.currentTrack.album?.name,
+    artwork: [
+      { src: playQueue.currentTrack.album?.coverUrl ?? "",   sizes: '500x500',   type: 'image/png' },
+    ]
+  })
 	playerInstance.value?.loadResourceAndPlay()
 })
 
